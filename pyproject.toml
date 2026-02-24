@@ -1,0 +1,23 @@
+[project]
+name = "altqft"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "kaiming", email = "12231295@mail.sustech.edu.cn" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "qiskit>=2.3.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.28,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "isort>=8.0.0",
+    "pytest>=9.0.2",
+    "ruff>=0.15.2",
+]
