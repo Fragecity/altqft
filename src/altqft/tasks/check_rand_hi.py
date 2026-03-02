@@ -22,9 +22,13 @@ def is_rand_hi_sinv(nqubits: int, nlayers: int) -> bool:
     qc, _ = build_rand_h_circuit(nqubits, nlayers)
     return is_shift_invariant(qc, col=0, period=2)
 
+
+
+
+# 现在测试，如果具有shift invariant，那么 h_skl 是不是一个
 if __name__ == "__main__":
-    nqubits = 3
-    nlayers = 2
+    nqubits = 4
+    nlayers = 4
     result = is_rand_hi_sinv(nqubits, nlayers)
     print(f"随机Hadamard电路是否具有shift invariant: {result}")
 

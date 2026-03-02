@@ -98,14 +98,16 @@ def build_rand_sinv_circuit(nqubits: int, nlayers: int) -> tuple[QuantumCircuit,
 if __name__ == "__main__":
     # 设置参数
     num_qubits = 4
-    num_layers = 2
+    num_layers = 4
+    # from qiskit import transpile
 
-    print(f"--- 正在生成包含 {num_qubits} 个比特的随机 CP Block ---")
-    cp_block = rand_cp_block(num_qubits)
-    print(cp_block.draw(output='text'))
 
-    print("\n" + "="*50 + "\n")
 
-    print(f"--- 正在生成完整的随机 Hadamard 电路 (Layers: {num_layers}) ---")
-    full_circuit, _ = build_rand_h_circuit(num_qubits, num_layers)
-    print(full_circuit.draw(output='text'))
+    # print(f"--- 正在生成完整的随机 sinv 电路 (Layers: {num_layers}) ---")
+    # full_circuit, _ = build_rand_sinv_circuit(num_qubits, num_layers)
+    # print(transpile(full_circuit, optimization_level=2).draw(output='text'))
+    qc,_ = build_rand_h_circuit(num_qubits,num_layers)
+    print(qc)
+
+    res = is_shift_invariant(qc,2,4)
+    print(res)

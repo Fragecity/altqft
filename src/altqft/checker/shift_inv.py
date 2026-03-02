@@ -45,7 +45,9 @@ def make_prob(circuit: QuantumCircuit, period: int) -> Callable[[int, int], floa
     
     def prob(col: int, shift: int) -> float:
         # 按照公式计算: abs( sum_k U_{shift+k*period, col} )^2 / num_k
-        sum_val = sum(U[shift + k * period, col] for k in range(num_k))
+        effect_elements = np.array([U[shift + k * period, col]/ U[0,0] for k in range(num_k)])
+        
+        sum_val = sum(effect_elements)
         return (np.abs(sum_val) ** 2) / num_k
         
     return prob
