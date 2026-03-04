@@ -1,6 +1,7 @@
 import pennylane as qml
 import torch
 from typing import Callable
+import time
 
 
 def lr_circuit(theta: torch.Tensor, nqubit: int) -> None:
@@ -54,7 +55,7 @@ def make_cost(nqubit: int):
             # 使用 torch.stack 保持梯度追踪
             dist = torch.stack([prob_fn(x) for x in range(2**nqubit)])
             # 归一化以确保其为合法的概率分布
-            dist = dist / (torch.sum(dist) + 1e-12)
+            # print(dist)
             func_pools.append(dist)
 
         # 计算相邻周期分布之间的交叉熵并取最大值
@@ -63,8 +64,8 @@ def make_cost(nqubit: int):
             cross_entropy(func_pools[i], func_pools[i + 1])
             for i in range(len(func_pools) - 1)
         ]
-
-        return torch.logsumexp(-torch.stack(ce_values), dim=0)
+        # print(ce_values)
+        return -torch.logsumexp(-torch.stack(ce_values), dim=0)
 
     return cost_function, bound_circuit
 
@@ -80,66 +81,79 @@ def make_prob(U: torch.Tensor, period: int) -> Callable:
     return prob
 
 
-def train(nqubit: int, epochs: int, lr: float, file_handle):
-    """
-    通用训练函数，并将结果写入传入的 file_handle
-    """
+def train(nqubit: int, epochs: int, lr: float, file_handle, init_params: torch.Tensor = None):
+    # 计算当前量子比特数量所需的参数量
     n_params = len(range(0, nqubit, 2)) * len(range(1, nqubit, 2))
-
-    # 初始参数全设为 0
-    params = torch.zeros(n_params, requires_grad=True)
+    
+    # 【需求 1】: 支持接收特殊的初始参数
+    if init_params is not None:
+        # 使用传入的参数，clone() 是为了避免影响原变量，requires_grad_() 开启梯度
+        params = init_params.clone().detach().requires_grad_(True)
+    else:
+        # 如果没传，默认设为全 0
+        params = torch.zeros(n_params, requires_grad=True)
+        
     cost_fn, _ = make_cost(nqubit)
     optimizer = torch.optim.Adam([params], lr=lr)
-
+    
     header = f"\n========== 开始训练 {nqubit} 比特线路 ==========\n"
     header += f"参数数量: {n_params} | 学习率: {lr} | 训练轮次: {epochs}\n"
     print(header.strip())
-    file_handle.write(header)
-
+    file_handle.write(header + "\n")
+    
+    start_time = time.time()
+    
     for epoch in range(epochs):
         optimizer.zero_grad()
         loss = cost_fn(params)
-
+        
         if loss.dim() > 0:
             loss = loss.sum()
-
+            
         loss.backward()
         optimizer.step()
-
-        # 将参数转换为普通的 Python list 以便写入 txt
-        current_params_list = params.detach().numpy().tolist()
-        params_str = "[" + ", ".join([f"{p:.4f}" for p in current_params_list]) + "]"
-
-        # 记录每一步的数据
-        log_line = (
-            f"Epoch {epoch + 1:3d} | Loss: {loss.item():.6f} | Params: {params_str}\n"
-        )
-        file_handle.write(log_line)
-
-        # 控制台仅每 10 轮打印一次
-        if (epoch + 1) % 10 == 0 or epoch == 0:
-            print(log_line.strip())
-
-    footer = f"--- {nqubit} 比特训练完成 ---\n\n"
+        
+        # 每隔 5 个 epoch 记录一次，以及第 1 个 epoch
+        if (epoch + 1) % 5 == 0 or epoch == 0:
+            # 将参数转换为普通的 Python list 写入 txt
+            current_params_list = params.detach().numpy().tolist()
+            params_str = "[" + ", ".join([f"{p:.4f}" for p in current_params_list]) + "]"
+            
+            # txt 文件中保留参数细节
+            log_line = f"Epoch {epoch + 1:3d} | Loss: {loss.item():.6f} | Params: {params_str}\n"
+            file_handle.write(log_line)
+            # 【需求 2】: 控制台不再打印参数，只打印 Loss，保持清爽
+            print(f"Epoch {epoch + 1:3d} | Loss: {loss.item():.6f}")
+            
+    elapsed = time.time() - start_time
+    footer = f"--- 训练阶段完成，耗时: {elapsed:.2f} 秒 ---\n\n"
     print(footer.strip())
     file_handle.write(footer)
-    file_handle.flush()  # 强制写入硬盘
+    file_handle.flush()
+    
+    # 【需求 2】: 训练完毕返回参数（供保存或传给下一阶段）
+    return params
 
-
-# --- 测试代码 ---
 if __name__ == "__main__":
-    # 配置训练参数
-    EPOCHS = 50  # 训练轮次
-    LR = 0.1  # 学习率
-    FILE_NAME = "training_landscape.txt"
-
-    # 打开文件，使用 'w' 模式会覆盖旧文件。想追加可以改为 'a'
+    FILE_NAME = "training_10_qubits.txt"
+    SAVE_MODEL_NAME = "trained_params_10q.pt"
+    
     with open(FILE_NAME, "w", encoding="utf-8") as f:
-        f.write("=== 量子线路训练数据记录 (Loss & Landscape) ===\n")
-
-        # 从 2 比特遍历到 10 比特
-        # 注意：为了避免长时间卡住，如果你发现 8 或 10 比特太慢，可以随时使用 Ctrl+C 中断
-        for qubits in range(2, 11):
-            train(nqubit=qubits, epochs=EPOCHS, lr=LR, file_handle=f)
-
-    print(f"所有训练结束！数据已成功保存至 {FILE_NAME}")
+        f.write("=== 量子线路训练数据记录 (两阶段训练) ===\n")
+        
+        # 【需求 3】: 设置比特数为 10
+        n_qubits = 10
+        
+        # 第一阶段：用 lr = 0.3 训练 100 步
+        print(">>> [阶段一] 开始高学习率快速探索 (lr=0.3, epochs=100) <<<")
+        params_stage1 = train(nqubit=n_qubits, epochs=80, lr=0.2, file_handle=f)
+        
+        # 第二阶段：将第一阶段训练好的 params_stage1 传进去，用 lr = 0.1 训练 200 步
+        print("\n>>> [阶段二] 开始低学习率精细微调 (lr=0.1, epochs=200) <<<")
+        params_stage2 = train(nqubit=n_qubits, epochs=100, lr=0.1, file_handle=f, init_params=params_stage1)
+        
+    # 保存最终训练出来的参数为 PyTorch 格式 (.pt 文件)
+    torch.save(params_stage2, SAVE_MODEL_NAME)
+    print(f"\n✅ 所有训练结束！")
+    print(f"日志数据已成功保存至: {FILE_NAME}")
+    print(f"模型参数已成功保存至: {SAVE_MODEL_NAME}")
