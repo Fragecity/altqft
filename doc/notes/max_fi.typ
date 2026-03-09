@@ -10,9 +10,8 @@ we proof that a circuit with the following construction is shift invariant:
     1, $H$, 2, ctrl(1), ctrl(-1), [\ ],
     3, ctrl(), ctrl(), 1,$H$,1
   )
+
 #{
-
-
   let qc2 = quantum-circuit(
     1, $H$, ctrl(1), ctrl(2), [\ ],
     2, ctrl(), 3, ctrl(), $H$, [\ ], 

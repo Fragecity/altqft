@@ -1,0 +1,73 @@
+.
+├── data
+│   ├── period_model_10q.pth
+│   ├── period_model_2q.pth
+│   ├── period_model_3q.pth
+│   ├── period_model_4q.pth
+│   ├── period_model_5q.pth
+│   ├── period_model_6q.pth
+│   ├── period_model_7q.pth
+│   ├── period_model_8q.pth
+│   ├── period_model_9q.pth
+│   └── training_landscape.txt
+├── doc
+│   ├── archieve
+│   │   ├── hi-circ.pdf
+│   │   └── hi-circ.typ
+│   └── notes
+│       ├── max_fi.pdf
+│       ├── max_fi.typ
+│       ├── sinv.pdf
+│       └── sinv.typ
+├── fig
+├── pyproject.toml
+├── README.md
+├── src
+│   └── altqft
+│       ├── backt
+│       │   ├── runnn.py
+│       │   └── xiaorong.py
+│       ├── circuits
+│       │   ├── ph.py
+│       │   └── __pycache__
+│       │       ├── hih.cpython-311.pyc
+│       │       ├── ph.cpython-311.pyc
+│       │       └── rand_his.cpython-311.pyc
+│       ├── __init__.py
+│       ├── nn
+│       │   ├── model.py
+│       │   ├── process_qc.py
+│       │   ├── __pycache__
+│       │   │   └── process_qc.cpython-311.pyc
+│       │   └── train.py
+│       ├── __pycache__
+│       │   └── __init__.cpython-311.pyc
+│       ├── py.typed
+│       ├── state
+│       │   ├── flib.py
+│       │   └── state.py
+│       └── tasks
+│           ├── check_rand_hi.py
+│           ├── draw_counts.py
+│           ├── draw_fi_circuit.py
+│           └── evaluate_init_cost.py
+├── tests
+│   ├── circuits
+│   │   ├── __pycache__
+│   │   │   ├── test_circuit_is_sinv.cpython-311-pytest-9.0.2.pyc
+│   │   │   ├── test_circuits.cpython-311-pytest-9.0.2.pyc
+│   │   │   ├── test_initial_state.cpython-311-pytest-9.0.2.pyc
+│   │   │   └── test_rand_his.cpython-311-pytest-9.0.2.pyc
+│   │   ├── test_circuit_is_sinv.py
+│   │   ├── test_circuits.py
+│   │   ├── test_initial_state.py
+│   │   └── test_rand_his.py
+│   └── test_nn
+│       ├── __pycache__
+│       │   ├── test_checker.cpython-311-pytest-9.0.2.pyc
+│       │   └── test_process_qc.cpython-311-pytest-9.0.2.pyc
+│       └── test_process_qc.py
+├── tree.txt
+└── uv.lock
+
+21 directories, 50 files

@@ -5,6 +5,11 @@ build/
 dist/
 wheels/
 *.egg-info
+.vscode/
 
 # Virtual environments
 .venv
+
+# Large files
+data/
+model/

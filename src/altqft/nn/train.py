@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-from altqft.circuits  import hih # 导入你的原函数模块
+from altqft.circuits  import ph # 导入你的原函数模块
 
 # ==========================================
 # 1. 数据预处理与生成
@@ -44,7 +44,7 @@ def generate_dataset(n_qubits, num_samples, shots, repeat_factor=5):
             a = np.random.randint(lower_bound, upper_bound)
         
         try:
-            solutions_1 = hih.find_solutions(a, 1, N, n_qubits)
+            solutions_1 = ph.find_solutions(a, 1, N, n_qubits)
             if len(solutions_1) < 2:
                 continue
                 
@@ -53,12 +53,12 @@ def generate_dataset(n_qubits, num_samples, shots, repeat_factor=5):
                 continue
             c = np.random.randint(1, period)
             
-            sols = hih.find_solutions(a, c, N, n_qubits)
+            sols = ph.find_solutions(a, c, N, n_qubits)
             if len(sols) < 2:
                 continue
                 
             # 运行电路
-            _, counts, correct_period = hih.run_lr_on_initial_state(a, c, N, n_qubits, shots=shots)
+            _, counts, correct_period = ph.run_lr_on_initial_state(a, c, N, n_qubits, shots=shots)
             
             if counts is not None:
                 features = counts_to_vector(counts, n_qubits, shots)

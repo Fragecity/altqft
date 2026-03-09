@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from qiskit.visualization import plot_histogram
-from altqft.circuits import hih # 导入你的量子电路模块
+from altqft.circuits import ph # 导入你的量子电路模块
 
 # ==========================================
 # 1. 设置想要测试的参数
@@ -26,7 +26,7 @@ print("这可能需要几十秒的时间，请稍候...")
 # ==========================================
 # 2. 运行电路并获取 counts
 # ==========================================
-circuit, counts, correct_period = hih.run_lr_on_initial_state(a, c, N, n_qubits, shots=shots)
+circuit, counts, correct_period = ph.run_lr_on_initial_state(a, c, N, n_qubits, shots=shots)
 
 # if counts is not None:
 #     print(f"真实周期: {correct_period}")
