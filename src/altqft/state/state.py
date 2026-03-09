@@ -1,4 +1,6 @@
-from altqft.state
+import math
+import numpy as np
+from qiskit import QuantumCircuit
 
 def initial_state_from_solutions(solutions, n):
     """
@@ -39,7 +41,7 @@ def qiskit_initial_state(solutions, n):
     返回:
         qc: Qiskit QuantumCircuit，其初始态为 sum_{x in solutions} |x>
     """
-    # 1. 生成归一化的态矢量 (实数)
+
     total = 1 << n  # 2**n
     k = len(solutions)
     if k == 0:
@@ -52,12 +54,8 @@ def qiskit_initial_state(solutions, n):
         if x < total:
             state_vector[x] = factor
     
-    # 2. 创建 Qiskit 量子电路
     qc = QuantumCircuit(n)
     
-    # 3. 使用 initialize 方法设置初始态
     qc.initialize(state_vector, range(n)) #type: ignore
     
     return qc
-
-

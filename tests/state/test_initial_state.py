@@ -1,8 +1,9 @@
 import unittest
 import numpy as np
 from qiskit.quantum_info import Statevector
-# 确保 hih.py 在同一目录下或已正确配置路径
-from altqft.circuits.hih import find_solutions, make_qiskit_initial_state
+
+from altqft.state.flib import find_solutions
+from altqft.state.state import qiskit_initial_state
 
 class TestFindSolutions(unittest.TestCase):
     
@@ -32,7 +33,6 @@ class TestFindSolutions(unittest.TestCase):
         self.assertEqual(find_solutions(0, 0, 5, 3), list(range(1, 8)))
         # c=1 时不应包含 x>0
         self.assertEqual(find_solutions(0, 1, 5, 3), [0])
-    
     
     def test_no_solution_corrected(self):
         """修正测试：无解的情况"""
@@ -73,11 +73,9 @@ class TestQiskitInitialState(unittest.TestCase):
         n = 2
         
         # 1. 生成电路
-        # 修正：传入 solutions 列表而不是态矢量
-        qc = make_qiskit_initial_state(solutions, n)
+        qc = qiskit_initial_state(solutions, n)
         
         # 2. 使用最新的 Statevector 接口获取末态
-        # 这是 Qiskit SDK 自带的功能，不需要安装 Aer
         state = Statevector.from_instruction(qc)
         
         # 3. 构造预期的理论态矢量
@@ -87,7 +85,6 @@ class TestQiskitInitialState(unittest.TestCase):
             expected_state[idx] = expected_amplitude
         
         # 4. 验证保真度 (Fidelity) 或 直接对比
-        # is_approx 等效于 np.allclose
         is_match = np.allclose(state.data, expected_state)
         print(f"  -> 态矢量是否一致? {is_match}")
         
@@ -104,21 +101,22 @@ class TestQiskitInitialState(unittest.TestCase):
         print(f"  预期的有效解 (solutions): {solutions}")
         print(f"  量子比特数 (n): {n}")
         
-        qc = make_qiskit_initial_state(solutions, n)
+        qc = qiskit_initial_state(solutions, n)
         
         # 使用 Statevector 的 sample_counts 模拟 1000 次采样
         state = Statevector.from_instruction(qc)
         counts = state.sample_counts(shots=1000)
         
-        print(f"  -> 原始采样统计 (十六进制 counts): {counts}")
+        print(f"  -> 原始采样统计 (二进制 counts): {counts}")
         
-        # 验证采样出的 key（十六进制或十进制）是否在 solutions 中
-        for hex_key, count in counts.items():
-            decimal_key = int(hex_key, 2) # Statevector 采样返回十六进制 key
-            print(f"  -> 解析测量值: 16进制 '{hex_key}' -> 10进制 {decimal_key} (共采样到 {count} 次)")
+        # 验证采样出的 key（Qiskit 返回的是二进制字符串）是否在 solutions 中
+        for bin_key, count in counts.items():
+            decimal_key = int(bin_key, 2)
+            print(f"  -> 解析测量值: 2进制 '{bin_key}' -> 10进制 {decimal_key} (共采样到 {count} 次)")
             
             self.assertIn(decimal_key, solutions, f"非法测量结果: {decimal_key} 不在预期解 {solutions} 中")
             
         print("--- [DEBUG] test_sample_counts 通过 ---")
+
 if __name__ == '__main__':
     unittest.main()
