@@ -1,9 +1,19 @@
 import numpy as np
-from typing import Callable
+from typing import Callable, Iterable
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
+from dataclasses import dataclass
 
-def make_prob(circuit: QuantumCircuit, period: int) -> Callable[[int, int], float]:
+ProbFunc = Callable[[int, int], float]
+
+@dataclass
+class FiData:
+    circuit_type: str
+    nqubit: int
+    nlayer: int
+    fi_val: float
+
+def make_prob(circuit: QuantumCircuit, period: int) -> ProbFunc:
     """
     计算给定量子电路的矩阵在指定列上具有shift invariant的概率。
     
@@ -25,3 +35,44 @@ def make_prob(circuit: QuantumCircuit, period: int) -> Callable[[int, int], floa
         return (np.abs(sum_val) ** 2) / num_k
         
     return prob
+
+def fi(sinv_prob: ProbFunc, col: int, period: int) -> float:
+    """
+    计算指定列 (col) 的离散 Fisher Information。
+    """
+    fisher_info = 0.0
+    for shift in range(period):
+        p_x = sinv_prob(col, shift)
+        p_x_minus_1 = sinv_prob(col, (shift - 1) % period)
+        
+        if p_x > 1e-12:
+            fisher_info += ((p_x - p_x_minus_1) ** 2) / p_x
+            
+    return fisher_info
+
+def min_fi(circuit: QuantumCircuit, period_range: Iterable[int]) -> float:
+    """
+    计算在给定的多个周期下，遍历所有可能初始态（列）后得到的最小 Fisher Information。
+    
+    Args:
+        circuit (QuantumCircuit): 要计算的量子电路。
+        period_range (Iterable[int]): 需要遍历的周期列表或范围，例如 [2, 4, 8] 或 range(2, 5)。
+        
+    Returns:
+        float: 所有给定周期和所有初始态中最小的 Fisher Information 值。
+    """
+    N = 2 ** circuit.num_qubits
+    global_min_fi = float('inf')
+    
+    for period in period_range:
+
+        prob = make_prob(circuit, period)
+        
+
+        period_min_fi = min(fi(prob, col, period) for col in range(N))
+        
+        if period_min_fi < global_min_fi:
+            global_min_fi = period_min_fi
+            
+    return global_min_fi
+

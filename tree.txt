@@ -1,0 +1,76 @@
+.
+├── doc
+│   ├── archieve
+│   │   ├── hi-circ.pdf
+│   │   └── hi-circ.typ
+│   ├── notes
+│   │   ├── max_fi.pdf
+│   │   ├── max_fi.typ
+│   │   ├── sinv.pdf
+│   │   └── sinv.typ
+│   └── paper
+│       ├── appendix.tex
+│       ├── main.bbl
+│       ├── mainNotes.bib
+│       ├── main.pdf
+│       ├── main.synctex.gz
+│       ├── main.tex
+│       ├── points.md
+│       ├── ref.bib
+│       └── tmp.typ
+├── figs
+│   └── illus
+│       ├── illus v0.0.1.svg
+│       └── illus v0.1.0.pdf
+├── pyproject.toml
+├── README.md
+├── src
+│   └── altqft
+│       ├── circuits
+│       │   ├── ph.py
+│       │   └── __pycache__
+│       │       ├── hih.cpython-311.pyc
+│       │       ├── ph.cpython-311.pyc
+│       │       └── rand_his.cpython-311.pyc
+│       ├── draw
+│       │   └── paper_util.py
+│       ├── __init__.py
+│       ├── nn
+│       │   ├── data_gen.py
+│       │   ├── model.py
+│       │   ├── process_qc.py
+│       │   ├── __pycache__
+│       │   │   └── process_qc.cpython-311.pyc
+│       │   └── train.py
+│       ├── __pycache__
+│       │   └── __init__.cpython-311.pyc
+│       ├── py.typed
+│       ├── state
+│       │   ├── flib.py
+│       │   ├── __pycache__
+│       │   │   ├── flib.cpython-311.pyc
+│       │   │   └── state.cpython-311.pyc
+│       │   └── state.py
+│       └── tasks
+├── tests
+│   ├── circuits
+│   │   ├── __pycache__
+│   │   │   ├── test_circuit_is_sinv.cpython-311-pytest-9.0.2.pyc
+│   │   │   ├── test_circuits.cpython-311-pytest-9.0.2.pyc
+│   │   │   ├── test_initial_state.cpython-311-pytest-9.0.2.pyc
+│   │   │   └── test_rand_his.cpython-311-pytest-9.0.2.pyc
+│   │   └── test_circuit_is_sinv.py
+│   ├── nn
+│   │   ├── __pycache__
+│   │   │   ├── test_checker.cpython-311-pytest-9.0.2.pyc
+│   │   │   └── test_process_qc.cpython-311-pytest-9.0.2.pyc
+│   │   └── test_process_qc.py
+│   └── state
+│       ├── __pycache__
+│       │   ├── test_initial_state.cpython-311-pytest-9.0.2.pyc
+│       │   └── test_rand_his.cpython-311-pytest-9.0.2.pyc
+│       └── test_initial_state.py
+├── tree.txt
+└── uv.lock
+
+25 directories, 49 files
