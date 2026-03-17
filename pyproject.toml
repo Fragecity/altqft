@@ -1,0 +1,29 @@
+[project]
+name = "altqft"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "kaiming", email = "12231295@mail.sustech.edu.cn" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "ipykernel>=7.2.0",
+    "matplotlib>=3.10.8",
+    "pennylane>=0.44.0",
+    "pip>=26.0.1",
+    "qiskit>=2.3.0",
+    "sympy>=1.14.0",
+    "torch>=2.10.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.28,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "isort>=8.0.0",
+    "pytest>=9.0.2",
+    "ruff>=0.15.2",
+]
