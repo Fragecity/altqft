@@ -60,6 +60,9 @@ def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
     return qc
 
 
+
+
+
 # def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
 #     # hlayout gives order of controls
 #     nqubit = len(hlayout)
@@ -110,42 +113,71 @@ def qft(nqubit: int) -> QuantumCircuit:
     return ph_qc(hlayout, phase)
 
 
-def ph_phase(hlayout: list) -> QuantumCircuit:
+# def ph_phase(hlayout: list) -> QuantumCircuit:
         
-    """
-    生成ph线路所需要的phase
-    结合已有的ph_qc函数，生成量子线路
-    no hadamard gates, only phase 
-    """
+#     """
+#     生成ph线路所需要的phase
+#     结合已有的ph_qc函数，生成量子线路
+#     no hadamard gates, only phase 
+#     """
 
 
-    # 分层
-    groups = [[i for i, x in enumerate(hlayout) if x == layer] for layer in range(max(hlayout)+1)]
+#     # 分层
+#     groups = [[i for i, x in enumerate(hlayout) if x == layer] for layer in range(max(hlayout)+1)]
 
-    # 建连接
-    connections = [
-    (layer, control, target)
-    for layer in range(len(groups)-1)
-    for control in groups[layer]
-    for target in groups[layer+1]]
-
-
-
-    # 对每条连接计算 phase = pi / 2^(j-i)
+#     # 建连接
+#     connections = [
+#     (layer, control, target)
+#     for layer in range(len(groups)-1)
+#     for control in groups[layer]
+#     for target in groups[layer+1]]
 
 
-    phases = np.array([np.pi / (2 ** abs(target - control)) 
-                       for layer, control, target in connections])
+
+#     # 对每条连接计算 phase = pi / 2^(j-i)
+
+
+#     phases = np.array([np.pi / (2 ** abs(target - control)) 
+#                        for layer, control, target in connections])
     
+#     return ph_qc(hlayout, phases)
+    
+
+
+def ph_phase(hlayout: list) -> QuantumCircuit:
+    """
+    按照 ph_qc 的连接顺序生成 phase：
+    当前层 control 连接到后面所有还未作为 control 的 qubit。
+    """
+    nqubit = len(hlayout)
+    phases = []
+
+    rest = set(range(nqubit))
+
+    for layer in range(max(hlayout) + 1):
+        hlayer = [i for i, x in enumerate(hlayout) if x == layer]
+
+        # 当前层作为 control 后，从剩余集合中移除
+        current_rest = rest.copy()
+        rest = rest - set(hlayer)
+        
+        # ph_qc 中实际连接的是：当前 hlayer -> 更新后的 rest
+        targets = sorted(rest)
+        controls = hlayer
+
+        for control in controls:
+            for target in targets:
+                phases.append(np.pi / (2 ** abs(target - control)))
+
+    phases = np.array(phases)
     return ph_qc(hlayout, phases)
-    
 
 
 
 
 if __name__ == "__main__":
-    # qc = ph_qc([0,1,0,1], np.zeros(4))
-    # print(qc.draw())
+    qc = ph_qc([0,1,0,1], np.zeros(4))
+    print(qc.draw())
 
     qc = ph_phase([0,1,0,1])
     print(qc.draw())
@@ -153,5 +185,5 @@ if __name__ == "__main__":
     qc = ph_phase([0,1,2,0,1,2])
     print(qc.draw())
 
-    # qc = qft(4)
-    # print(qc.draw())
+    qc = qft(4)
+    print(qc.draw())
