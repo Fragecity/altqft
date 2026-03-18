@@ -34,33 +34,33 @@ def hp_layer(ctx: QCEnv, parameters: ArrayInput) -> QuantumCircuit:
             para_idx += 1 
     return qc
 
-def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
-    # hlayout gives order of controls
-    nqubit = len(hlayout)
-    rest = set(range(nqubit))
-    ctx = QCEnv(nqubit, rest, set())
-    qc = QuantumCircuit(nqubit)
-    idx = 0
+# def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
+#     # hlayout gives order of controls
+#     nqubit = len(hlayout)
+#     rest = set(range(nqubit))
+#     ctx = QCEnv(nqubit, rest, set())
+#     qc = QuantumCircuit(nqubit)
+#     idx = 0
     
-    for i in range(max(hlayout) + 1):
-        # find the maximum number of layers
-        hlayer = find_indices(hlayout, i)
+#     for i in range(max(hlayout) + 1):
+#         # find the maximum number of layers
+#         hlayer = find_indices(hlayout, i)
 
-        ctx.curr_hlayer = hlayer
-        # the current qubit controlling
-        ctx.rest_qubits = rest  
-        rest = rest - hlayer
-        # the real rest
-        num_para = len(hlayer) * len(rest)
+#         ctx.curr_hlayer = hlayer
+#         # the current qubit controlling
+#         ctx.rest_qubits = rest  
+#         rest = rest - hlayer
+#         # the real rest
+#         num_para = len(hlayer) * len(rest)
         
-        qc.compose(hp_layer(ctx, phase[idx: idx+ num_para]), inplace=True)
-        # cut the needed phase segment phase[idx: idx+ num_para]
-        idx += num_para
+#         qc.compose(hp_layer(ctx, phase[idx: idx+ num_para]), inplace=True)
+#         # cut the needed phase segment phase[idx: idx+ num_para]
+#         idx += num_para
 
-    return qc
+#     return qc
 
 
-def ph_qc2(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
+def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
     # hlayout gives order of controls
     nqubit = len(hlayout)
     qc = QuantumCircuit(nqubit)
@@ -137,7 +137,7 @@ def ph_phase(hlayout: list) -> QuantumCircuit:
     phases = np.array([np.pi / (2 ** abs(target - control)) 
                        for layer, control, target in connections])
     
-    return ph_qc2(hlayout, phases)
+    return ph_qc(hlayout, phases)
     
 
 
