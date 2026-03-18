@@ -34,59 +34,59 @@ def hp_layer(ctx: QCEnv, parameters: ArrayInput) -> QuantumCircuit:
             para_idx += 1 
     return qc
 
-# def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
-#     # hlayout gives order of controls
-#     nqubit = len(hlayout)
-#     rest = set(range(nqubit))
-#     ctx = QCEnv(nqubit, rest, set())
-#     qc = QuantumCircuit(nqubit)
-#     idx = 0
-    
-#     for i in range(max(hlayout) + 1):
-#         # find the maximum number of layers
-#         hlayer = find_indices(hlayout, i)
-
-#         ctx.curr_hlayer = hlayer
-#         # the current qubit controlling
-#         ctx.rest_qubits = rest  
-#         rest = rest - hlayer
-#         # the real rest
-#         num_para = len(hlayer) * len(rest)
-        
-#         qc.compose(hp_layer(ctx, phase[idx: idx+ num_para]), inplace=True)
-#         # cut the needed phase segment phase[idx: idx+ num_para]
-#         idx += num_para
-
-#     return qc
-
-
 def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
     # hlayout gives order of controls
     nqubit = len(hlayout)
+    rest = set(range(nqubit))
+    ctx = QCEnv(nqubit, rest, set())
     qc = QuantumCircuit(nqubit)
     idx = 0
-    max_layer = max(hlayout)
+    
+    for i in range(max(hlayout) + 1):
+        # find the maximum number of layers
+        hlayer = find_indices(hlayout, i)
 
-    for i in range(max_layer):
-        # 当前层
-        curr_hlayer = find_indices(hlayout, i)
-        # 下一层
-        next_hlayer = find_indices(hlayout, i + 1)
-
-        ctx = QCEnv(nqubit, next_hlayer, curr_hlayer)
-
-        # 相邻层之间的参数数量
-        num_para = len(curr_hlayer) * len(next_hlayer)
-
-        qc.compose(hp_layer(ctx, phase[idx: idx + num_para]), inplace=True)
+        ctx.curr_hlayer = hlayer
+        # the current qubit controlling
+        ctx.rest_qubits = rest  
+        rest = rest - hlayer
+        # the real rest
+        num_para = len(hlayer) * len(rest)
+        
+        qc.compose(hp_layer(ctx, phase[idx: idx+ num_para]), inplace=True)
+        # cut the needed phase segment phase[idx: idx+ num_para]
         idx += num_para
 
-    # 最后一层补 Hadamard
-    last_hlayer = find_indices(hlayout, max_layer)
-    for q in sorted(last_hlayer):
-        qc.h(q)
-
     return qc
+
+
+# def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
+#     # hlayout gives order of controls
+#     nqubit = len(hlayout)
+#     qc = QuantumCircuit(nqubit)
+#     idx = 0
+#     max_layer = max(hlayout)
+
+#     for i in range(max_layer):
+#         # 当前层
+#         curr_hlayer = find_indices(hlayout, i)
+#         # 下一层
+#         next_hlayer = find_indices(hlayout, i + 1)
+
+#         ctx = QCEnv(nqubit, next_hlayer, curr_hlayer)
+
+#         # 相邻层之间的参数数量
+#         num_para = len(curr_hlayer) * len(next_hlayer)
+
+#         qc.compose(hp_layer(ctx, phase[idx: idx + num_para]), inplace=True)
+#         idx += num_para
+
+#     # 最后一层补 Hadamard
+#     last_hlayer = find_indices(hlayout, max_layer)
+#     for q in sorted(last_hlayer):
+#         qc.h(q)
+
+#     return qc
 
 
 
@@ -144,8 +144,8 @@ def ph_phase(hlayout: list) -> QuantumCircuit:
 
 
 if __name__ == "__main__":
-    qc = ph_qc([0,1,0,1], np.zeros(4))
-    print(qc.draw())
+    # qc = ph_qc([0,1,0,1], np.zeros(4))
+    # print(qc.draw())
 
     qc = ph_phase([0,1,0,1])
     print(qc.draw())
