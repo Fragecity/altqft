@@ -62,7 +62,7 @@ def main() -> None:
     existing_results = load_dataset(output_path)
 
     configs_to_run: list[FiExperimentConfig] = []
-    for nqubit in range(4, 11):
+    for nqubit in range(9, 12):
         configs_to_run.extend(
             [
                 FiExperimentConfig(circuit_type="qft", nqubit=nqubit, repeat=1),
