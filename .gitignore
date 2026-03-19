@@ -11,7 +11,9 @@ wheels/
 .venv
 
 # Large files
-data/
+data/*
+!data/shared/
+!data/shared/**
 model/
 
 # paper
