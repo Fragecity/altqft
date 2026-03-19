@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pickle
+import sys
 from pathlib import Path
 
 from fisher_information_utils import (
@@ -12,6 +13,27 @@ from fisher_information_utils import (
 
 def build_dataset(config: FiExperimentConfig) -> list[FiResult]:
     return calculate_fi_results(config)
+
+
+def render_progress_bar(current: int, total: int, *, width: int = 30) -> str:
+    if total <= 0:
+        raise ValueError("total 必须是正整数。")
+
+    ratio = min(max(current / total, 0.0), 1.0)
+    filled = int(width * ratio)
+    bar = "#" * filled + "-" * (width - filled)
+    return f"[{bar}] {current}/{total} ({ratio:.0%})"
+
+
+def print_progress(current: int, total: int, config: FiExperimentConfig) -> None:
+    progress_bar = render_progress_bar(current, total)
+    layer_text = f", nlayer={config.nlayer}" if config.nlayer is not None else ""
+    sys.stdout.write(
+        f"\r计算进度 {progress_bar} -> {config.circuit_type}, nqubit={config.nqubit}{layer_text}"
+    )
+    sys.stdout.flush()
+    if current == total:
+        sys.stdout.write("\n")
 
 
 def load_dataset(input_path: Path) -> list[FiResult]:
@@ -61,10 +83,13 @@ def main() -> None:
             ]
         )
 
+    total_configs = len(configs_to_run)
     new_results: list[FiResult] = []
-    for config in configs_to_run:
+    for index, config in enumerate(configs_to_run, start=1):
+        print_progress(index - 1, total_configs, config)
         current_results = build_dataset(config)
         new_results.extend(current_results)
+        print_progress(index, total_configs, config)
 
     print("本次计算得到的新结果:")
     for result in new_results:
