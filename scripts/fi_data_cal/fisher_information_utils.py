@@ -1,19 +1,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 from qiskit import QuantumCircuit
 
-# 这里需要确保 altqft.circuits.ph 已经包含了你新写的 ph_1 和 ph_random 函数
-from altqft.circuits.ph_generators import qft, ph_1, ph_random
+from altqft.circuits.ph_generators import (
+    ph_1,
+    ph_1_random,
+    ph_random,
+    ph_random_phase,
+    qft,
+)
 from altqft.nn.process_qc import min_fi
 
 
 @dataclass(frozen=True)
 class FiExperimentConfig:
     circuit_type: str
-    nqubit: int  
+    nqubit: int
     repeat: int = 1
     nlayer: Optional[int] = None
 
@@ -26,25 +31,33 @@ class FiResult:
     nlayer: Optional[int] = None
 
 
+def _require_nlayer(circuit_type: str, nlayer: Optional[int]) -> int:
+    if nlayer is None:
+        raise ValueError(f"{circuit_type} 电路需要提供 nlayer。")
+    return nlayer
+
+
 def build_circuit(
     circuit_type: str,
     nqubit: int,
     nlayer: Optional[int] = None,
 ) -> QuantumCircuit:
     circuit_key = circuit_type.lower()
-    
-    if circuit_key == "qft":
-        return qft(nqubit)
-        
-    if circuit_key == "ph1":
-        return ph_1(nqubit)
-        
-    if circuit_key == "ph_random":
-        if nlayer is None:
-            raise ValueError("ph_random 电路需要提供 nlayer。")
-        return ph_random(nqubit, nlayer)
-        
-    raise ValueError(f"暂不支持的电路类型: {circuit_type}")
+    circuit_builders: dict[str, Callable[[], QuantumCircuit]] = {
+        "qft": lambda: qft(nqubit),
+        "ph1": lambda: ph_1(nqubit),
+        "ph_random": lambda: ph_random(nqubit, _require_nlayer("ph_random", nlayer)),
+        "ph_1_random": lambda: ph_1_random(nqubit),
+        "ph_random_phase": lambda: ph_random_phase(
+            nqubit,
+            _require_nlayer("ph_random_phase", nlayer),
+        ),
+    }
+
+    try:
+        return circuit_builders[circuit_key]()
+    except KeyError as exc:
+        raise ValueError(f"暂不支持的电路类型: {circuit_type}") from exc
 
 
 def default_period_range(nqubit: int) -> range:
@@ -56,13 +69,12 @@ def default_period_range(nqubit: int) -> range:
 
 
 def calculate_fi_results(config: FiExperimentConfig) -> list[FiResult]:
-    """跑单个Config：取消外层循环，直接用 config.nqubit"""
     results: list[FiResult] = []
-    
+
     nqubit = config.nqubit
     circuit = build_circuit(config.circuit_type, nqubit, config.nlayer)
     period_range = default_period_range(nqubit)
-    
+
     for _ in range(config.repeat):
         fi_value = min_fi(circuit, period_range=period_range)
         results.append(
