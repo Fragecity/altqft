@@ -1,8 +1,7 @@
 import numpy as np
+import torch
 from qiskit import QuantumCircuit
 from typing import Union
-from collections import Counter
-import torch
 from dataclasses import dataclass
 
 ArrayInput = Union[list, np.ndarray, torch.Tensor]
@@ -34,31 +33,29 @@ def ph_qc(hlayout: list, phase: ArrayInput) -> QuantumCircuit:
     idx = 0
     max_layer = max(hlayout)
     
+    # 初始化所有比特都在 rest_qubits 中
+    rest_qubits = set(range(nqubit))
+    
     for i in range(max_layer):
         curr_hlayer = find_indices(hlayout, i)
-        next_hlayer = find_indices(hlayout, i + 1)
-        ctx = QCEnv(nqubit, next_hlayer, curr_hlayer)
-        num_para = len(curr_hlayer) * len(next_hlayer)
+        
+        # 当前层作为控制比特，剩下的比特需要剔除掉当前层
+        rest_qubits = rest_qubits - curr_hlayer
+        
+        # 将剩余的所有比特作为目标比特环境传入
+        ctx = QCEnv(nqubit, rest_qubits, curr_hlayer)
+        
+        # 参数数量变更为：当前层控制比特数 × 所有剩余目标比特数
+        num_para = len(curr_hlayer) * len(rest_qubits)
+        
         qc.compose(hp_layer(ctx, phase[idx: idx + num_para]), inplace=True)
         idx += num_para
         
     last_hlayer = find_indices(hlayout, max_layer)
     for q in sorted(last_hlayer):
         qc.h(q)
+        
     return qc
-
-def qft(nqubit: int) -> QuantumCircuit:
-    """
-    生成标准 QFT 线路（未包含最后的 SWAP 门）
-    """
-    hlayout = list(range(nqubit))
-    phase = np.zeros(int(nqubit*(nqubit-1)/2))
-    idx = 0
-    for control in range(nqubit):
-        for target in range(control + 1, nqubit):
-            phase[idx] = np.pi / (2 ** (target - control))
-            idx += 1
-    return ph_qc(hlayout, phase)
 
 def ph_phase(hlayout: list) -> QuantumCircuit:
     """
@@ -79,13 +76,3 @@ def ph_phase(hlayout: list) -> QuantumCircuit:
     
     phases = np.array(phases)
     return ph_qc(hlayout, phases)
-
-if __name__ == "__main__":
-    qc = ph_qc([0,1,0,1], np.zeros(4))
-    print(qc.draw())
-    qc = ph_phase([0,1,0,1])
-    print(qc.draw())
-    qc = ph_phase([0,1,2,0,1,2])
-    print(qc.draw())
-    qc = qft(4)
-    print(qc.draw())

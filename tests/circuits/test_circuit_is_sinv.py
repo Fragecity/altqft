@@ -2,7 +2,7 @@ import numpy as np
 from typing import Callable
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
-import altqft.circuits.ph as ph
+import altqft.circuits.ph_generators as ph
 
 from altqft.nn.process_qc import make_prob
 import numpy as np
