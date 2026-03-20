@@ -1,201 +1,237 @@
-# import os
-# import numpy as np
-# import torch
-# import torch.nn as nn
-# import torch.optim as optim
-# from torch.utils.data import Dataset, DataLoader
-# from altqft.circuits  import ph # 导入你的原函数模块
+from __future__ import annotations
 
-# # ==========================================
-# # 1. 数据预处理与生成
-# # ==========================================
+import json
+import logging
+import random
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any
 
-# def counts_to_vector(counts, n, shots):
-#     """
-#     将 Qiskit 字典格式的 counts 转换为长度为 2^n 的概率向量
-#     """
-#     vec = np.zeros(2**n, dtype=np.float32)
-#     for bitstr, count in counts.items():
-#         idx = int(bitstr, 2)
-#         vec[idx] = count / shots
-#     return vec
+import numpy as np
+import torch
+from torch.optim import Adam, Optimizer
 
-# def generate_dataset(n_qubits, num_samples, shots, repeat_factor=5):
-#     """
-#     生成用于神经网络训练的数据集，包含 a 和 N 且重复多次以增强特征权重
-#     """
-#     X_data = []
-#     y_data = []
-    
-#     print(f"  -> 开始生成数据集 (目标样本数: {num_samples}, Shots: {shots})...")
-#     samples_collected = 0
-    
-#     while samples_collected < num_samples:
-#         # 限制随机数的上下界，防止报错
-#         N = max(int(2 ** (n_qubits / 4)), n_qubits**2)
-#         lower_bound = int(N/4 + 1)
-#         upper_bound = N - 3
-        
-#         if lower_bound >= upper_bound:
-#             if N <= 3:
-#                 continue
-#             a = np.random.randint(2, N)
-#         else:
-#             a = np.random.randint(lower_bound, upper_bound)
-        
-#         try:
-#             solutions_1 = ph.find_solutions(a, 1, N, n_qubits)
-#             if len(solutions_1) < 2:
-#                 continue
-                
-#             period = solutions_1[1] - solutions_1[0]
-#             if period <= 1:
-#                 continue
-#             c = np.random.randint(1, period)
-            
-#             sols = ph.find_solutions(a, c, N, n_qubits)
-#             if len(sols) < 2:
-#                 continue
-                
-#             # 运行电路
-#             _, counts, correct_period = ph.run_lr_on_initial_state(a, c, N, n_qubits, shots=shots)
-            
-#             if counts is not None:
-#                 features = counts_to_vector(counts, n_qubits, shots)
-                
-#                 # 将 a 和 N 重复 repeat_factor 次，并适当缩放以防数值过大主导网络
-#                 scale = 1.0 / N
-#                 repeated_params = [float(a) * scale, float(N) * scale] * repeat_factor
-#                 extended_features = np.append(features, repeated_params).astype(np.float32)
-                
-#                 X_data.append(extended_features)
-#                 y_data.append(correct_period)
-#                 samples_collected += 1
-                
-#                 if samples_collected % 20 == 0:
-#                     print(f"     已收集 {samples_collected}/{num_samples} 个样本...")
-                    
-#         except ValueError:
-#             continue
+from altqft.nn.model import PH1MinFIModel
 
-#     return np.array(X_data), np.array(y_data)
 
-# class QuantumPeriodDataset(Dataset):
-#     def __init__(self, X, y):
-#         self.X = torch.tensor(X, dtype=torch.float32)
-#         self.y = torch.tensor(y, dtype=torch.long)
+LOGGER_NAME = "altqft.nn.train"
 
-#     def __len__(self):
-#         return len(self.y)
 
-#     def __getitem__(self, idx):
-#         return self.X[idx], self.y[idx]
+@dataclass(slots=True)
+class TrainConfig:
+    nqubit: int
+    period_range: list[int]
+    epochs: int = 100
+    learning_rate: float = 0.05
+    seed: int = 7
+    log_interval: int = 10
+    model_dir: Path = Path("model")
+    data_dir: Path = Path("data")
+    output_dir: Path = Path("outputs")
+    model_stem: str = "ph1_min_fi"
 
-# # ==========================================
-# # 2. 神经网络模型定义
-# # ==========================================
+    def __post_init__(self) -> None:
+        if self.nqubit < 2:
+            raise ValueError("nqubit 至少需要为 2。")
+        if not self.period_range:
+            raise ValueError("period_range 不能为空。")
 
-# class PeriodPredictorNet(nn.Module):
-#     def __init__(self, n_qubits, repeat_factor=5):
-#         super(PeriodPredictorNet, self).__init__()
-        
-#         # 输入维度: 2^n (概率分布) + 2 * repeat_factor (参数 a 和 N)
-#         input_size = (2 ** n_qubits) + 2 * repeat_factor
-#         max_possible_period = 2 ** n_qubits  
-        
-#         hidden_1 = max(128, input_size)
-#         hidden_2 = max(64, input_size // 2)
-        
-#         self.network = nn.Sequential(
-#             nn.Linear(input_size, hidden_1),
-#             nn.ReLU(),
-#             nn.Linear(hidden_1, hidden_2),
-#             nn.ReLU(),
-#             nn.Linear(hidden_2, max_possible_period) 
-#         )
+    @property
+    def run_name(self) -> str:
+        return f"{self.model_stem}_{self.nqubit}q"
 
-#     def forward(self, x):
-#         return self.network(x)
+    @property
+    def model_path(self) -> Path:
+        return self.model_dir / f"{self.run_name}.pt"
 
-# # ==========================================
-# # 3. 封装训练函数
-# # ==========================================
+    @property
+    def phase_path(self) -> Path:
+        return self.model_dir / f"{self.run_name}_phases.json"
 
-# def train(n_qubits, num_train_samples=100, batch_size=16):
-#     """
-#     针对特定的量子比特数量训练模型并保存结果
-#     """
-#     # 【修改1】: Shots 设定为 n^2 * 1024
-#     shots = (n_qubits ** 2) * 1024
-    
-#     # 【修改2】: Epoch 设定为 30 * n_qubits
-#     epochs = 30 * n_qubits
-#     repeat_factor = 5
-    
-#     # 【修改3】: 确保 data 文件夹存在
-#     os.makedirs('data', exist_ok=True)
-    
-#     # 1. 生成数据
-#     X_train, y_train = generate_dataset(n_qubits, num_train_samples, shots, repeat_factor=repeat_factor)
-#     dataset = QuantumPeriodDataset(X_train, y_train)
-#     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    @property
+    def history_path(self) -> Path:
+        return self.data_dir / f"{self.run_name}_history.json"
 
-#     # 2. 初始化模型
-#     model = PeriodPredictorNet(n_qubits, repeat_factor=repeat_factor)
-#     criterion = nn.CrossEntropyLoss()
-#     optimizer = optim.Adam(model.parameters(), lr=0.005)
+    @property
+    def log_path(self) -> Path:
+        return self.output_dir / f"{self.run_name}.log"
 
-#     # 3. 开始训练
-#     print(f"  -> 开始训练网络 (Epochs: {epochs}, Batch Size: {batch_size})...")
-#     for epoch in range(epochs):
-#         epoch_loss = 0.0
-#         correct_preds = 0
-#         total_preds = 0
-        
-#         for batch_X, batch_y in dataloader:
-#             optimizer.zero_grad()
-#             outputs = model(batch_X)
-#             loss = criterion(outputs, batch_y)
-#             loss.backward()
-#             optimizer.step()
-            
-#             epoch_loss += loss.item()
-#             _, predicted = torch.max(outputs.data, 1)
-#             total_preds += batch_y.size(0)
-#             correct_preds += (predicted == batch_y).sum().item()
-            
-#         avg_loss = epoch_loss / len(dataloader)
-#         accuracy = 100 * correct_preds / total_preds
-        
-#         if (epoch + 1) % 10 == 0 or epoch == epochs - 1:
-#             print(f"     Epoch [{epoch+1}/{epochs}], Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%")
-            
-#     print(f"  -> {n_qubits} Qubits 模型训练完成！最终准确率: {accuracy:.2f}%")
-    
-#     # 4. 保存模型与数据到 data 文件夹下
-#     model_save_path = os.path.join('data', f'period_model_{n_qubits}q.pth')
-#     torch.save(model.state_dict(), model_save_path)
-#     print(f"  -> 模型已保存至: {model_save_path}\n")
-    
-#     return model
 
-# # ==========================================
-# # 4. 主程序：从 2 qubit 遍历到 10 qubit
-# # ==========================================
+@dataclass(slots=True)
+class EpochResult:
+    epoch: int
+    loss: float
+    min_fi: float
 
-# if __name__ == "__main__":
-#     # 为了演示，设置较少的样本数。
-#     # 实际应用中，你可能需要将 num_train_samples 设置为 500 或 1000 以上
-#     samples_per_n = 50  
-    
-#     for n in range(2, 11):
-#         print("="*50)
-#         print(f"========== 开始处理 {n} Qubits 的情况 ==========")
-#         print("="*50)
-        
-#         # 训练并保存模型
-#         trained_model = train(
-#             n_qubits=n, 
-#             num_train_samples=samples_per_n, 
-#             batch_size=16
-#         )
+
+@dataclass(slots=True)
+class TrainArtifacts:
+    history: list[EpochResult]
+    final_min_fi: float
+    model_path: Path
+    phase_path: Path
+    history_path: Path
+    log_path: Path
+
+
+def build_default_period_range(nqubit: int) -> list[int]:
+    """默认使用一个较密的 period 区间，避免训练只落在对参数不敏感的周期点上。"""
+    dimension = 2**nqubit
+    upper_bound = min(dimension - 1, 2 * nqubit)
+    periods = list(range(2, upper_bound))
+    if not periods:
+        raise ValueError(f"nqubit={nqubit} 时无法构造默认的 period_range。")
+    return periods
+
+
+def set_random_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
+def prepare_output_dirs(config: TrainConfig) -> None:
+    config.model_dir.mkdir(parents=True, exist_ok=True)
+    config.data_dir.mkdir(parents=True, exist_ok=True)
+    config.output_dir.mkdir(parents=True, exist_ok=True)
+
+
+def configure_logger(log_path: Path) -> logging.Logger:
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+
+    formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+
+    file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
+    return logger
+
+
+def create_model(config: TrainConfig) -> PH1MinFIModel:
+    return PH1MinFIModel(nqubit=config.nqubit)
+
+
+def create_optimizer(model: PH1MinFIModel, config: TrainConfig) -> Optimizer:
+    return Adam(model.parameters(), lr=config.learning_rate)
+
+
+def train_step(
+    model: PH1MinFIModel,
+    optimizer: Optimizer,
+    period_range: list[int],
+) -> tuple[float, float]:
+    optimizer.zero_grad()
+    min_fi_value = model(period_range)
+    loss = -min_fi_value
+    loss.backward()
+    optimizer.step()
+    return float(loss.detach().cpu().item()), float(min_fi_value.detach().cpu().item())
+
+
+def log_epoch(logger: logging.Logger, result: EpochResult, total_epochs: int) -> None:
+    logger.info(
+        "epoch=%s/%s loss=%.8f min_fi=%.8f",
+        result.epoch,
+        total_epochs,
+        result.loss,
+        result.min_fi,
+    )
+
+
+def run_training(
+    model: PH1MinFIModel,
+    optimizer: Optimizer,
+    config: TrainConfig,
+    logger: logging.Logger,
+) -> list[EpochResult]:
+    history: list[EpochResult] = []
+
+    for epoch in range(1, config.epochs + 1):
+        loss_value, min_fi_value = train_step(model, optimizer, config.period_range)
+        epoch_result = EpochResult(epoch=epoch, loss=loss_value, min_fi=min_fi_value)
+        history.append(epoch_result)
+
+        if epoch == 1 or epoch % config.log_interval == 0 or epoch == config.epochs:
+            log_epoch(logger, epoch_result, config.epochs)
+
+    return history
+
+
+def save_history(config: TrainConfig, history: list[EpochResult]) -> None:
+    payload = {
+        "config": {
+            **asdict(config),
+            "model_dir": str(config.model_dir),
+            "data_dir": str(config.data_dir),
+            "output_dir": str(config.output_dir),
+        },
+        "history": [asdict(item) for item in history],
+    }
+    config.history_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def save_model_artifacts(model: PH1MinFIModel, config: TrainConfig) -> None:
+    torch.save(model.state_dict(), config.model_path)
+    phase_payload = {
+        "nqubit": config.nqubit,
+        "period_range": config.period_range,
+        "phases": model.export_phases(),
+    }
+    config.phase_path.write_text(json.dumps(phase_payload, indent=2), encoding="utf-8")
+
+
+def summarize_training(
+    config: TrainConfig,
+    history: list[EpochResult],
+    logger: logging.Logger,
+) -> TrainArtifacts:
+    if not history:
+        raise RuntimeError("训练历史为空，无法生成总结。")
+
+    final_min_fi = history[-1].min_fi
+    logger.info("training finished, final_min_fi=%.8f", final_min_fi)
+
+    return TrainArtifacts(
+        history=history,
+        final_min_fi=final_min_fi,
+        model_path=config.model_path,
+        phase_path=config.phase_path,
+        history_path=config.history_path,
+        log_path=config.log_path,
+    )
+
+
+def train_model(config: TrainConfig) -> TrainArtifacts:
+    prepare_output_dirs(config)
+    logger = configure_logger(config.log_path)
+    set_random_seed(config.seed)
+    logger.info("start training with config=%s", json.dumps(_serialize_config(config), ensure_ascii=False))
+
+    model = create_model(config)
+    optimizer = create_optimizer(model, config)
+    history = run_training(model, optimizer, config, logger)
+    save_model_artifacts(model, config)
+    save_history(config, history)
+    return summarize_training(config, history, logger)
+
+
+def _serialize_config(config: TrainConfig) -> dict[str, Any]:
+    return {
+        "nqubit": config.nqubit,
+        "period_range": config.period_range,
+        "epochs": config.epochs,
+        "learning_rate": config.learning_rate,
+        "seed": config.seed,
+        "log_interval": config.log_interval,
+        "model_dir": str(config.model_dir),
+        "data_dir": str(config.data_dir),
+        "output_dir": str(config.output_dir),
+        "model_stem": config.model_stem,
+    }
