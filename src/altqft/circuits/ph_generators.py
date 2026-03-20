@@ -1,4 +1,5 @@
 import random
+from collections.abc import Sequence
 
 import numpy as np
 from qiskit import QuantumCircuit
@@ -19,6 +20,11 @@ def _get_num_phases(hlayout: list[int]) -> int:
     return total_phases
 
 
+def ph_1_hlayout(nqubit: int) -> list[int]:
+    """返回 ph_1 使用的固定 hlayout，模式为 [0, 1, 0, 1, ...]。"""
+    return [i % 2 for i in range(nqubit)]
+
+
 def qft(nqubit: int) -> QuantumCircuit:
     """生成标准 QFT 线路（未包含最后的 SWAP 门）。"""
     hlayout = list(range(nqubit))
@@ -33,8 +39,22 @@ def qft(nqubit: int) -> QuantumCircuit:
 
 def ph_1(nqubit: int) -> QuantumCircuit:
     """生成固定 layout 的电路，模式为 [0, 1, 0, 1, ...]。"""
-    hlayout = [i % 2 for i in range(nqubit)]
-    return ph_phase(hlayout)
+    return ph_phase(ph_1_hlayout(nqubit))
+
+
+def ph_1_parametrized(nqubit: int, phases: Sequence[float] | np.ndarray) -> QuantumCircuit:
+    """使用 ph_1 的 hlayout 生成电路，但 phase 参数由调用者显式提供。"""
+    hlayout = ph_1_hlayout(nqubit)
+    expected_num_phases = _get_num_phases(hlayout)
+    phase_array = np.asarray(phases, dtype=float)
+
+    if phase_array.shape != (expected_num_phases,):
+        raise ValueError(
+            f"ph_1_parametrized 需要 {expected_num_phases} 个 phase 参数，"
+            f"实际收到 {phase_array.size} 个。"
+        )
+
+    return ph_qc(hlayout, phase_array)
 
 
 def ph_random(nqubit: int, nlayer: int) -> QuantumCircuit:
@@ -45,7 +65,7 @@ def ph_random(nqubit: int, nlayer: int) -> QuantumCircuit:
 
 def ph_1_random(nqubit: int) -> QuantumCircuit:
     """生成固定 layout 电路，并为所有 phase 参数随机赋值。"""
-    hlayout = [i % 2 for i in range(nqubit)]
+    hlayout = ph_1_hlayout(nqubit)
     num_phases = _get_num_phases(hlayout)
     phases = np.random.uniform(0, 2 * np.pi, num_phases)
     return ph_qc(hlayout, phases)
@@ -67,6 +87,10 @@ if __name__ == "__main__":
     qc_1_rand = ph_1_random(4)
     print("ph_1_random (4 qubits):")
     print(qc_1_rand.draw())
+
+    qc_1_param = ph_1_parametrized(4, np.linspace(0.1, 0.6, 6))
+    print("ph_1_parametrized (4 qubits):")
+    print(qc_1_param.draw())
 
     qc_rand_phase = ph_random_phase(4, 2)
     print("ph_random_phase (4 qubits, max 2 layers):")
