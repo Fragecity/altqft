@@ -20,7 +20,7 @@ def hp_layer(ctx: QCEnv, parameters: ArrayInput) -> QuantumCircuit:
     para_idx = 0
     sorted_targets = sorted(list(ctx.rest_qubits - ctx.curr_hlayer))
     
-    for control in ctx.curr_hlayer:
+    for control in sorted(ctx.curr_hlayer):
         qc.h(control)
         for target in sorted_targets:
             qc.cp(parameters[para_idx], control, target)
