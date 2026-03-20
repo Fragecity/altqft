@@ -70,12 +70,13 @@ def default_period_range(nqubit: int) -> range:
 
 def calculate_fi_results(config: FiExperimentConfig) -> list[FiResult]:
     results: list[FiResult] = []
-
     nqubit = config.nqubit
-    circuit = build_circuit(config.circuit_type, nqubit, config.nlayer)
     period_range = default_period_range(nqubit)
 
     for _ in range(config.repeat):
+        # 移入循环内：每次迭代都生成一个新随机参数的电路
+        circuit = build_circuit(config.circuit_type, nqubit, config.nlayer)
+        
         fi_value = min_fi(circuit, period_range=period_range)
         results.append(
             FiResult(

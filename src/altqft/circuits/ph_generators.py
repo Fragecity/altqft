@@ -67,15 +67,32 @@ def ph_1_random(nqubit: int) -> QuantumCircuit:
     """生成固定 layout 电路，并为所有 phase 参数随机赋值。"""
     hlayout = ph_1_hlayout(nqubit)
     num_phases = _get_num_phases(hlayout)
-    phases = np.random.uniform(0, 2 * np.pi, num_phases)
+    phases = np.random.uniform(0, np.pi, num_phases)
     return ph_qc(hlayout, phases)
 
 
 def ph_random_phase(nqubit: int, nlayer: int) -> QuantumCircuit:
-    """生成随机 layout 电路，并为所有 phase 参数随机赋值。"""
-    hlayout = [random.randint(0, nlayer) for _ in range(nqubit)]
+    """生成随机 layout 电路，并为所有 phase 参数随机赋值。
+    确保 0 到 nlayer 之间的每个数字在 hlayout 中至少出现一次。
+    """
+    if nlayer >= nqubit:
+        raise ValueError("nlayer 必须严格小于 nqubit")
+
+    # 1. 保底：生成一个包含 0 到 nlayer 的基础数组
+    base = np.arange(nlayer + 1)
+    
+    # 2. 随机：剩下的位置完全随机生成
+    remainder = np.random.randint(0, nlayer + 1, size=nqubit - nlayer - 1)
+    
+    # 3. 拼接后就地洗牌，彻底打乱顺序
+    hlayout = np.concatenate((base, remainder))
+    np.random.shuffle(hlayout)
+    
+    # 转回原生 list 以兼容你的底层函数
+    hlayout = hlayout.tolist()
+    
     num_phases = _get_num_phases(hlayout)
-    phases = np.random.uniform(0, 2 * np.pi, num_phases)
+    phases = np.random.uniform(0, np.pi, num_phases)
     return ph_qc(hlayout, phases)
 
 

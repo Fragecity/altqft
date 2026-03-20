@@ -1,25 +1,19 @@
 # AGENT.md
 
 ## 项目理解
-- 本仓库是一个基于 Python 3.11 的量子计算研究项目，目标不是简单“近似实现 QFT”，而是寻找可替代 QFT 的线路族，并分析这些线路在 Hidden Subgroup Problem（HSP）中的可用性。
-- 根据 `doc/paper/main.tex` 和 `doc/paper/points.md`，项目的核心研究主线包括：
-  1. 从 HSP 背景出发，解释为什么标准 QFT 在线路实现上仍然偏重。
-  2. 提炼 QFT 在 HSP 中真正关键的性质，而不是只做 gate-level 的近似或降成本。
-  3. 重点研究 `shift invariant` 与 `Fisher information` 两个性质：前者关联干扰信号是否被正确保留/消除，后者关联隐藏子群信息是否能被高效提取。
-  4. 构造并分析一类满足 shift invariant 的线路族，验证它们是否能在浅层或较低实现成本下替代 QFT 的部分功能。
-  5. 使用神经网络对测量结果做经典后处理，尝试从 measurement counts 中恢复隐藏周期或隐藏子群信息。
-  6. 进一步关注噪声下的表现，以及与 QFT 的对比。
-- 从 `doc/notes/sinv.typ` 可见，项目不仅关注“QFT 是否具有 shift invariant”，还强调存在一大类具有特定结构的线路同样满足该性质；这也是 `circuits/`、`scripts/` 中线路构造与性质验证代码的重要背景。
-- 从 `doc/notes/max_fi.typ` 可见，项目还关心参数化线路或交错 Hadamard / 受控相位线路在 Fisher Information 上的表现，并将 FI、测量分布、训练损失与神经网络后处理联系起来分析。
-- 因此，这个仓库可以理解为一个“线路构造 + 性质证明/验证 + 数值实验 + 机器学习后处理 + 论文整理”一体化研究仓库，而不只是单纯的脚本集合。
+- 本仓库是一个基于 Python 3.11 的量子计算研究项目（核心包名 `altqft`），目标不是简单“近似实现 QFT”，而是寻找可替代 QFT 的线路族，并分析这些线路在 Hidden Subgroup Problem（HSP）中的可用性，目标产出为针对 PRL 等高水平物理期刊格式的学术论文。
+- 根据 `doc/paper/main.tex` 的核心逻辑，项目的研究主线包括：
+  1. 从 HSP 背景出发，指出标准 QFT 在实际实现中的痛点：依赖长程受控相位操作和较深的线路深度，在近期的带噪量子硬件上极具挑战。
+  2. 提炼 QFT 在 HSP 中真正关键的性质：不再局限于 gate-level 的简单近似，而是聚焦于 `shift invariance`（平移不变性）与 `Fisher information`（费舍尔信息）。
+  3. 定义了 Shift invariant 线路需满足的核心数学条件（定理：$U_{ij}=1/\sqrt{|G|}e^{i\theta}$），以确保子群陪集引起的干涉模式在测量统计中得以保留。
+  4. 提出并重点研究了 **PH circuit** 这一具体线路族。它严格包含了标准 QFT，同样满足 shift invariance，但能以更浅的深度作为 QFT 的有效替代。
+  5. 覆盖了不同群结构的场景：在理想的 $\mathbb{Z}_{2^n}$ 循环群下，证明了横向 Hadamard 层足以提取信息；在更具现实意义的 $\mathbb{Z}_q$ 有限维近似场景中，探讨了候选线路的鲁棒性。
+  6. 将量子计算与深度学习结合，使用神经网络（Neural Net）作为经典后处理模块，通过多项式级别的测量样本（measurement counts）成功恢复出隐藏子群参数，并在真实噪声环境下（noisy dynamics）对比了 PH circuit 与 QFT 的性能降级模式。
+- 因此，这个仓库可以理解为一个“量子线路构造 + 信息论性质证明 + 数值演化模拟 + 深度学习后处理 + 论文整理”一体化研究平台。从底层使用 Qiskit/PennyLane 等构建线路，到上层使用 PyTorch/JAX 等进行 Fisher Information 测算和神经网络训练，流程紧密结合。
 - 从当前目录结构看，项目主要包含三类内容：
   1. `src/altqft/`：核心源码，包括量子线路、状态构造、神经网络处理与训练相关模块。
   2. `scripts/`：实验脚本与绘图脚本，用于计算 Fisher Information、检查线路性质、生成论文或分析图像。
-  3. `tests/`：针对 circuits、nn、state 等模块的测试。
-- `doc/`、`figs/`、`data/` 更偏研究产出与中间结果，改动这些目录时要注意是否会影响论文、图表、实验结论或复现链路。
-- `outputs/` 用于保存训练日志等临时运行输出；这些文件默认不应进入 PR，如需复现只说明生成方式即可。
-- `model/` 用于保存训练得到的 checkpoint、phase 参数等本地产物；该目录默认应忽略，不要把其中的文件上传到 PR。
-- 项目使用 `uv` 管理依赖；依赖在 `pyproject.toml` 中声明，核心库包括 `qiskit`、`pennylane`、`torch`、`matplotlib` 和 `sympy`。
+  3. `tests/`：针对 circuits、nn、state 等模块的测试，确保基础矩阵运算和生成逻辑符合理论预期。
 
 ## 文件结构
 - `src/altqft/`：项目主包。

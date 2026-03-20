@@ -1,3 +1,4 @@
+# calculate_fi_dataset.py
 from __future__ import annotations
 
 import pickle
@@ -12,13 +13,13 @@ from fisher_information_utils import (
 
 
 def build_dataset(config: FiExperimentConfig) -> list[FiResult]:
+    # 现在内部会根据 config.repeat 自动生成新的随机电路并计算
     return calculate_fi_results(config)
 
 
 def render_progress_bar(current: int, total: int, *, width: int = 30) -> str:
     if total <= 0:
-        raise ValueError("total 必须是正整数。")
-
+        return f"[{'#' * width}]"
     ratio = min(max(current / total, 0.0), 1.0)
     filled = int(width * ratio)
     bar = "#" * filled + "-" * (width - filled)
@@ -29,7 +30,7 @@ def print_progress(current: int, total: int, config: FiExperimentConfig) -> None
     progress_bar = render_progress_bar(current, total)
     layer_text = f", nlayer={config.nlayer}" if config.nlayer is not None else ""
     sys.stdout.write(
-        f"\r计算进度 {progress_bar} -> {config.circuit_type}, nqubit={config.nqubit}{layer_text}"
+        f"\r计算进度 {progress_bar} -> {config.circuit_type}, nqubit={config.nqubit}{layer_text} (repeat={config.repeat})   "
     )
     sys.stdout.flush()
     if current == total:
@@ -61,39 +62,53 @@ def main() -> None:
     output_path = Path("data/shared/fi_results.pkl")
     existing_results = load_dataset(output_path)
 
+    # 实验超参数
+    NQUBIT_RANGE = range(4, 11)  # 从 4 到 8 比特
+    SAMPLES = 64                # 随机线路的采样次数
+
     configs_to_run: list[FiExperimentConfig] = []
-    for nqubit in range(9, 12):
-        configs_to_run.extend(
-            [
-                FiExperimentConfig(circuit_type="qft", nqubit=nqubit, repeat=1),
-                FiExperimentConfig(circuit_type="ph1", nqubit=nqubit, repeat=1),
+    
+    for nqubit in NQUBIT_RANGE:
+        # 1. 确定性线路及无须深度对比的随机线路
+        configs_to_run.extend([
+            FiExperimentConfig(circuit_type="qft", nqubit=nqubit, repeat=1),
+            FiExperimentConfig(circuit_type="ph1", nqubit=nqubit, repeat=1),
+            # 布局固定、仅相位随机的线路，跑多次求均值即可，不需要遍历 nlayer
+            FiExperimentConfig(circuit_type="ph_1_random", nqubit=nqubit, repeat=SAMPLES),
+        ])
+
+        # 2. 需要对比不同深度的随机线路 (nlayer 的范围必须严格小于 nqubit)
+        for nlayer in range(1, nqubit):
+            configs_to_run.extend([
                 FiExperimentConfig(
                     circuit_type="ph_random",
                     nqubit=nqubit,
-                    nlayer=nqubit,
-                    repeat=1,
+                    nlayer=nlayer,
+                    repeat=SAMPLES,
                 ),
-                FiExperimentConfig(circuit_type="ph_1_random", nqubit=nqubit, repeat=1),
                 FiExperimentConfig(
                     circuit_type="ph_random_phase",
                     nqubit=nqubit,
-                    nlayer=nqubit,
-                    repeat=1,
+                    nlayer=nlayer,
+                    repeat=SAMPLES,
                 ),
-            ]
-        )
+            ])
 
     total_configs = len(configs_to_run)
     new_results: list[FiResult] = []
+    
+    print(f"\n计划执行 {total_configs} 组配置 (包含多次采样)...")
     for index, config in enumerate(configs_to_run, start=1):
         print_progress(index - 1, total_configs, config)
         current_results = build_dataset(config)
         new_results.extend(current_results)
         print_progress(index, total_configs, config)
 
-    print("本次计算得到的新结果:")
-    for result in new_results:
+    print("\n完成！部分新结果采样:")
+    # 仅打印前5条避免刷屏
+    for result in new_results[:5]:
         print(result)
+    print("...")
 
     existing_results.extend(new_results)
     save_dataset(existing_results, output_path)
