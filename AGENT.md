@@ -1,18 +1,18 @@
 # AGENT.md
 
 ## Project Overview
-- `altqft` contains circuit generators, state preparation utilities, FI evaluation code, and training code for PH-style circuits and related QFT experiments.
+- `altqft` contains circuit generators, FI evaluation code, and training code for PH-style circuits and related QFT experiments.
 - The main implementation lives in `src/altqft/`.
 - Research scripts live in `scripts/`.
 - Tests live in `tests/`.
 
 ## Directory Guide
 - `src/altqft/circuits/`: circuit construction utilities and PH/QFT generators.
-- `src/altqft/state/`: modular-solution helpers and initial-state preparation.
 - `src/altqft/nn/`: FI processing, differentiable models, and training utilities.
+- `scripts/train/`: training entry points and smoke-test runners.
 - `scripts/fi_data_cal/`: FI dataset generation and reporting scripts.
 - `scripts/plots/`: plotting scripts for stored FI results.
-- `tests/`: regression tests for circuits, FI utilities, models, and state preparation.
+- `tests/`: regression tests for circuits, FI utilities, and models.
 - `doc/`, `figs/`, `data/`, `model/`, `outputs/`: papers, figures, datasets, checkpoints, and run artifacts. Treat them as experiment assets and avoid overwriting them casually.
 
 ## Working Rules
@@ -21,7 +21,7 @@
   - `uv sync`
   - `uv run pytest`
   - `uv run mypy`
-  - `uv run python scripts/train_ph1_min_fi.py`
+  - `uv run python scripts/train/train_ph1_min_fi.py`
 - Keep changes focused on source code unless the task explicitly requires updating generated artifacts or research assets.
 - When changing scripts that load saved results, keep backward compatibility with existing pickle/json outputs when practical.
 
