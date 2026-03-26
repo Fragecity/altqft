@@ -7,6 +7,7 @@ import struct
 from dataclasses import dataclass, fields, is_dataclass
 from pathlib import Path
 from typing import Any, Iterable
+from typing import cast
 
 DEFAULT_INPUT_PATH = Path("data/shared/fi_results.pkl")
 TABLE_COLUMNS = ("circuit_type", "nqubit", "nlayer", "fi_value")
@@ -32,9 +33,10 @@ class FakeDType:
 
 def _numpy_scalar(dtype: FakeDType, raw_value: bytes) -> float:
     if dtype.code != "f8":
-        raise TypeError(f"当前仅支持 f8 标量，收到: {dtype.code}")
+        raise TypeError(f"expected f8 dtype, got {dtype.code}")
+
     format_code = "<d" if dtype.byteorder != ">" else ">d"
-    return struct.unpack(format_code, raw_value)[0]
+    return cast(float, struct.unpack(format_code, raw_value)[0])
 
 
 class FiResultUnpickler(pickle.Unpickler):
@@ -49,13 +51,13 @@ class FiResultUnpickler(pickle.Unpickler):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="读取 FI 结果 pkl 并按表格打印。")
+    parser = argparse.ArgumentParser(description="Print FI results from a pickle file.")
     parser.add_argument(
         "input_path",
         nargs="?",
         default=DEFAULT_INPUT_PATH,
         type=Path,
-        help=f"结果 pkl 路径，默认值: {DEFAULT_INPUT_PATH}",
+        help=f"Input pickle file. Default: {DEFAULT_INPUT_PATH}",
     )
     return parser.parse_args()
 
@@ -71,18 +73,18 @@ def _normalize_result(item: Any) -> PrintableFiResult:
     if isinstance(item, dict):
         return PrintableFiResult(**{name: item[name] for name in field_names})
 
-    raise TypeError(f"无法识别的结果类型: {type(item)!r}")
+    raise TypeError(f"unsupported result type: {type(item)!r}")
 
 
 def load_results(input_path: Path) -> list[PrintableFiResult]:
     if not input_path.exists():
-        raise FileNotFoundError(f"未找到结果文件: {input_path}")
+        raise FileNotFoundError(f"missing input file: {input_path}")
 
     with input_path.open("rb") as file_obj:
         data = FiResultUnpickler(io.BytesIO(file_obj.read())).load()
 
     if not isinstance(data, list):
-        raise TypeError("pkl 内容不是结果列表，无法打印。")
+        raise TypeError("pickle payload must be a list")
 
     return [_normalize_result(item) for item in data]
 
@@ -117,22 +119,22 @@ def format_table(rows: list[dict[str, str]]) -> str:
     def render_row(row: dict[str, str]) -> str:
         return "| " + " | ".join(row[column].ljust(widths[column]) for column in TABLE_COLUMNS) + " |"
 
-    table_lines = [render_separator(), render_row(headers), render_separator("=")]
-    table_lines.extend(render_row(row) for row in rows)
-    table_lines.append(render_separator())
-    return "\n".join(table_lines)
+    lines = [render_separator(), render_row(headers), render_separator("=")]
+    lines.extend(render_row(row) for row in rows)
+    lines.append(render_separator())
+    return "\n".join(lines)
 
 
 def main() -> None:
     args = parse_args()
     results = load_results(args.input_path)
     if not results:
-        print(f"{args.input_path} 中没有结果可打印。")
+        print(f"no FI results found in {args.input_path}")
         return
 
     rows = build_rows(results)
     print(format_table(rows))
-    print(f"共 {len(rows)} 条记录，来源文件: {args.input_path}")
+    print(f"printed {len(rows)} rows from {args.input_path}")
 
 
 if __name__ == "__main__":

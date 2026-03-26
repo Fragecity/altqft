@@ -1,4 +1,3 @@
-# calculate_fi_dataset.py
 from __future__ import annotations
 
 import pickle
@@ -11,45 +10,47 @@ from fisher_information_utils import (
     calculate_fi_results,
 )
 
+OUTPUT_PATH = Path("data/shared/fi_results.pkl")
+NQUBIT_RANGE = range(4, 11)
+SAMPLES = 64
+
 
 def build_dataset(config: FiExperimentConfig) -> list[FiResult]:
-    # 现在内部会根据 config.repeat 自动生成新的随机电路并计算
     return calculate_fi_results(config)
 
 
 def render_progress_bar(current: int, total: int, *, width: int = 30) -> str:
     if total <= 0:
         return f"[{'#' * width}]"
+
     ratio = min(max(current / total, 0.0), 1.0)
     filled = int(width * ratio)
-    bar = "#" * filled + "-" * (width - filled)
-    return f"[{bar}] {current}/{total} ({ratio:.0%})"
+    return f"[{'#' * filled}{'-' * (width - filled)}] {current}/{total} ({ratio:.0%})"
 
 
 def print_progress(current: int, total: int, config: FiExperimentConfig) -> None:
-    progress_bar = render_progress_bar(current, total)
     layer_text = f", nlayer={config.nlayer}" if config.nlayer is not None else ""
-    sys.stdout.write(
-        f"\r计算进度 {progress_bar} -> {config.circuit_type}, nqubit={config.nqubit}{layer_text} (repeat={config.repeat})   "
+    message = (
+        f"\r{render_progress_bar(current, total)} "
+        f"{config.circuit_type}, nqubit={config.nqubit}{layer_text}, repeat={config.repeat}"
     )
+    sys.stdout.write(message)
     sys.stdout.flush()
     if current == total:
         sys.stdout.write("\n")
 
 
 def load_dataset(input_path: Path) -> list[FiResult]:
-    if input_path.exists():
-        try:
-            with input_path.open("rb") as file_obj:
-                data = pickle.load(file_obj)
-                if isinstance(data, list):
-                    print(f"成功从 {input_path} 加载了 {len(data)} 条历史记录。")
-                    return data
-        except Exception as e:
-            print(f"加载已有数据失败 ({e})，将从头开始记录。")
-    else:
-        print(f"未找到 {input_path}，将创建新文件。")
-    return []
+    if not input_path.exists():
+        return []
+
+    try:
+        with input_path.open("rb") as file_obj:
+            data = pickle.load(file_obj)
+    except (AttributeError, EOFError, OSError, pickle.PickleError, TypeError, ValueError):
+        return []
+
+    return data if isinstance(data, list) else []
 
 
 def save_dataset(results: list[FiResult], output_path: Path) -> None:
@@ -58,61 +59,49 @@ def save_dataset(results: list[FiResult], output_path: Path) -> None:
         pickle.dump(results, file_obj)
 
 
-def main() -> None:
-    output_path = Path("data/shared/fi_results.pkl")
-    existing_results = load_dataset(output_path)
+def build_configs() -> list[FiExperimentConfig]:
+    configs: list[FiExperimentConfig] = []
 
-    # 实验超参数
-    NQUBIT_RANGE = range(4, 11)  # 从 4 到 8 比特
-    SAMPLES = 64                # 随机线路的采样次数
-
-    configs_to_run: list[FiExperimentConfig] = []
-    
     for nqubit in NQUBIT_RANGE:
-        # 1. 确定性线路及无须深度对比的随机线路
-        configs_to_run.extend([
-            FiExperimentConfig(circuit_type="qft", nqubit=nqubit, repeat=1),
-            FiExperimentConfig(circuit_type="ph1", nqubit=nqubit, repeat=1),
-            # 布局固定、仅相位随机的线路，跑多次求均值即可，不需要遍历 nlayer
-            FiExperimentConfig(circuit_type="ph_1_random", nqubit=nqubit, repeat=SAMPLES),
-        ])
-
-        # 2. 需要对比不同深度的随机线路 (nlayer 的范围必须严格小于 nqubit)
-        for nlayer in range(1, nqubit):
-            configs_to_run.extend([
+        configs.extend(
+            [
+                FiExperimentConfig(circuit_type="qft", nqubit=nqubit),
+                FiExperimentConfig(circuit_type="ph1", nqubit=nqubit),
                 FiExperimentConfig(
-                    circuit_type="ph_random",
+                    circuit_type="ph_1_random",
                     nqubit=nqubit,
-                    nlayer=nlayer,
                     repeat=SAMPLES,
                 ),
-                FiExperimentConfig(
-                    circuit_type="ph_random_phase",
-                    nqubit=nqubit,
-                    nlayer=nlayer,
-                    repeat=SAMPLES,
-                ),
-            ])
+            ]
+        )
+        configs.extend(
+            FiExperimentConfig(
+                circuit_type=circuit_type,
+                nqubit=nqubit,
+                nlayer=nlayer,
+                repeat=SAMPLES,
+            )
+            for nlayer in range(1, nqubit)
+            for circuit_type in ("ph_random", "ph_random_phase")
+        )
 
-    total_configs = len(configs_to_run)
+    return configs
+
+
+def main() -> None:
+    existing_results = load_dataset(OUTPUT_PATH)
+    configs = build_configs()
+    total_configs = len(configs)
     new_results: list[FiResult] = []
-    
-    print(f"\n计划执行 {total_configs} 组配置 (包含多次采样)...")
-    for index, config in enumerate(configs_to_run, start=1):
+
+    for index, config in enumerate(configs, start=1):
         print_progress(index - 1, total_configs, config)
-        current_results = build_dataset(config)
-        new_results.extend(current_results)
+        new_results.extend(build_dataset(config))
         print_progress(index, total_configs, config)
 
-    print("\n完成！部分新结果采样:")
-    # 仅打印前5条避免刷屏
-    for result in new_results[:5]:
-        print(result)
-    print("...")
-
     existing_results.extend(new_results)
-    save_dataset(existing_results, output_path)
-    print(f"已将总共 {len(existing_results)} 条记录保存至 {output_path}")
+    save_dataset(existing_results, OUTPUT_PATH)
+    print(f"saved {len(existing_results)} records to {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":

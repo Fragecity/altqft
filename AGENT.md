@@ -1,78 +1,47 @@
 # AGENT.md
 
-## 项目理解
-- 本仓库是一个基于 Python 3.11 的量子计算研究项目（核心包名 `altqft`），目标不是简单“近似实现 QFT”，而是寻找可替代 QFT 的线路族，并分析这些线路在 Hidden Subgroup Problem（HSP）中的可用性，目标产出为针对 PRL 等高水平物理期刊格式的学术论文。
-- 根据 `doc/paper/main.tex` 的核心逻辑，项目的研究主线包括：
-  1. 从 HSP 背景出发，指出标准 QFT 在实际实现中的痛点：依赖长程受控相位操作和较深的线路深度，在近期的带噪量子硬件上极具挑战。
-  2. 提炼 QFT 在 HSP 中真正关键的性质：不再局限于 gate-level 的简单近似，而是聚焦于 `shift invariance`（平移不变性）与 `Fisher information`（费舍尔信息）。
-  3. 定义了 Shift invariant 线路需满足的核心数学条件（定理：$U_{ij}=1/\sqrt{|G|}e^{i\theta}$），以确保子群陪集引起的干涉模式在测量统计中得以保留。
-  4. 提出并重点研究了 **PH circuit** 这一具体线路族。它严格包含了标准 QFT，同样满足 shift invariance，但能以更浅的深度作为 QFT 的有效替代。
-  5. 覆盖了不同群结构的场景：在理想的 $\mathbb{Z}_{2^n}$ 循环群下，证明了横向 Hadamard 层足以提取信息；在更具现实意义的 $\mathbb{Z}_q$ 有限维近似场景中，探讨了候选线路的鲁棒性。
-  6. 将量子计算与深度学习结合，使用神经网络（Neural Net）作为经典后处理模块，通过多项式级别的测量样本（measurement counts）成功恢复出隐藏子群参数，并在真实噪声环境下（noisy dynamics）对比了 PH circuit 与 QFT 的性能降级模式。
-- 因此，这个仓库可以理解为一个“量子线路构造 + 信息论性质证明 + 数值演化模拟 + 深度学习后处理 + 论文整理”一体化研究平台。从底层使用 Qiskit/PennyLane 等构建线路，到上层使用 PyTorch/JAX 等进行 Fisher Information 测算和神经网络训练，流程紧密结合。
-- 从当前目录结构看，项目主要包含三类内容：
-  1. `src/altqft/`：核心源码，包括量子线路、状态构造、神经网络处理与训练相关模块。
-  2. `scripts/`：实验脚本与绘图脚本，用于计算 Fisher Information、检查线路性质、生成论文或分析图像。
-  3. `tests/`：针对 circuits、nn、state 等模块的测试，确保基础矩阵运算和生成逻辑符合理论预期。
+## Project Overview
+- `altqft` contains circuit generators, state preparation utilities, FI evaluation code, and training code for PH-style circuits and related QFT experiments.
+- The main implementation lives in `src/altqft/`.
+- Research scripts live in `scripts/`.
+- Tests live in `tests/`.
 
-## 文件结构
-- `src/altqft/`：项目主包。
-  - `circuits/`：量子线路构造逻辑。
-  - `state/`：初态、状态相关工具。
-  - `nn/`：数据生成、模型、训练与量子线路处理。
-  - `py.typed`：说明该包支持类型标注。
-- `scripts/`：命令式实验入口。
-  - 根目录脚本通常用于单次实验或快速验证。
-  - `scripts/draw/`：绘图与论文图辅助脚本。
-  - `scripts/fi_data_cal/`：与 FI 数据计算相关的脚本。
-- `tests/`：自动化测试，目录结构与源码模块大致对应。
-- `doc/`：论文、笔记、归档材料。
-- `figs/`：图片与插图产物。
-- `data/`：实验结果或缓存数据。
-- `outputs/`：训练日志、调试输出等可再生运行产物。
-- `model/`：训练得到的 checkpoint 与参数导出文件，本地使用即可。
+## Directory Guide
+- `src/altqft/circuits/`: circuit construction utilities and PH/QFT generators.
+- `src/altqft/state/`: modular-solution helpers and initial-state preparation.
+- `src/altqft/nn/`: FI processing, differentiable models, and training utilities.
+- `scripts/fi_data_cal/`: FI dataset generation and reporting scripts.
+- `scripts/plots/`: plotting scripts for stored FI results.
+- `tests/`: regression tests for circuits, FI utilities, models, and state preparation.
+- `doc/`, `figs/`, `data/`, `model/`, `outputs/`: papers, figures, datasets, checkpoints, and run artifacts. Treat them as experiment assets and avoid overwriting them casually.
 
-## 建议工作方式
-1. 优先使用 `uv` 执行命令，而不是直接调用系统 Python：
-   - `uv sync`
-   - `uv run python scripts/<name>.py`
-   - `uv run pytest`
-2. 修改前先确认脚本依赖的本地模块是否真实存在，尤其是 `src/altqft/` 下对应模块是否已经实现。
-3. 如果只是验证语法、导入或类型是否合理，请优先使用轻量检查；涉及量子线路模拟、训练或大规模绘图的脚本可能较慢。
-4. 如果改动的是研究脚本，尽量保持“可复现”：记录输入参数、输出文件路径、随机性来源和保存结果的位置。
-5. 训练或批处理脚本生成的 `.log` 文件优先写到 `outputs/`，提交 PR 前应确认这些日志文件没有被纳入版本控制。
-6. `model/` 下的 checkpoint、参数导出等训练产物默认只做本地保存；除非用户明确要求，否则不要把这些文件提交到仓库。
-
-## 代码与改动约定
-- 保持现有代码风格，优先小步修改，不做无关重构。
-- 新增功能时，优先放入 `src/altqft/` 对应模块；`scripts/` 更适合放实验入口、数据处理或绘图调用。
-- 新增脚本时，放在 `scripts/` 下，并尽量提供 `if __name__ == "__main__":` 示例入口。
-- 涉及实验参数（如 qubit 数、shots、epoch）的改动时，避免默认值过大，以免本地验证成本过高。
-- 注释可使用中文；如补充说明，优先写清楚“为什么这样做”，而不是重复代码行为。
-
-## 类型提示要求
-- 写代码时，函数的输入参数和返回值都应尽量补全类型提示。
-- 新增或修改的公共函数，默认都要写明确的参数类型与返回类型。
-- 即使是脚本中的辅助函数，只要逻辑不是一次性内联代码，也建议补齐类型提示。
-- 如果返回值可能有多种形式，优先使用 `Optional`、`Union`、`Iterable`、`Iterator`、`Sequence` 等明确表达，而不是完全省略返回类型。
-- 与张量、量子线路、字典结果等对象交互时，尽量使用能表达语义的具体类型，而不是一律写成 `Any`。
-
-## 验证建议
-- 依赖安装：`uv sync`
-- 代码检查：
-  - `uv run python -m compileall src scripts tests`
+## Working Rules
+- Use `uv` for dependency and command execution when possible.
+- Typical commands:
+  - `uv sync`
   - `uv run pytest`
-- 若测试不存在或不完整，至少运行被修改模块对应的最小可行检查。
-- 若改动影响绘图、数据生成或实验输出，请补充说明输入参数、输出位置和复现方式。
+  - `uv run mypy`
+  - `uv run python scripts/train_ph1_min_fi.py`
+- Keep changes focused on source code unless the task explicitly requires updating generated artifacts or research assets.
+- When changing scripts that load saved results, keep backward compatibility with existing pickle/json outputs when practical.
 
-## 提交建议
-- 提交信息建议使用简洁、动作导向的格式，例如：
-  - `docs: refine repository agent guide`
-  - `fix: adjust qft fi script parameters`
-  - `feat: add plotting helper for training logs`
-  - `refactor: add type hints to nn utilities`
+## Refactoring Requirements
+- Keep code concise and easy to read.
+- Avoid deep nesting; prefer early returns and small helper functions.
+- Keep functions short and focused on one task.
+- Do not add defensive handling for cases that are not expected to happen.
+- Add explicit type hints for every public function input and output.
+- Keep the project passing `mypy`.
+- Remove code smells such as duplicated logic, redundant parameters, and repeated definitions.
+- Prefer function-oriented and side-effect-light designs when practical.
 
-## 注意事项
-- 本仓库偏研究/实验性质，生成图像或运行大规模模拟前，应先确认输出路径、运行时长与资源开销。
-- 某些脚本默认会保存图片、数据或日志到当前工作目录；如果调整输出文件名或路径，请同步更新说明。
-- 改动 `doc/`、`figs/`、`data/` 下文件时，要确认这些内容是源码、结果产物还是论文资源，避免误覆盖重要实验结果。
+## Verification
+- Run tests after non-trivial code changes.
+- Run `mypy` after changing typed Python modules or scripts.
+- If a change affects experiment scripts or saved-data loaders, verify the relevant script entry points directly.
+
+## Commit Style
+- Prefer focused commit messages such as:
+  - `refactor: simplify PH circuit builders`
+  - `refactor: add type hints to FI scripts`
+  - `fix: keep FI dataset loader compatible`
