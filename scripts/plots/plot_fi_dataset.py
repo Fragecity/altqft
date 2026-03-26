@@ -4,14 +4,17 @@ import pickle
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
+import json
 from pathlib import Path
 from typing import DefaultDict, cast
 
 import matplotlib.pyplot as plt
 
 INPUT_FILE = Path("data/shared/fi_results.pkl")
+OPTIMIZED_PH1_SUMMARY_FILE = Path("data/shared/ph1_min_fi_summary.json")
 OUTPUT_DIR = Path("figs/fi_fig")
 FI_DATA_DIR = Path(__file__).resolve().parent.parent / "fi_data_cal"
+LABEL_MAP = {"ph1_optimized": "optimized ph1"}
 
 
 @dataclass(frozen=True)
@@ -65,7 +68,8 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
         color = colors[index % len(colors)]
         x_all, y_all = _scatter_points(x_y_dict)
         x_mean, y_mean = _mean_points(x_y_dict)
-        plt.scatter(x_all, y_all, color=color, alpha=0.5, s=30, label=circuit_type, zorder=2)
+        label = LABEL_MAP.get(circuit_type, circuit_type)
+        plt.scatter(x_all, y_all, color=color, alpha=0.5, s=30, label=label, zorder=2)
         plt.plot(x_mean, y_mean, color=color, linewidth=2, zorder=1)
 
     plt.xlabel(xlabel)
@@ -80,6 +84,34 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
 def load_results(input_path: Path) -> list[FiResultRecord]:
     with input_path.open("rb") as file_obj:
         return cast(list[FiResultRecord], pickle.load(file_obj))
+
+
+def load_optimized_ph1_results(input_path: Path) -> list[FiResultRecord]:
+    if not input_path.exists():
+        return []
+
+    payload = json.loads(input_path.read_text(encoding="utf-8"))
+    records: list[FiResultRecord] = []
+
+    for item in payload.get("results", []):
+        if not isinstance(item, dict):
+            continue
+        nqubit = item.get("nqubit")
+        best_epoch = item.get("best_epoch")
+        if not isinstance(nqubit, int) or not isinstance(best_epoch, dict):
+            continue
+        loss = best_epoch.get("loss")
+        if not isinstance(loss, (int, float)):
+            continue
+        records.append(
+            FiResultRecord(
+                circuit_type="ph1_optimized",
+                nqubit=nqubit,
+                fi_value=float(-loss),
+            )
+        )
+
+    return records
 
 
 def group_results(results: list[FiResultRecord]) -> tuple[PlotData, PlotData]:
@@ -99,6 +131,7 @@ def main() -> None:
     ensure_pickle_dependencies()
 
     results = load_results(INPUT_FILE)
+    results.extend(load_optimized_ph1_results(OPTIMIZED_PH1_SUMMARY_FILE))
     by_qubit, by_layer = group_results(results)
     plot_scatter_and_mean(by_qubit, "Number of Qubits", OUTPUT_DIR / "fi_vs_nqubits.png")
     plot_scatter_and_mean(by_layer, "Number of Layers", OUTPUT_DIR / "fi_vs_nlayer.png")

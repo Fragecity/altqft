@@ -1,50 +1,85 @@
 from __future__ import annotations
 
-import argparse
+import json
+from dataclasses import asdict
+from pathlib import Path
 
-from altqft.nn.train import TrainConfig, build_default_period_range, train_model
+from altqft.nn.train import EpochResult, TrainArtifacts, TrainConfig, build_default_period_range, train_model
+
+NQUBIT_RANGE = range(4, 13)
+EPOCHS = 300
+LEARNING_RATE = 0.05
+SEED = 7
+LOG_INTERVAL = 25
+SUMMARY_PATH = Path("data/shared/ph1_min_fi_summary.json")
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train the PH-1 minimum-FI model.")
-    parser.add_argument("--nqubit", type=int, default=4, help="Number of qubits.")
-    parser.add_argument("--epochs", type=int, default=30, help="Number of epochs.")
-    parser.add_argument("--lr", type=float, default=0.05, help="Adam learning rate.")
-    parser.add_argument("--seed", type=int, default=7, help="Random seed.")
-    parser.add_argument(
-        "--log-interval",
-        type=int,
-        default=5,
-        help="Log every N epochs.",
+def build_config(nqubit: int) -> TrainConfig:
+    return TrainConfig(
+        nqubit=nqubit,
+        period_range=build_default_period_range(nqubit),
+        epochs=EPOCHS,
+        learning_rate=LEARNING_RATE,
+        seed=SEED,
+        log_interval=LOG_INTERVAL,
     )
-    parser.add_argument(
-        "--periods",
-        type=int,
-        nargs="*",
-        default=None,
-        help="Explicit period range. Defaults to the built-in heuristic.",
-    )
-    return parser.parse_args()
+
+
+def select_best_epoch(history: list[EpochResult]) -> EpochResult:
+    if not history:
+        raise RuntimeError("training history is empty")
+    return min(history, key=lambda item: item.loss)
+
+
+def build_summary_entry(config: TrainConfig, artifacts: TrainArtifacts) -> dict[str, object]:
+    best_epoch = select_best_epoch(artifacts.history)
+    return {
+        "nqubit": config.nqubit,
+        "best_epoch": asdict(best_epoch),
+        "final_epoch": asdict(artifacts.history[-1]),
+        "model_path": str(artifacts.model_path),
+        "phase_path": str(artifacts.phase_path),
+        "history_path": str(artifacts.history_path),
+        "log_path": str(artifacts.log_path),
+    }
+
+
+def save_summary(results: list[dict[str, object]]) -> None:
+    SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "config": {
+            "nqubit_range": list(NQUBIT_RANGE),
+            "epochs": EPOCHS,
+            "learning_rate": LEARNING_RATE,
+            "seed": SEED,
+            "log_interval": LOG_INTERVAL,
+        },
+        "results": results,
+    }
+    SUMMARY_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def main() -> None:
-    args = parse_args()
-    period_range = (
-        build_default_period_range(args.nqubit)
-        if args.periods is None
-        else list(args.periods)
-    )
-    config = TrainConfig(
-        nqubit=args.nqubit,
-        period_range=period_range,
-        epochs=args.epochs,
-        learning_rate=args.lr,
-        seed=args.seed,
-        log_interval=args.log_interval,
-    )
-    artifacts = train_model(config)
-    print(f"final_min_fi={artifacts.final_min_fi:.8f}")
-    print(f"model_path={artifacts.model_path}")
-    print(f"phase_path={artifacts.phase_path}")
-    print(f"history_path={artifacts.history_path}")
-    print(f"log_path={artifacts.log_path}")
+    summary_results: list[dict[str, object]] = []
+
+    for nqubit in NQUBIT_RANGE:
+        config = build_config(nqubit)
+        artifacts = train_model(config)
+        summary_entry = build_summary_entry(config, artifacts)
+        summary_results.append(summary_entry)
+
+        best_epoch = summary_entry["best_epoch"]
+        assert isinstance(best_epoch, dict)
+        print(
+            f"nqubit={nqubit} "
+            f"best_epoch={best_epoch['epoch']} "
+            f"best_fi={-float(best_epoch['loss']):.8f} "
+            f"history_path={artifacts.history_path}"
+        )
+
+    save_summary(summary_results)
+    print(f"summary_path={SUMMARY_PATH}")
+
+
+if __name__ == "__main__":
+    main()
