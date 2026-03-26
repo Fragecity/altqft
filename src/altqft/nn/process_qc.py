@@ -19,7 +19,7 @@ def _probability_vector(unitary: np.ndarray, period: int, shift: int) -> FloatAr
     return np.asarray(np.abs(amplitudes) ** 2 / row_count, dtype=np.float64)
 
 
-def _distribution(probability: ProbFunc, size: int, shift: int = 0) -> FloatArray:
+def probability_distribution(probability: ProbFunc, size: int, shift: int = 0) -> FloatArray:
     return np.fromiter(
         (probability(column, shift) for column in range(size)),
         dtype=float,
@@ -29,8 +29,8 @@ def _distribution(probability: ProbFunc, size: int, shift: int = 0) -> FloatArra
 
 def _fisher_for_period(circuit: QuantumCircuit, period: int, size: int) -> float:
     return fi(
-        _distribution(make_prob(circuit, period), size),
-        _distribution(make_prob(circuit, period + 1), size),
+        probability_distribution(make_prob(circuit, period), size),
+        probability_distribution(make_prob(circuit, period + 1), size),
     )
 
 
@@ -43,6 +43,15 @@ def make_prob(circuit: QuantumCircuit, period: int) -> ProbFunc:
         return float(values[col])
 
     return prob
+
+
+def circuit_probability_distribution(
+    circuit: QuantumCircuit,
+    period: int,
+    shift: int = 0,
+) -> FloatArray:
+    size = 1 << circuit.num_qubits
+    return probability_distribution(make_prob(circuit, period), size, shift=shift)
 
 
 def fi(prob1: Sequence[float] | FloatArray, prob2: Sequence[float] | FloatArray) -> float:

@@ -74,6 +74,7 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
 
     plt.xlabel(xlabel)
     plt.ylabel("Fisher Information")
+    plt.yscale("log")
     plt.grid(True, linestyle="--", alpha=0.4)
     plt.legend()
     plt.tight_layout()

@@ -11,6 +11,7 @@ import torch
 from torch.optim import Adam, Optimizer
 
 from altqft.nn.model import PH1MinFIModel
+from altqft.nn.periods import build_default_period_range
 
 LOGGER_NAME = "altqft.nn.train"
 SerializedConfig = dict[str, int | float | str | list[int]]
@@ -53,7 +54,7 @@ class TrainConfig:
 
     @property
     def history_path(self) -> Path:
-        return self.data_dir / f"{self.run_name}_history.json"
+        return self.output_dir / f"{self.run_name}_history.json"
 
     @property
     def log_path(self) -> Path:
@@ -75,16 +76,6 @@ class TrainArtifacts:
     phase_path: Path
     history_path: Path
     log_path: Path
-
-
-def build_default_period_range(nqubit: int) -> list[int]:
-    dimension = 2**nqubit
-    upper_bound = min(dimension - 1, 2 * nqubit)
-    periods = list(range(2, upper_bound))
-    if not periods:
-        raise ValueError(f"no valid period range for nqubit={nqubit}")
-    return periods
-
 
 def serialize_config(config: TrainConfig) -> SerializedConfig:
     return {

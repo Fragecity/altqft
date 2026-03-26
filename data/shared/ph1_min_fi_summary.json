@@ -1,0 +1,140 @@
+{
+  "config": {
+    "nqubit_range": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "epochs": 300,
+    "learning_rate": 0.05,
+    "seed": 7,
+    "log_interval": 25
+  },
+  "results": [
+    {
+      "nqubit": 4,
+      "best_epoch": {
+        "epoch": 144,
+        "loss": -3.666666269302368,
+        "min_fi": 3.666666269302368
+      },
+      "final_epoch": {
+        "epoch": 300,
+        "loss": -3.6666653156280518,
+        "min_fi": 3.6666653156280518
+      },
+      "model_path": "model\\ph1_min_fi_4q.pt",
+      "phase_path": "model\\ph1_min_fi_4q_phases.json",
+      "history_path": "data\\ph1_min_fi_4q_history.json",
+      "log_path": "outputs\\ph1_min_fi_4q.log"
+    },
+    {
+      "nqubit": 5,
+      "best_epoch": {
+        "epoch": 270,
+        "loss": -44.87881851196289,
+        "min_fi": 44.87881851196289
+      },
+      "final_epoch": {
+        "epoch": 300,
+        "loss": -27.156646728515625,
+        "min_fi": 27.156646728515625
+      },
+      "model_path": "model\\ph1_min_fi_5q.pt",
+      "phase_path": "model\\ph1_min_fi_5q_phases.json",
+      "history_path": "data\\ph1_min_fi_5q_history.json",
+      "log_path": "outputs\\ph1_min_fi_5q.log"
+    },
+    {
+      "nqubit": 6,
+      "best_epoch": {
+        "epoch": 263,
+        "loss": -63.07758331298828,
+        "min_fi": 63.07758331298828
+      },
+      "final_epoch": {
+        "epoch": 300,
+        "loss": -10.964242935180664,
+        "min_fi": 10.964242935180664
+      },
+      "model_path": "model\\ph1_min_fi_6q.pt",
+      "phase_path": "model\\ph1_min_fi_6q_phases.json",
+      "history_path": "data\\ph1_min_fi_6q_history.json",
+      "log_path": "outputs\\ph1_min_fi_6q.log"
+    },
+    {
+      "nqubit": 7,
+      "best_epoch": {
+        "epoch": 93,
+        "loss": -175.4412841796875,
+        "min_fi": 175.4412841796875
+      },
+      "final_epoch": {
+        "epoch": 300,
+        "loss": -91.97512817382812,
+        "min_fi": 91.97512817382812
+      },
+      "model_path": "model\\ph1_min_fi_7q.pt",
+      "phase_path": "model\\ph1_min_fi_7q_phases.json",
+      "history_path": "data\\ph1_min_fi_7q_history.json",
+      "log_path": "outputs\\ph1_min_fi_7q.log"
+    },
+    {
+      "nqubit": 8,
+      "best_epoch": {
+        "epoch": 33,
+        "loss": -140.81851196289062,
+        "min_fi": 140.81851196289062
+      },
+      "final_epoch": {
+        "epoch": 300,
+        "loss": -52.77498245239258,
+        "min_fi": 52.77498245239258
+      },
+      "model_path": "model\\ph1_min_fi_8q.pt",
+      "phase_path": "model\\ph1_min_fi_8q_phases.json",
+      "history_path": "data\\ph1_min_fi_8q_history.json",
+      "log_path": "outputs\\ph1_min_fi_8q.log"
+    },
+    {
+      "nqubit": 9,
+      "best_epoch": {
+        "epoch": 16,
+        "loss": -395.2832946777344,
+        "min_fi": 395.2832946777344
+      },
+      "final_epoch": {
+        "epoch": 300,
+        "loss": -67.33626556396484,
+        "min_fi": 67.33626556396484
+      },
+      "model_path": "model\\ph1_min_fi_9q.pt",
+      "phase_path": "model\\ph1_min_fi_9q_phases.json",
+      "history_path": "data\\ph1_min_fi_9q_history.json",
+      "log_path": "outputs\\ph1_min_fi_9q.log"
+    },
+    {
+      "nqubit": 10,
+      "best_epoch": {
+        "epoch": 258,
+        "loss": -322.5807189941406,
+        "min_fi": 322.5807189941406
+      },
+      "final_epoch": {
+        "epoch": 300,
+        "loss": -108.16655731201172,
+        "min_fi": 108.16655731201172
+      },
+      "model_path": "model\\ph1_min_fi_10q.pt",
+      "phase_path": "model\\ph1_min_fi_10q_phases.json",
+      "history_path": "data\\ph1_min_fi_10q_history.json",
+      "log_path": "outputs\\ph1_min_fi_10q.log"
+    }
+  ]
+}

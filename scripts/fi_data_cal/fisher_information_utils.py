@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 
+from altqft.nn.periods import build_default_period_range
 from altqft.circuits.ph_generators import (
     ph_1,
     ph_1_random,
@@ -61,12 +62,8 @@ def build_circuit(
     return builders[circuit_key]()
 
 
-def default_period_range(nqubit: int) -> range:
-    upper_bound = min(
-        max(int(2 ** (nqubit / 4)), nqubit**2),
-        max(nqubit, int(nqubit**2 / 2)),
-    )
-    return range(nqubit, upper_bound + 1)
+def default_period_range(nqubit: int) -> list[int]:
+    return build_default_period_range(nqubit)
 
 
 def calculate_fi_results(config: FiExperimentConfig) -> list[FiResult]:
