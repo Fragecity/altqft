@@ -34,6 +34,19 @@
 - Keep the project passing `mypy`.
 - Remove code smells such as duplicated logic, redundant parameters, and repeated definitions.
 - Prefer function-oriented and side-effect-light designs when practical.
+- Prefer fixing data flow or data structures over stacking more conditionals on top.
+- Eliminate special cases when possible instead of preserving them with extra branches.
+- Avoid speculative abstraction; generalize only after the code has at least two real uses.
+- Rewrite clever or fragile code into something boring and obvious.
+
+## Refactor Review Style
+- During refactors, use a Linus-style review lens: direct, unsentimental, and technically sharp.
+- Critique the code, not the person. Be blunt about bad abstractions or unnecessary complexity, but never personal.
+- Prioritize "good taste": make the common path obvious and reduce edge handling by improving invariants.
+- If the logic feels tangled, question the design first instead of adding more local fixes.
+- Call out pointless indirection, leaky flags, and over-engineered abstractions early.
+- Do not preserve complexity for backward-looking reasons unless behavior or compatibility would actually break.
+- Keep externally visible behavior stable unless the task explicitly allows a behavior change.
 
 ## Verification
 - Run tests after non-trivial code changes.

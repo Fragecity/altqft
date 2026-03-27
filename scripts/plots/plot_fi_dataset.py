@@ -9,12 +9,31 @@ from pathlib import Path
 from typing import DefaultDict, cast
 
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.font_manager import FontProperties
+from matplotlib.lines import Line2D
 
 INPUT_FILE = Path("data/shared/fi_results.pkl")
 OPTIMIZED_PH1_SUMMARY_FILE = Path("data/shared/ph1_min_fi_summary.json")
 OUTPUT_DIR = Path("figs/fi_fig")
 FI_DATA_DIR = Path(__file__).resolve().parent.parent / "fi_data_cal"
-LABEL_MAP = {"ph1_optimized": "optimized ph1"}
+LABEL_MAP = {"ph1_optimized": "optimized ph1", "ph_1_random": "ph1_random"}
+VARIANCE_BAND_CIRCUITS = {"ph_1_random", "ph_random", "ph_random_phase"}
+CIRCUIT_COLORS = {
+    "qft": "black",
+    "ph1": "#0081a7",
+    "ph_1_random": "#00afb9",
+    "ph_random": "#fed9b7",
+    "ph_random_phase": "#f07167",
+}
+TOP_LAYER_CIRCUITS = {"qft", "ph1"}
+BOTTOM_LAYER_CIRCUITS = {"ph_random_phase"}
+BASE_LINEWIDTH = 2.0
+LEGEND_FONT_SCALE = 1.3
+NQUBITS_FIGSIZE = (5, 4)
+NQUBITS_DPI = 200
+NLAYER_FIGSIZE = (8, 5)
+PLOT_DPI = 200
 
 
 @dataclass(frozen=True)
@@ -36,6 +55,14 @@ def ensure_pickle_dependencies() -> None:
 
 def _mean(values: list[float]) -> float:
     return sum(values) / len(values)
+
+
+def _variance(values: list[float]) -> float:
+    return float(np.var(values))
+
+
+def _scaled_fontsize(value: str | float | int, scale: float) -> float:
+    return FontProperties(size=value).get_size_in_points() * scale
 
 
 def _scatter_points(x_y_dict: DefaultDict[int, list[float]]) -> tuple[list[int], list[float]]:
@@ -60,26 +87,161 @@ def _mean_points(x_y_dict: DefaultDict[int, list[float]]) -> tuple[list[int], li
     return x_mean, y_mean
 
 
+def _mean_and_variance_points(
+    x_y_dict: DefaultDict[int, list[float]],
+) -> tuple[list[int], list[float], list[float], list[float]]:
+    x_values: list[int] = []
+    means: list[float] = []
+    lowers: list[float] = []
+    uppers: list[float] = []
+
+    for x_value, y_values in sorted(x_y_dict.items()):
+        mean_value = _mean(y_values)
+        variance_value = _variance(y_values)
+        min_value = min(y_values)
+        max_value = max(y_values)
+        x_values.append(x_value)
+        means.append(mean_value)
+        lowers.append(max(mean_value - variance_value, min_value, 1e-12))
+        uppers.append(min(mean_value + variance_value, max_value))
+
+    return x_values, means, lowers, uppers
+
+
 def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -> None:
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=NQUBITS_FIGSIZE)
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     for index, (circuit_type, x_y_dict) in enumerate(sorted(data_dict.items())):
-        color = colors[index % len(colors)]
-        x_all, y_all = _scatter_points(x_y_dict)
-        x_mean, y_mean = _mean_points(x_y_dict)
+        color = CIRCUIT_COLORS.get(circuit_type, colors[index % len(colors)])
         label = LABEL_MAP.get(circuit_type, circuit_type)
-        plt.scatter(x_all, y_all, color=color, alpha=0.5, s=30, label=label, zorder=2)
-        plt.plot(x_mean, y_mean, color=color, linewidth=2, zorder=1)
+        if circuit_type in TOP_LAYER_CIRCUITS:
+            line_zorder = 5
+        elif circuit_type in BOTTOM_LAYER_CIRCUITS:
+            line_zorder = 0
+        else:
+            line_zorder = 2
+
+        if circuit_type in VARIANCE_BAND_CIRCUITS:
+            x_mean, y_mean, y_lower, y_upper = _mean_and_variance_points(x_y_dict)
+            plt.fill_between(x_mean, y_lower, y_upper, color=color, alpha=0.18, zorder=1)
+            plt.plot(
+                x_mean,
+                y_mean,
+                color=color,
+                linewidth=BASE_LINEWIDTH,
+                label=label,
+                zorder=line_zorder,
+            )
+            continue
+
+        x_mean, y_mean = _mean_points(x_y_dict)
+        plt.plot(
+            x_mean,
+            y_mean,
+            color=color,
+            linewidth=BASE_LINEWIDTH,
+            label=label,
+            zorder=line_zorder,
+        )
 
     plt.xlabel(xlabel)
     plt.ylabel("Fisher Information")
-    plt.yscale("log")
+    plt.ylim(top=30)
     plt.grid(True, linestyle="--", alpha=0.4)
-    plt.legend()
+    plt.legend(
+        frameon=False,
+        fontsize=_scaled_fontsize(plt.rcParams["legend.fontsize"], LEGEND_FONT_SCALE),
+    )
     plt.tight_layout()
-    plt.savefig(output_path, dpi=200)
+    plt.savefig(output_path, dpi=NQUBITS_DPI)
     plt.close()
+
+
+def _adjacent_values(sorted_values: np.ndarray, q1: float, q3: float) -> tuple[float, float]:
+    iqr = q3 - q1
+    upper_adjacent_value = q3 + 1.5 * iqr
+    upper_adjacent_value = np.clip(upper_adjacent_value, q3, sorted_values[-1])
+
+    lower_adjacent_value = q1 - 1.5 * iqr
+    lower_adjacent_value = np.clip(lower_adjacent_value, sorted_values[0], q1)
+    return float(lower_adjacent_value), float(upper_adjacent_value)
+
+
+def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
+    fig, ax = plt.subplots(figsize=NLAYER_FIGSIZE)
+    colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+    circuit_types = sorted(data_dict)
+    all_layers = sorted({layer for x_y_dict in data_dict.values() for layer in x_y_dict})
+
+    if not circuit_types or not all_layers:
+        plt.close(fig)
+        return
+
+    offsets = np.linspace(-0.18, 0.18, len(circuit_types)) if len(circuit_types) > 1 else np.array([0.0])
+    legend_handles: list[Line2D] = []
+
+    for index, circuit_type in enumerate(circuit_types):
+        color = colors[index % len(colors)]
+        x_y_dict = data_dict[circuit_type]
+        layers = [layer for layer in all_layers if layer in x_y_dict]
+        if not layers:
+            continue
+
+        values = [x_y_dict[layer] for layer in layers]
+        positions = np.array(layers, dtype=float) + offsets[index]
+        violin = ax.violinplot(
+            values,
+            positions=positions,
+            widths=0.28,
+            showmeans=False,
+            showmedians=False,
+            showextrema=False,
+        )
+
+        for body in violin["bodies"]:
+            body.set_facecolor(color)
+            body.set_edgecolor(color)
+            body.set_alpha(0.45)
+
+        quartile1 = np.array([np.percentile(sample, 25) for sample in values])
+        medians = np.array([np.percentile(sample, 50) for sample in values])
+        quartile3 = np.array([np.percentile(sample, 75) for sample in values])
+
+        whiskers = np.array(
+            [
+                _adjacent_values(np.sort(np.asarray(sample, dtype=float)), q1, q3)
+                for sample, q1, q3 in zip(values, quartile1, quartile3)
+            ]
+        )
+        whiskers_min, whiskers_max = whiskers[:, 0], whiskers[:, 1]
+
+        ax.scatter(positions, medians, marker="o", color="white", s=30, zorder=3)
+        ax.vlines(positions, quartile1, quartile3, color="k", linestyle="-", lw=5)
+        ax.vlines(positions, whiskers_min, whiskers_max, color="k", linestyle="-", lw=1)
+        legend_handles.append(
+            Line2D(
+                [0],
+                [0],
+                color=color,
+                lw=8,
+                alpha=0.45,
+                label=LABEL_MAP.get(circuit_type, circuit_type),
+            )
+        )
+
+    ax.set_xlabel("Number of Layers")
+    ax.set_ylabel("Fisher Information")
+    ax.set_xticks(all_layers)
+    ax.grid(True, linestyle="--", alpha=0.4)
+    ax.legend(
+        handles=legend_handles,
+        frameon=False,
+        fontsize=_scaled_fontsize(plt.rcParams["legend.fontsize"], LEGEND_FONT_SCALE),
+    )
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=PLOT_DPI)
+    plt.close(fig)
 
 
 def load_results(input_path: Path) -> list[FiResultRecord]:
@@ -133,9 +295,10 @@ def main() -> None:
 
     results = load_results(INPUT_FILE)
     results.extend(load_optimized_ph1_results(OPTIMIZED_PH1_SUMMARY_FILE))
+    results = [result for result in results if result.circuit_type != "ph1_optimized"]
     by_qubit, by_layer = group_results(results)
-    plot_scatter_and_mean(by_qubit, "Number of Qubits", OUTPUT_DIR / "fi_vs_nqubits.png")
-    plot_scatter_and_mean(by_layer, "Number of Layers", OUTPUT_DIR / "fi_vs_nlayer.png")
+    plot_scatter_and_mean(by_qubit, "Number of Qubits", OUTPUT_DIR / "fi_vs_nqubits.pdf")
+    plot_layer_violin(by_layer, OUTPUT_DIR / "fi_vs_nlayer.pdf")
 
 
 if __name__ == "__main__":
