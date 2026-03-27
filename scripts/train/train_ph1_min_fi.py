@@ -6,7 +6,7 @@ from pathlib import Path
 
 from altqft.nn.train import EpochResult, TrainConfig, build_default_period_range, train_model
 
-NQUBIT_RANGE = range(4, 13)
+NQUBIT_RANGE = range(11, 15)
 EPOCHS = 300
 LEARNING_RATE = 0.05
 SEED = 7
@@ -52,8 +52,30 @@ def build_summary_entry(config: TrainConfig, history: list[EpochResult]) -> dict
     }
 
 
+def load_existing_summary_results() -> list[dict[str, object]]:
+    if not SUMMARY_PATH.exists():
+        return []
+
+    payload = json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
+    results = payload.get("results", [])
+    if not isinstance(results, list):
+        raise TypeError(f"invalid summary payload: {SUMMARY_PATH}")
+
+    summary_results: list[dict[str, object]] = []
+    for item in results:
+        if isinstance(item, dict) and isinstance(item.get("nqubit"), int):
+            summary_results.append(item)
+    return summary_results
+
+
 def save_summary(results: list[dict[str, object]]) -> None:
     SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    merged_results_by_nqubit = {
+        entry["nqubit"]: entry for entry in load_existing_summary_results()
+    }
+    for entry in results:
+        merged_results_by_nqubit[entry["nqubit"]] = entry
+
     payload = {
         "config": {
             "nqubit_range": list(NQUBIT_RANGE),
@@ -62,7 +84,10 @@ def save_summary(results: list[dict[str, object]]) -> None:
             "seed": SEED,
             "log_interval": LOG_INTERVAL,
         },
-        "results": results,
+        "results": [
+            merged_results_by_nqubit[nqubit]
+            for nqubit in sorted(merged_results_by_nqubit)
+        ],
     }
     SUMMARY_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
