@@ -66,7 +66,10 @@ def default_period_range(nqubit: int) -> list[int]:
     return build_default_period_range(nqubit)
 
 
-def calculate_fi_results(config: FiExperimentConfig) -> list[FiResult]:
+def calculate_fi_results(
+    config: FiExperimentConfig,
+    device: str | None = None,
+) -> list[FiResult]:
     period_range = default_period_range(config.nqubit)
     return [
         FiResult(
@@ -75,6 +78,7 @@ def calculate_fi_results(config: FiExperimentConfig) -> list[FiResult]:
             fi_value=min_fi(
                 build_circuit(config.circuit_type, config.nqubit, config.nlayer),
                 period_range=period_range,
+                device=device,
             ),
             nlayer=config.nlayer,
         )

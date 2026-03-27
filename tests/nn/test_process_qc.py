@@ -2,6 +2,7 @@ import pytest
 import math
 from unittest.mock import patch
 from qiskit import QuantumCircuit
+from altqft.circuits.ph_generators import qft
 from altqft.nn.process_qc import fi, min_fi
 
 # ----------------- 测试用例 1: fi 函数基础测试 -----------------
@@ -74,4 +75,14 @@ def test_min_fi_dynamic():
         
         print(f"动态周期 min_fi (预期 {expected_min_fi:.6f}): {min_fi_value:.6f}")
         assert math.isclose(min_fi_value, expected_min_fi, rel_tol=1e-9)
+
+
+def test_min_fi_torch_cpu_matches_numpy() -> None:
+    circuit = qft(3)
+    period_range = [3, 4, 5]
+
+    expected = min_fi(circuit, period_range)
+    actual = min_fi(circuit, period_range, device="cpu")
+
+    assert math.isclose(actual, expected, rel_tol=1e-5, abs_tol=1e-6)
 
