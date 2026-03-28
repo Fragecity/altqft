@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import pickle
 import sys
 from collections import defaultdict
@@ -12,6 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
 from matplotlib.lines import Line2D
+
+plt.rcParams["font.family"] = "Arial"
 
 INPUT_FILE = Path("data/shared/fi_results.pkl")
 OPTIMIZED_PH1_SUMMARY_FILE = Path("data/shared/ph1_min_fi_summary.json")
@@ -31,11 +34,12 @@ TOP_LAYER_CIRCUITS = {"qft", "ph1"}
 BOTTOM_LAYER_CIRCUITS = {"ph_random_phase"}
 LAYER_PLOT_EXCLUDED_CIRCUITS = {"ph_random"}
 BASE_LINEWIDTH = 2.0
-NLAYER_LEGEND_FONT_SCALE = 1.5
-NQUBITS_FIGSIZE = (5, 4)
+NLAYER_LEGEND_FONT_SCALE = 1.15
+NQUBITS_SVG_SIZE_PT = (280, 300)
+NQUBITS_FIGSIZE = (NQUBITS_SVG_SIZE_PT[0] / 72, NQUBITS_SVG_SIZE_PT[1] / 72)
 NQUBITS_DPI = 200
-NLAYER_SVG_SIZE_PT = 800
-NLAYER_FIGSIZE = (NLAYER_SVG_SIZE_PT / 72, NLAYER_SVG_SIZE_PT / 72)
+NLAYER_SVG_SIZE_PT = (220, 240)
+NLAYER_FIGSIZE = (NLAYER_SVG_SIZE_PT[0] / 72, NLAYER_SVG_SIZE_PT[1] / 72)
 PLOT_DPI = 200
 Y_AXIS_LABEL = "Minimum Discrete Fisher Info"
 Y_LABEL_FONT_SCALE = 0.9
@@ -59,6 +63,53 @@ def ensure_pickle_dependencies() -> None:
     fi_data_dir = str(FI_DATA_DIR)
     if fi_data_dir not in sys.path:
         sys.path.insert(0, fi_data_dir)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Plot FI datasets.")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=INPUT_FILE,
+        help="Input FI pickle file.",
+    )
+    parser.add_argument(
+        "--optimized-summary",
+        type=Path,
+        default=OPTIMIZED_PH1_SUMMARY_FILE,
+        help="Optimized PH1 summary JSON file.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=OUTPUT_DIR,
+        help="Directory for generated figures.",
+    )
+    parser.add_argument(
+        "--nqubit-start",
+        type=int,
+        default=None,
+        help="Inclusive starting qubit count for plotting.",
+    )
+    parser.add_argument(
+        "--nqubit-end",
+        type=int,
+        default=None,
+        help="Inclusive ending qubit count for plotting.",
+    )
+    return parser.parse_args()
+
+
+def resolve_nqubit_filter(start: int | None, end: int | None) -> set[int] | None:
+    if start is None and end is None:
+        return None
+    if start is None or end is None:
+        raise ValueError("nqubit start and end must be provided together")
+    if start < 2:
+        raise ValueError("nqubit start must be at least 2")
+    if end < start:
+        raise ValueError("nqubit end must be greater than or equal to start")
+    return set(range(start, end + 1))
 
 
 def _mean(values: list[float]) -> float:
@@ -185,15 +236,9 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
             zorder=line_zorder,
         )
 
-    plt.xlabel(xlabel)
-    plt.ylabel(
-        Y_AXIS_LABEL,
-        fontsize=_scaled_fontsize(plt.rcParams["axes.labelsize"], Y_LABEL_FONT_SCALE),
-    )
     if positive_values:
         plt.yscale("log")
         plt.ylim(min(positive_values) * 0.8, max(positive_values) * 1.1)
-    plt.grid(True, linestyle="--", alpha=0.4)
     plt.legend(
         loc="upper left",
         frameon=False,
@@ -308,16 +353,10 @@ def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
             )
         )
 
-    ax.set_xlabel("Number of Layers")
-    ax.set_ylabel(
-        Y_AXIS_LABEL,
-        fontsize=_scaled_fontsize(plt.rcParams["axes.labelsize"], Y_LABEL_FONT_SCALE),
-    )
     ax.set_xticks(all_layers)
-    ax.grid(True, linestyle="--", alpha=0.4)
     ax.legend(
         handles=legend_handles,
-        loc="lower right",
+        loc="upper center",
         frameon=False,
         fontsize=_scaled_fontsize(
             plt.rcParams["legend.fontsize"], NLAYER_LEGEND_FONT_SCALE
@@ -347,18 +386,32 @@ def load_optimized_ph1_results(input_path: Path) -> list[FiResultRecord]:
         best_epoch = item.get("best_epoch")
         if not isinstance(nqubit, int) or not isinstance(best_epoch, dict):
             continue
-        loss = best_epoch.get("loss")
-        if not isinstance(loss, (int, float)):
-            continue
+        min_fi = best_epoch.get("min_fi")
+        if isinstance(min_fi, (int, float)):
+            fi_value = float(min_fi)
+        else:
+            loss = best_epoch.get("loss")
+            if not isinstance(loss, (int, float)):
+                continue
+            fi_value = float(-loss)
         records.append(
             FiResultRecord(
                 circuit_type="ph1_optimized",
                 nqubit=nqubit,
-                fi_value=float(-loss),
+                fi_value=fi_value,
             )
         )
 
     return records
+
+
+def filter_results_by_nqubits(
+    results: list[FiResultRecord],
+    nqubits: set[int] | None,
+) -> list[FiResultRecord]:
+    if nqubits is None:
+        return results
+    return [result for result in results if result.nqubit in nqubits]
 
 
 def group_results(results: list[FiResultRecord]) -> tuple[PlotData, PlotData]:
@@ -374,19 +427,23 @@ def group_results(results: list[FiResultRecord]) -> tuple[PlotData, PlotData]:
 
 
 def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    args = parse_args()
+    nqubit_filter = resolve_nqubit_filter(args.nqubit_start, args.nqubit_end)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     ensure_pickle_dependencies()
 
-    results = load_results(INPUT_FILE)
-    results.extend(load_optimized_ph1_results(OPTIMIZED_PH1_SUMMARY_FILE))
+    results = filter_results_by_nqubits(load_results(args.input), nqubit_filter)
+    results.extend(
+        filter_results_by_nqubits(
+            load_optimized_ph1_results(args.optimized_summary),
+            nqubit_filter,
+        )
+    )
     by_qubit, by_layer = group_results(results)
     plot_scatter_and_mean(
-        by_qubit, "Number of Qubits", OUTPUT_DIR / "fi_vs_nqubits.pdf"
+        by_qubit, "Number of Qubits", args.output_dir / "fi_vs_nqubits.svg"
     )
-    plot_scatter_and_mean(
-        by_qubit, "Number of Qubits", OUTPUT_DIR / "fi_vs_nqubits.png"
-    )
-    plot_layer_violin(by_layer, OUTPUT_DIR / "fi_vs_nlayer.svg")
+    plot_layer_violin(by_layer, args.output_dir / "fi_vs_nlayer.svg")
 
 
 if __name__ == "__main__":

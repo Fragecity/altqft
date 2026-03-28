@@ -9,10 +9,10 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from torch import Tensor
 from torch.optim import Adam, Optimizer
 
 from altqft.nn.model import PH1MinFIModel
-from altqft.nn.periods import build_default_period_range
 
 LOGGER_NAME = "altqft.nn.train"
 SerializedConfig = dict[str, int | float | str | list[int]]
@@ -76,10 +76,20 @@ class EpochResult:
 class TrainArtifacts:
     history: list[EpochResult]
     final_min_fi: float
+    best_epoch: int
+    best_min_fi: float
     model_path: Path
     phase_path: Path
     history_path: Path
     log_path: Path
+
+
+@dataclass(slots=True)
+class ModelCheckpoint:
+    epoch: int
+    min_fi: float
+    state_dict: dict[str, Tensor]
+    phases: list[float]
 
 
 def serialize_config(config: TrainConfig) -> SerializedConfig:
@@ -184,6 +194,22 @@ def create_optimizer(model: PH1MinFIModel, config: TrainConfig) -> Optimizer:
     return Adam(model.parameters(), lr=config.learning_rate)
 
 
+def snapshot_model_state(model: PH1MinFIModel) -> dict[str, Tensor]:
+    return {
+        name: value.detach().cpu().clone()
+        for name, value in model.state_dict().items()
+    }
+
+
+def checkpoint_model(model: PH1MinFIModel, epoch: int, min_fi: float) -> ModelCheckpoint:
+    return ModelCheckpoint(
+        epoch=epoch,
+        min_fi=min_fi,
+        state_dict=snapshot_model_state(model),
+        phases=model.export_phases(),
+    )
+
+
 def train_step(
     model: PH1MinFIModel,
     optimizer: Optimizer,
@@ -194,7 +220,11 @@ def train_step(
     loss = -min_fi_value
     loss.backward()
     optimizer.step()
-    return float(loss.detach().cpu().item()), float(min_fi_value.detach().cpu().item())
+
+    with torch.no_grad():
+        updated_min_fi = float(model(period_range).detach().cpu().item())
+
+    return -updated_min_fi, updated_min_fi
 
 
 def log_epoch(logger: logging.Logger, result: EpochResult, total_epochs: int) -> None:
@@ -212,18 +242,24 @@ def run_training(
     optimizer: Optimizer,
     config: TrainConfig,
     logger: logging.Logger,
-) -> list[EpochResult]:
+) -> tuple[list[EpochResult], ModelCheckpoint]:
     history: list[EpochResult] = []
+    best_checkpoint: ModelCheckpoint | None = None
 
     for epoch in range(1, config.epochs + 1):
         loss_value, min_fi_value = train_step(model, optimizer, config.period_range)
         result = EpochResult(epoch=epoch, loss=loss_value, min_fi=min_fi_value)
         history.append(result)
+        if best_checkpoint is None or result.min_fi > best_checkpoint.min_fi:
+            best_checkpoint = checkpoint_model(model, epoch, result.min_fi)
 
         if epoch == 1 or epoch % config.log_interval == 0 or epoch == config.epochs:
             log_epoch(logger, result, config.epochs)
 
-    return history
+    if best_checkpoint is None:
+        raise RuntimeError("training did not produce any checkpoint")
+
+    return history, best_checkpoint
 
 
 def save_history(config: TrainConfig, history: list[EpochResult]) -> None:
@@ -234,12 +270,12 @@ def save_history(config: TrainConfig, history: list[EpochResult]) -> None:
     config.history_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def save_model_artifacts(model: PH1MinFIModel, config: TrainConfig) -> None:
-    torch.save(model.state_dict(), config.model_path)
+def save_model_artifacts(config: TrainConfig, checkpoint: ModelCheckpoint) -> None:
+    torch.save(checkpoint.state_dict, config.model_path)
     payload = {
         "nqubit": config.nqubit,
         "period_range": config.period_range,
-        "phases": model.export_phases(),
+        "phases": checkpoint.phases,
     }
     config.phase_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
@@ -247,16 +283,24 @@ def save_model_artifacts(model: PH1MinFIModel, config: TrainConfig) -> None:
 def summarize_training(
     config: TrainConfig,
     history: list[EpochResult],
+    best_checkpoint: ModelCheckpoint,
     logger: logging.Logger,
 ) -> TrainArtifacts:
     if not history:
         raise RuntimeError("training history is empty")
 
     final_min_fi = history[-1].min_fi
-    logger.info("training finished, final_min_fi=%.8f", final_min_fi)
+    logger.info(
+        "training finished final_min_fi=%.8f best_min_fi=%.8f best_epoch=%s",
+        final_min_fi,
+        best_checkpoint.min_fi,
+        best_checkpoint.epoch,
+    )
     return TrainArtifacts(
         history=history,
         final_min_fi=final_min_fi,
+        best_epoch=best_checkpoint.epoch,
+        best_min_fi=best_checkpoint.min_fi,
         model_path=config.model_path,
         phase_path=config.phase_path,
         history_path=config.history_path,
@@ -272,7 +316,7 @@ def train_model(config: TrainConfig) -> TrainArtifacts:
 
     model = initialize_model(config, logger)
     optimizer = create_optimizer(model, config)
-    history = run_training(model, optimizer, config, logger)
-    save_model_artifacts(model, config)
+    history, best_checkpoint = run_training(model, optimizer, config, logger)
+    save_model_artifacts(config, best_checkpoint)
     save_history(config, history)
-    return summarize_training(config, history, logger)
+    return summarize_training(config, history, best_checkpoint, logger)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 from dataclasses import asdict
 from pathlib import Path
@@ -7,16 +8,16 @@ from pathlib import Path
 from altqft.nn.train import (
     EpochResult,
     TrainConfig,
-    build_default_period_range,
     serialize_config,
     train_model,
 )
+from altqft.nn.periods import build_default_period_range
 
-NQUBIT_RANGE = range(11, 15)
+NQUBIT_RANGE = range(8, 9)
 EPOCHS = 300
-LEARNING_RATE = 0.03
+LEARNING_RATE = 0.01
 MONTE_CARLO_SAMPLES = 32
-SEED = 7
+SEED = 42
 LOG_INTERVAL = 25
 SUMMARY_PATH = Path("data/shared/ph1_min_fi_summary.json")
 
@@ -31,6 +32,33 @@ def build_config(nqubit: int) -> TrainConfig:
         seed=SEED,
         log_interval=LOG_INTERVAL,
     )
+
+
+def resolve_nqubit_range(start: int, end: int) -> range:
+    if start < 2:
+        raise ValueError("nqubit start must be at least 2")
+    if end < start:
+        raise ValueError("nqubit end must be greater than or equal to start")
+    return range(start, end + 1)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Train or resume optimized PH1 min-FI models.",
+    )
+    parser.add_argument(
+        "--nqubit-start",
+        type=int,
+        default=NQUBIT_RANGE.start,
+        help="Inclusive starting qubit count.",
+    )
+    parser.add_argument(
+        "--nqubit-end",
+        type=int,
+        default=NQUBIT_RANGE.stop - 1,
+        help="Inclusive ending qubit count.",
+    )
+    return parser.parse_args()
 
 
 def select_best_epoch(history: list[EpochResult]) -> EpochResult:
@@ -56,10 +84,13 @@ def history_matches_config(config: TrainConfig) -> bool:
     return stored_config == serialize_config(config)
 
 
-def build_summary_entry(config: TrainConfig, history: list[EpochResult]) -> dict[str, object]:
+def build_summary_entry(
+    config: TrainConfig, history: list[EpochResult]
+) -> dict[str, object]:
     best_epoch = select_best_epoch(history)
     return {
         "nqubit": config.nqubit,
+        "period_range": list(config.period_range),
         "best_epoch": asdict(best_epoch),
         "final_epoch": asdict(history[-1]),
         "model_path": str(config.model_path),
@@ -85,7 +116,7 @@ def load_existing_summary_results() -> list[dict[str, object]]:
     return summary_results
 
 
-def save_summary(results: list[dict[str, object]]) -> None:
+def save_summary(results: list[dict[str, object]], nqubit_range: range) -> None:
     SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
     merged_results_by_nqubit = {
         entry["nqubit"]: entry for entry in load_existing_summary_results()
@@ -95,7 +126,7 @@ def save_summary(results: list[dict[str, object]]) -> None:
 
     payload = {
         "config": {
-            "nqubit_range": list(NQUBIT_RANGE),
+            "nqubit_range": list(nqubit_range),
             "epochs": EPOCHS,
             "learning_rate": LEARNING_RATE,
             "monte_carlo_samples": MONTE_CARLO_SAMPLES,
@@ -117,7 +148,9 @@ def has_completed_artifacts(config: TrainConfig) -> bool:
         config.history_path,
         config.log_path,
     )
-    return all(path.exists() for path in required_paths) and history_matches_config(config)
+    return all(path.exists() for path in required_paths) and history_matches_config(
+        config
+    )
 
 
 def train_or_resume(config: TrainConfig) -> tuple[list[EpochResult], bool]:
@@ -129,14 +162,16 @@ def train_or_resume(config: TrainConfig) -> tuple[list[EpochResult], bool]:
 
 
 def main() -> None:
+    args = parse_args()
+    nqubit_range = resolve_nqubit_range(args.nqubit_start, args.nqubit_end)
     summary_results: list[dict[str, object]] = []
 
-    for nqubit in NQUBIT_RANGE:
+    for nqubit in nqubit_range:
         config = build_config(nqubit)
         history, resumed = train_or_resume(config)
         summary_entry = build_summary_entry(config, history)
         summary_results.append(summary_entry)
-        save_summary(summary_results)
+        save_summary(summary_results, nqubit_range)
 
         best_epoch = summary_entry["best_epoch"]
         assert isinstance(best_epoch, dict)
@@ -144,7 +179,7 @@ def main() -> None:
             f"status={'resumed' if resumed else 'trained'} "
             f"nqubit={nqubit} "
             f"best_epoch={best_epoch['epoch']} "
-            f"best_fi={-float(best_epoch['loss']):.8f} "
+            f"best_fi={float(best_epoch['min_fi']):.8f} "
             f"history_path={config.history_path}"
         )
 

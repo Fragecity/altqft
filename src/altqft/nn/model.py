@@ -11,6 +11,8 @@ from torch import Tensor, nn
 from altqft.circuits.layouts import count_required_phases, final_layer, iter_active_layers
 from altqft.circuits.ph_generators import ph_1_hlayout, ph_1_parametrized
 
+FI_EPSILON = 1e-12
+
 
 def _kron_all(factors: Sequence[Tensor]) -> Tensor:
     product = factors[0]
@@ -48,11 +50,10 @@ def _probability_distribution(unitary: Tensor, period: int, shift: int = 0) -> T
     row_indices = shift + torch.arange(num_k, device=unitary.device) * period
     selected_rows = unitary.index_select(0, row_indices)
     amplitudes = selected_rows.sum(dim=0)
-    raw_prob = amplitudes.abs().pow(2) / float(num_k)
-    return raw_prob / raw_prob.sum().clamp_min(1e-12)
+    return amplitudes.abs().pow(2) / float(num_k)
 
 
-def fisher_information(prob1: Tensor, prob2: Tensor, eps: float = 1e-8) -> Tensor:
+def fisher_information(prob1: Tensor, prob2: Tensor, eps: float = FI_EPSILON) -> Tensor:
     denominator = prob1.clamp_min(eps)
     return ((prob1 - prob2).pow(2) / denominator).sum()
 

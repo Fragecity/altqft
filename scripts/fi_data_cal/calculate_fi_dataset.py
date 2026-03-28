@@ -73,10 +73,18 @@ def save_dataset(results: list[FiResult], output_path: Path) -> None:
         pickle.dump(results, file_obj)
 
 
-def build_configs() -> list[FiExperimentConfig]:
+def resolve_nqubit_range(start: int, end: int) -> range:
+    if start < 2:
+        raise ValueError("nqubit start must be at least 2")
+    if end < start:
+        raise ValueError("nqubit end must be greater than or equal to start")
+    return range(start, end + 1)
+
+
+def build_configs(nqubit_range: range) -> list[FiExperimentConfig]:
     configs: list[FiExperimentConfig] = []
 
-    for nqubit in NQUBIT_RANGE:
+    for nqubit in nqubit_range:
         configs.extend(
             [
                 FiExperimentConfig(circuit_type="qft", nqubit=nqubit),
@@ -121,6 +129,23 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=_env_worker_count(),
         help="Override the worker count used for large-nqubit configs.",
+    )
+    parser.add_argument(
+        "--nqubit-start",
+        type=int,
+        default=NQUBIT_RANGE.start,
+        help="Inclusive starting qubit count.",
+    )
+    parser.add_argument(
+        "--nqubit-end",
+        type=int,
+        default=NQUBIT_RANGE.stop - 1,
+        help="Inclusive ending qubit count.",
+    )
+    parser.add_argument(
+        "--replace-range",
+        action="store_true",
+        help="Remove existing records for the selected qubit range before saving.",
     )
     return parser.parse_args()
 
@@ -180,6 +205,13 @@ def worker_device(worker_index: int, device_name: str) -> str:
     return f"cuda:{worker_index % gpu_count}"
 
 
+def filter_results_by_nqubits(
+    results: list[FiResult],
+    nqubits: set[int],
+) -> list[FiResult]:
+    return [result for result in results if result.nqubit not in nqubits]
+
+
 def run_serial(configs: list[FiExperimentConfig], device_name: str) -> list[FiResult]:
     total_configs = len(configs)
     new_results: list[FiResult] = []
@@ -231,13 +263,20 @@ def run_parallel(
 def main() -> None:
     args = parse_args()
     resolved_device = resolve_compute_device(args.device)
+    nqubit_range = resolve_nqubit_range(args.nqubit_start, args.nqubit_end)
     existing_results = load_dataset(args.output)
-    configs = build_configs()
+    configs = build_configs(nqubit_range)
     workers = resolve_worker_count(args.workers, configs, resolved_device)
+
+    if args.replace_range:
+        existing_results = filter_results_by_nqubits(
+            existing_results,
+            set(nqubit_range),
+        )
 
     print(
         f"running {len(configs)} FI configs on {resolved_device} "
-        f"with {workers} worker(s)"
+        f"with {workers} worker(s) for nqubits={nqubit_range.start}..{nqubit_range.stop - 1}"
     )
 
     if workers > 1:
