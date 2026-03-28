@@ -31,11 +31,17 @@ TOP_LAYER_CIRCUITS = {"qft", "ph1"}
 BOTTOM_LAYER_CIRCUITS = {"ph_random_phase"}
 LAYER_PLOT_EXCLUDED_CIRCUITS = {"ph_random"}
 BASE_LINEWIDTH = 2.0
-NLAYER_LEGEND_FONT_SCALE = 1.3
+NLAYER_LEGEND_FONT_SCALE = 1.5
 NQUBITS_FIGSIZE = (5, 4)
 NQUBITS_DPI = 200
-NLAYER_FIGSIZE = (8, 5)
+NLAYER_SVG_SIZE_PT = 800
+NLAYER_FIGSIZE = (NLAYER_SVG_SIZE_PT / 72, NLAYER_SVG_SIZE_PT / 72)
 PLOT_DPI = 200
+Y_AXIS_LABEL = "Minimum Discrete Fisher Info"
+Y_LABEL_FONT_SCALE = 0.9
+VIOLIN_WHISKER_COLOR = "#9c6a67"
+VIOLIN_MEDIAN_COLOR = "#7f1d1d"
+VIOLIN_WIDTH = 0.38
 
 
 @dataclass(frozen=True)
@@ -114,6 +120,19 @@ def _mean_and_variance_points(
     return x_values, means, lowers, uppers
 
 
+def _positive_only(
+    x_y_dict: DefaultDict[int, list[float]],
+) -> DefaultDict[int, list[float]]:
+    filtered: DefaultDict[int, list[float]] = defaultdict(list)
+
+    for x_value, y_values in x_y_dict.items():
+        positive_values = [value for value in y_values if value > 0]
+        if positive_values:
+            filtered[x_value].extend(positive_values)
+
+    return filtered
+
+
 def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -> None:
     plt.figure(figsize=NQUBITS_FIGSIZE)
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
@@ -135,8 +154,14 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
         else:
             line_zorder = 2
 
+        filtered_x_y_dict = _positive_only(x_y_dict)
+        if not filtered_x_y_dict:
+            continue
+
         if circuit_type in VARIANCE_BAND_CIRCUITS:
-            x_mean, y_mean, y_lower, y_upper = _mean_and_variance_points(x_y_dict)
+            x_mean, y_mean, y_lower, y_upper = _mean_and_variance_points(
+                filtered_x_y_dict
+            )
             plt.fill_between(
                 x_mean, y_lower, y_upper, color=color, alpha=0.18, zorder=1
             )
@@ -150,7 +175,7 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
             )
             continue
 
-        x_mean, y_mean = _mean_points(x_y_dict)
+        x_mean, y_mean = _mean_points(filtered_x_y_dict)
         plt.plot(
             x_mean,
             y_mean,
@@ -161,15 +186,17 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
         )
 
     plt.xlabel(xlabel)
-    plt.ylabel("Fisher Information")
+    plt.ylabel(
+        Y_AXIS_LABEL,
+        fontsize=_scaled_fontsize(plt.rcParams["axes.labelsize"], Y_LABEL_FONT_SCALE),
+    )
     if positive_values:
         plt.yscale("log")
         plt.ylim(min(positive_values) * 0.8, max(positive_values) * 1.1)
     plt.grid(True, linestyle="--", alpha=0.4)
     plt.legend(
         loc="upper left",
-        frameon=True,
-        framealpha=0.9,
+        frameon=False,
         fontsize=10,
         handlelength=1.5,
         labelspacing=0.3,
@@ -213,7 +240,7 @@ def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
         return
 
     offsets = (
-        np.linspace(-0.18, 0.18, len(circuit_types))
+        np.linspace(-0.15, 0.15, len(circuit_types))
         if len(circuit_types) > 1
         else np.array([0.0])
     )
@@ -231,7 +258,7 @@ def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
         violin = ax.violinplot(
             values,
             positions=positions,
-            widths=0.28,
+            widths=VIOLIN_WIDTH,
             showmeans=False,
             showmedians=False,
             showextrema=False,
@@ -254,9 +281,22 @@ def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
         )
         whiskers_min, whiskers_max = whiskers[:, 0], whiskers[:, 1]
 
-        ax.scatter(positions, medians, marker="o", color="white", s=30, zorder=3)
-        ax.vlines(positions, quartile1, quartile3, color="k", linestyle="-", lw=5)
-        ax.vlines(positions, whiskers_min, whiskers_max, color="k", linestyle="-", lw=1)
+        ax.scatter(
+            positions,
+            medians,
+            marker="o",
+            color=VIOLIN_MEDIAN_COLOR,
+            s=30,
+            zorder=3,
+        )
+        ax.vlines(
+            positions,
+            whiskers_min,
+            whiskers_max,
+            color=VIOLIN_WHISKER_COLOR,
+            linestyle="-",
+            lw=1,
+        )
         legend_handles.append(
             Line2D(
                 [0],
@@ -269,11 +309,15 @@ def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
         )
 
     ax.set_xlabel("Number of Layers")
-    ax.set_ylabel("Fisher Information")
+    ax.set_ylabel(
+        Y_AXIS_LABEL,
+        fontsize=_scaled_fontsize(plt.rcParams["axes.labelsize"], Y_LABEL_FONT_SCALE),
+    )
     ax.set_xticks(all_layers)
     ax.grid(True, linestyle="--", alpha=0.4)
     ax.legend(
         handles=legend_handles,
+        loc="lower right",
         frameon=False,
         fontsize=_scaled_fontsize(
             plt.rcParams["legend.fontsize"], NLAYER_LEGEND_FONT_SCALE
@@ -342,7 +386,7 @@ def main() -> None:
     plot_scatter_and_mean(
         by_qubit, "Number of Qubits", OUTPUT_DIR / "fi_vs_nqubits.png"
     )
-    plot_layer_violin(by_layer, OUTPUT_DIR / "fi_vs_nlayer.pdf")
+    plot_layer_violin(by_layer, OUTPUT_DIR / "fi_vs_nlayer.svg")
 
 
 if __name__ == "__main__":

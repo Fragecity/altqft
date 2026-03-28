@@ -4,11 +4,18 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from altqft.nn.train import EpochResult, TrainConfig, build_default_period_range, train_model
+from altqft.nn.train import (
+    EpochResult,
+    TrainConfig,
+    build_default_period_range,
+    serialize_config,
+    train_model,
+)
 
 NQUBIT_RANGE = range(11, 15)
 EPOCHS = 300
-LEARNING_RATE = 0.05
+LEARNING_RATE = 0.03
+MONTE_CARLO_SAMPLES = 32
 SEED = 7
 LOG_INTERVAL = 25
 SUMMARY_PATH = Path("data/shared/ph1_min_fi_summary.json")
@@ -20,6 +27,7 @@ def build_config(nqubit: int) -> TrainConfig:
         period_range=build_default_period_range(nqubit),
         epochs=EPOCHS,
         learning_rate=LEARNING_RATE,
+        monte_carlo_samples=MONTE_CARLO_SAMPLES,
         seed=SEED,
         log_interval=LOG_INTERVAL,
     )
@@ -37,6 +45,15 @@ def load_history(config: TrainConfig) -> list[EpochResult]:
     if not isinstance(history_items, list):
         raise TypeError(f"invalid history payload: {config.history_path}")
     return [EpochResult(**item) for item in history_items]
+
+
+def history_matches_config(config: TrainConfig) -> bool:
+    if not config.history_path.exists():
+        return False
+
+    payload = json.loads(config.history_path.read_text(encoding="utf-8"))
+    stored_config = payload.get("config")
+    return stored_config == serialize_config(config)
 
 
 def build_summary_entry(config: TrainConfig, history: list[EpochResult]) -> dict[str, object]:
@@ -81,6 +98,7 @@ def save_summary(results: list[dict[str, object]]) -> None:
             "nqubit_range": list(NQUBIT_RANGE),
             "epochs": EPOCHS,
             "learning_rate": LEARNING_RATE,
+            "monte_carlo_samples": MONTE_CARLO_SAMPLES,
             "seed": SEED,
             "log_interval": LOG_INTERVAL,
         },
@@ -93,8 +111,13 @@ def save_summary(results: list[dict[str, object]]) -> None:
 
 
 def has_completed_artifacts(config: TrainConfig) -> bool:
-    required_paths = (config.model_path, config.phase_path, config.history_path, config.log_path)
-    return all(path.exists() for path in required_paths)
+    required_paths = (
+        config.model_path,
+        config.phase_path,
+        config.history_path,
+        config.log_path,
+    )
+    return all(path.exists() for path in required_paths) and history_matches_config(config)
 
 
 def train_or_resume(config: TrainConfig) -> tuple[list[EpochResult], bool]:

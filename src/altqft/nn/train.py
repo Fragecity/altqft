@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import random
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -23,6 +24,7 @@ class TrainConfig:
     period_range: list[int]
     epochs: int = 100
     learning_rate: float = 0.05
+    monte_carlo_samples: int = 0
     seed: int = 7
     log_interval: int = 10
     model_dir: Path = Path("model")
@@ -37,6 +39,8 @@ class TrainConfig:
             raise ValueError("period_range must not be empty")
         if self.epochs < 1:
             raise ValueError("epochs must be positive")
+        if self.monte_carlo_samples < 0:
+            raise ValueError("monte_carlo_samples must be non-negative")
         if self.log_interval < 1:
             raise ValueError("log_interval must be positive")
 
@@ -77,12 +81,14 @@ class TrainArtifacts:
     history_path: Path
     log_path: Path
 
+
 def serialize_config(config: TrainConfig) -> SerializedConfig:
     return {
         "nqubit": config.nqubit,
         "period_range": config.period_range,
         "epochs": config.epochs,
         "learning_rate": config.learning_rate,
+        "monte_carlo_samples": config.monte_carlo_samples,
         "seed": config.seed,
         "log_interval": config.log_interval,
         "model_dir": str(config.model_dir),
@@ -121,8 +127,57 @@ def configure_logger(log_path: Path) -> logging.Logger:
     return logger
 
 
-def create_model(config: TrainConfig) -> PH1MinFIModel:
-    return PH1MinFIModel(nqubit=config.nqubit)
+def sample_phase_tensor(phase_count: int) -> torch.Tensor:
+    return 2 * torch.pi * torch.rand(phase_count, dtype=torch.float32)
+
+
+def create_model(
+    config: TrainConfig,
+    init_phases: Sequence[float] | None = None,
+) -> PH1MinFIModel:
+    return PH1MinFIModel(nqubit=config.nqubit, init_phases=init_phases)
+
+
+def select_monte_carlo_init_phases(config: TrainConfig) -> tuple[list[float], float]:
+    if config.monte_carlo_samples < 1:
+        raise ValueError("monte_carlo_samples must be positive for Monte Carlo init")
+
+    candidate_model = create_model(config)
+    best_phases: list[float] | None = None
+    best_min_fi = float("-inf")
+
+    with torch.no_grad():
+        for _ in range(config.monte_carlo_samples):
+            sampled_phases = sample_phase_tensor(candidate_model.phase_count)
+            candidate_model.phases.copy_(sampled_phases)
+            min_fi_value = float(
+                candidate_model(config.period_range).detach().cpu().item()
+            )
+
+            if best_phases is None or min_fi_value > best_min_fi:
+                best_phases = sampled_phases.detach().cpu().tolist()
+                best_min_fi = min_fi_value
+
+    if best_phases is None:
+        raise RuntimeError("monte carlo initialization did not produce any candidate")
+
+    return best_phases, best_min_fi
+
+
+def initialize_model(config: TrainConfig, logger: logging.Logger) -> PH1MinFIModel:
+    if config.monte_carlo_samples < 1:
+        return create_model(config)
+
+    logger.info(
+        "running monte carlo initialization samples=%s",
+        config.monte_carlo_samples,
+    )
+    init_phases, init_min_fi = select_monte_carlo_init_phases(config)
+    logger.info(
+        "selected monte carlo initialization min_fi=%.8f",
+        init_min_fi,
+    )
+    return create_model(config, init_phases=init_phases)
 
 
 def create_optimizer(model: PH1MinFIModel, config: TrainConfig) -> Optimizer:
@@ -215,7 +270,7 @@ def train_model(config: TrainConfig) -> TrainArtifacts:
     set_random_seed(config.seed)
     logger.info("start training with config=%s", json.dumps(serialize_config(config)))
 
-    model = create_model(config)
+    model = initialize_model(config, logger)
     optimizer = create_optimizer(model, config)
     history = run_training(model, optimizer, config, logger)
     save_model_artifacts(model, config)
