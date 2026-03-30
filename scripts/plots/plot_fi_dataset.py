@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import pickle
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -240,7 +241,7 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
         y_min = min(positive_values)
         y_max = max(positive_values)
         plt.yscale("log")
-        plt.ylim(y_min, y_max * 1.1)
+        plt.ylim(max(1.0, y_min), max(1.1, y_max * 1.1))
     plt.grid(True, which="both", axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
     plt.legend(
         loc="upper left",
@@ -404,6 +405,44 @@ def load_optimized_ph1_results(input_path: Path) -> list[FiResultRecord]:
                 fi_value=fi_value,
             )
         )
+
+    existing_nqubits = {record.nqubit for record in records}
+    history_key_pattern = re.compile(r"^ph1_min_fi_(\d+)q_history$")
+    for key, value in payload.items():
+        match = history_key_pattern.match(key)
+        if match is None or not isinstance(value, list):
+            continue
+
+        nqubit = int(match.group(1))
+        if nqubit in existing_nqubits:
+            continue
+
+        best_fi: float | None = None
+        for history_item in value:
+            if not isinstance(history_item, dict):
+                continue
+            min_fi = history_item.get("min_fi")
+            if isinstance(min_fi, (int, float)):
+                candidate = float(min_fi)
+            else:
+                loss = history_item.get("loss")
+                if not isinstance(loss, (int, float)):
+                    continue
+                candidate = float(-loss)
+            if best_fi is None or candidate > best_fi:
+                best_fi = candidate
+
+        if best_fi is None:
+            continue
+
+        records.append(
+            FiResultRecord(
+                circuit_type="ph1_optimized",
+                nqubit=nqubit,
+                fi_value=best_fi,
+            )
+        )
+        existing_nqubits.add(nqubit)
 
     return records
 

@@ -604,5 +604,52 @@
       "history_path": "outputs/ph1_min_fi_11q_history.json",
       "log_path": "outputs/ph1_min_fi_11q.log"
     }
+  ],
+  "ph1_min_fi_12q_history": [
+    {
+      "epoch": 1,
+      "loss": -25.57584381,
+      "min_fi": 25.57584381
+    },
+    {
+      "epoch": 25,
+      "loss": -26.87840271,
+      "min_fi": 26.87840271
+    },
+    {
+      "epoch": 50,
+      "loss": -31.77355957,
+      "min_fi": 31.77355957
+    },
+    {
+      "epoch": 75,
+      "loss": -31.22056961,
+      "min_fi": 31.22056961
+    },
+    {
+      "epoch": 100,
+      "loss": -34.42570114,
+      "min_fi": 34.42570114
+    },
+    {
+      "epoch": 125,
+      "loss": -31.49023438,
+      "min_fi": 31.49023438
+    },
+    {
+      "epoch": 150,
+      "loss": -35.44001007,
+      "min_fi": 35.44001007
+    },
+    {
+      "epoch": 175,
+      "loss": -30.0230217,
+      "min_fi": 30.0230217
+    },
+    {
+      "epoch": 200,
+      "loss": -35.39660645,
+      "min_fi": 35.39660645
+    }
   ]
 }
