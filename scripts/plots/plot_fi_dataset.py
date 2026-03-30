@@ -23,6 +23,7 @@ OUTPUT_DIR = Path("figs/fi_fig")
 FI_DATA_DIR = Path(__file__).resolve().parent.parent / "fi_data_cal"
 LABEL_MAP = {"ph1_optimized": "optimized 1ph", "ph_1_random": "ph1_random"}
 VARIANCE_BAND_CIRCUITS = {"ph_1_random", "ph_random", "ph_random_phase"}
+PLOT_EXCLUDED_CIRCUITS = {"qft"}
 CIRCUIT_COLORS = {
     "qft": "black",
     "ph1": "#0081a7",
@@ -34,12 +35,12 @@ CIRCUIT_COLORS = {
 TOP_LAYER_CIRCUITS = {"qft", "ph1"}
 BOTTOM_LAYER_CIRCUITS = {"ph_random_phase"}
 LAYER_PLOT_EXCLUDED_CIRCUITS = {"ph_random"}
-BASE_LINEWIDTH = 2.0
+BASE_LINEWIDTH = 1.7
 NLAYER_LEGEND_FONT_SCALE = 1.15
 NQUBITS_SVG_SIZE_PT = (280, 300)
 NQUBITS_FIGSIZE = (NQUBITS_SVG_SIZE_PT[0] / 72, NQUBITS_SVG_SIZE_PT[1] / 72)
 NQUBITS_DPI = 200
-NLAYER_SVG_SIZE_PT = (220, 240)
+NLAYER_SVG_SIZE_PT = (220, 210)
 NLAYER_FIGSIZE = (NLAYER_SVG_SIZE_PT[0] / 72, NLAYER_SVG_SIZE_PT[1] / 72)
 PLOT_DPI = 200
 Y_AXIS_LABEL = "Minimum Discrete Fisher Info"
@@ -190,13 +191,16 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
     positive_values = [
         value
-        for x_y_dict in data_dict.values()
+        for circuit_type, x_y_dict in data_dict.items()
+        if circuit_type not in PLOT_EXCLUDED_CIRCUITS
         for y_values in x_y_dict.values()
         for value in y_values
         if value > 0
     ]
 
     for index, (circuit_type, x_y_dict) in enumerate(sorted(data_dict.items())):
+        if circuit_type in PLOT_EXCLUDED_CIRCUITS:
+            continue
         color = CIRCUIT_COLORS.get(circuit_type, colors[index % len(colors)])
         label = LABEL_MAP.get(circuit_type, circuit_type)
         if circuit_type in TOP_LAYER_CIRCUITS:
@@ -239,9 +243,7 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
 
     if positive_values:
         y_min = min(positive_values)
-        y_max = max(positive_values)
-        plt.yscale("log")
-        plt.ylim(max(1.0, y_min), max(1.1, y_max * 1.1))
+        plt.ylim(max(0.0, y_min * 0.95), 50.0)
     plt.grid(True, which="both", axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
     plt.legend(
         loc="upper left",
@@ -274,12 +276,14 @@ def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
         circuit_type
         for circuit_type in data_dict
         if circuit_type not in LAYER_PLOT_EXCLUDED_CIRCUITS
+        and circuit_type not in PLOT_EXCLUDED_CIRCUITS
     )
     all_layers = sorted(
         {
             layer
             for circuit_type, x_y_dict in data_dict.items()
             if circuit_type not in LAYER_PLOT_EXCLUDED_CIRCUITS
+            and circuit_type not in PLOT_EXCLUDED_CIRCUITS
             for layer in x_y_dict
         }
     )

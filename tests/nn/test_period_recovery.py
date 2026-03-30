@@ -10,8 +10,11 @@ from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, phase_artifact_is_curr
 from altqft.nn.period_recovery import (
     DeepSetPeriodPredictor,
     PeriodRecoveryDatasetConfig,
+    compact_label_bit_width,
+    decode_topk_periods,
     generate_period_recovery_dataset,
     load_cached_dataset,
+    period_bit_loss,
     topk_accuracy,
 )
 from altqft.nn.periods import build_default_period_range
@@ -78,25 +81,45 @@ def test_generate_period_recovery_dataset_caches_expected_tensors(tmp_path: Path
     assert cached_val.bit_matrices.shape == (2, 32, 4)
 
 
-def test_deepset_model_returns_expected_logits_shape() -> None:
-    model = DeepSetPeriodPredictor(nqubit=4, num_periods=len(build_default_period_range(4)))
+def test_deepset_model_returns_expected_bit_logits_shape() -> None:
+    num_periods = len(build_default_period_range(4))
+    model = DeepSetPeriodPredictor(nqubit=4, num_periods=num_periods)
     inputs = torch.randint(0, 2, (3, 8, 4), dtype=torch.int8)
-    logits = model(inputs)
-    loss = torch.nn.CrossEntropyLoss()(logits, torch.tensor([0, 1, 2]))
+    bit_logits = model(inputs)
+    loss = period_bit_loss(bit_logits, torch.tensor([0, 1, 2]))
 
-    assert logits.shape == (3, len(build_default_period_range(4)))
+    assert model.bit_width == compact_label_bit_width(num_periods)
+    assert bit_logits.shape == (3, compact_label_bit_width(num_periods), 2)
     assert torch.isfinite(loss)
 
 
 def test_topk_accuracy_counts_hits_in_top_k() -> None:
-    logits = torch.tensor(
+    bit_logits = torch.tensor(
         [
-            [5.0, 1.0, 0.0],
-            [0.0, 1.0, 4.0],
-            [0.2, 0.3, 0.1],
+            [[5.0, 0.0], [4.0, 0.0]],
+            [[4.0, 2.0], [3.0, 2.0]],
+            [[4.0, 2.0], [4.0, 3.0]],
         ]
     )
-    labels = torch.tensor([0, 1, 2])
+    labels = torch.tensor([0, 1, 2], dtype=torch.long)
 
-    assert math.isclose(topk_accuracy(logits, labels, 1), 1 / 3, rel_tol=1e-6)
-    assert math.isclose(topk_accuracy(logits, labels, 2), 2 / 3, rel_tol=1e-6)
+    assert math.isclose(topk_accuracy(bit_logits, labels, 1, num_classes=4), 1 / 3, rel_tol=1e-6)
+    assert math.isclose(topk_accuracy(bit_logits, labels, 2, num_classes=4), 2 / 3, rel_tol=1e-6)
+
+
+def test_decode_topk_periods_prunes_invalid_bit_patterns() -> None:
+    candidate_periods = [4, 5, 6, 7, 8]
+    bit_logits = torch.tensor(
+        [
+            [[0.0, 5.0], [0.0, 5.0], [0.0, 5.0]],
+        ]
+    )
+
+    top_periods, top_bits, top_scores = decode_topk_periods(bit_logits, candidate_periods, k=3)
+
+    assert top_periods.shape == (1, 3)
+    assert top_bits.shape == (1, 3, compact_label_bit_width(len(candidate_periods)))
+    assert top_scores.shape == (1, 3)
+    assert top_periods[0, 0].item() == 7
+    assert top_bits[0, 0].tolist() == [0, 1, 1]
+    assert set(top_periods[0].tolist()).issubset(candidate_periods)

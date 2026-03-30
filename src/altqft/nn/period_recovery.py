@@ -4,6 +4,7 @@ import json
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from collections.abc import Sequence
 from typing import Any, cast
 
 import numpy as np
@@ -160,6 +161,11 @@ class PeriodRecoveryTrainArtifacts:
 class DeepSetPeriodPredictor(nn.Module):
     def __init__(self, nqubit: int, num_periods: int) -> None:
         super().__init__()
+        if num_periods < 1:
+            raise ValueError("num_periods must be positive")
+
+        self.num_periods = num_periods
+        self.bit_width = compact_label_bit_width(num_periods)
         feature_dim = 16 * nqubit
         self.phi = nn.Sequential(
             nn.Linear(nqubit, feature_dim),
@@ -170,13 +176,100 @@ class DeepSetPeriodPredictor(nn.Module):
         self.head = nn.Sequential(
             nn.Linear(feature_dim, feature_dim),
             nn.ReLU(),
-            nn.Linear(feature_dim, num_periods),
+            nn.Linear(feature_dim, 2 * self.bit_width),
         )
 
     def forward(self, bit_matrices: Tensor) -> Tensor:
         features = self.phi(bit_matrices.to(torch.float32))
         pooled = features.sum(dim=1)
-        return cast(Tensor, self.head(pooled))
+        logits = self.head(pooled)
+        return cast(Tensor, logits.view(bit_matrices.shape[0], self.bit_width, 2))
+
+    def predict_topk_periods(
+        self,
+        bit_matrices: Tensor,
+        candidate_periods: Sequence[int],
+        k: int,
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        if len(candidate_periods) != self.num_periods:
+            raise ValueError("candidate_periods length does not match model output space")
+        logits = self(bit_matrices)
+        return decode_topk_periods(logits, candidate_periods, k)
+
+
+def compact_label_bit_width(num_periods: int) -> int:
+    if num_periods < 1:
+        raise ValueError("num_periods must be positive")
+    return max(1, (num_periods - 1).bit_length())
+
+
+def class_indices_to_bits(indices: Tensor, bit_width: int) -> Tensor:
+    if bit_width < 1:
+        raise ValueError("bit_width must be positive")
+    shifts = torch.arange(bit_width - 1, -1, -1, device=indices.device, dtype=torch.long)
+    return ((indices.to(torch.long).unsqueeze(-1) >> shifts) & 1).to(torch.long)
+
+
+def period_bit_loss(bit_logits: Tensor, labels: Tensor) -> Tensor:
+    target_bits = class_indices_to_bits(labels, bit_logits.shape[1]).reshape(-1)
+    flattened_logits = bit_logits.reshape(-1, 2)
+    return cast(Tensor, nn.functional.cross_entropy(flattened_logits, target_bits))
+
+
+def decode_topk_class_indices(
+    bit_logits: Tensor,
+    k: int,
+    *,
+    num_classes: int,
+) -> tuple[Tensor, Tensor]:
+    if k < 1:
+        raise ValueError("k must be positive")
+    if num_classes < 1:
+        raise ValueError("num_classes must be positive")
+    if bit_logits.ndim != 3 or bit_logits.shape[2] != 2:
+        raise ValueError("bit_logits must have shape (batch, bit_width, 2)")
+
+    batch_size, bit_width, _ = bit_logits.shape
+    log_probs = bit_logits.log_softmax(dim=-1)
+    beam_width = min(k, num_classes)
+    bit_values = torch.arange(2, device=bit_logits.device, dtype=torch.long).view(1, 1, 2)
+    beam_indices = torch.zeros((batch_size, 1), dtype=torch.long, device=bit_logits.device)
+    beam_scores = torch.zeros((batch_size, 1), dtype=bit_logits.dtype, device=bit_logits.device)
+
+    for bit_index in range(bit_width):
+        expanded_indices = (beam_indices.unsqueeze(-1) << 1) | bit_values
+        expanded_scores = beam_scores.unsqueeze(-1) + log_probs[:, bit_index, :].unsqueeze(1)
+        remaining_bits = bit_width - bit_index - 1
+        valid_prefixes = (expanded_indices << remaining_bits) < num_classes
+        expanded_scores = expanded_scores.masked_fill(~valid_prefixes, float("-inf"))
+
+        flat_indices = expanded_indices.reshape(batch_size, -1)
+        flat_scores = expanded_scores.reshape(batch_size, -1)
+        current_width = min(beam_width, flat_scores.shape[1])
+        top_scores, top_positions = flat_scores.topk(current_width, dim=1)
+        beam_indices = flat_indices.gather(1, top_positions)
+        beam_scores = top_scores
+
+    return beam_indices, beam_scores
+
+
+def decode_topk_periods(
+    bit_logits: Tensor,
+    candidate_periods: Sequence[int],
+    k: int,
+) -> tuple[Tensor, Tensor, Tensor]:
+    if not candidate_periods:
+        raise ValueError("candidate_periods must not be empty")
+
+    top_indices, top_scores = decode_topk_class_indices(
+        bit_logits,
+        k,
+        num_classes=len(candidate_periods),
+    )
+    candidate_tensor = torch.tensor(candidate_periods, dtype=torch.long, device=bit_logits.device)
+    top_periods = candidate_tensor[top_indices]
+    top_bits = class_indices_to_bits(top_indices, bit_logits.shape[1])
+    return top_periods, top_bits, top_scores
 
 
 def serialize_dataset_config(
@@ -402,9 +495,8 @@ def create_dataloader(
     return DataLoader(tensor_dataset, batch_size=batch_size, shuffle=shuffle)
 
 
-def topk_accuracy(logits: Tensor, labels: Tensor, k: int) -> float:
-    effective_k = min(k, logits.shape[1])
-    topk_indices = logits.topk(effective_k, dim=1).indices
+def topk_accuracy(logits: Tensor, labels: Tensor, k: int, *, num_classes: int) -> float:
+    topk_indices, _ = decode_topk_class_indices(logits, k, num_classes=num_classes)
     correct = topk_indices.eq(labels.unsqueeze(1)).any(dim=1)
     return float(correct.to(torch.float32).mean().item())
 
@@ -412,8 +504,8 @@ def topk_accuracy(logits: Tensor, labels: Tensor, k: int) -> float:
 def _evaluate_model(
     model: DeepSetPeriodPredictor,
     dataloader: DataLoader[tuple[Tensor, Tensor]],
-    loss_fn: nn.Module,
     *,
+    num_classes: int,
     top_k: int,
 ) -> tuple[float, float, float]:
     model.eval()
@@ -425,12 +517,12 @@ def _evaluate_model(
     with torch.no_grad():
         for bit_matrices, labels in dataloader:
             logits = model(bit_matrices)
-            loss = loss_fn(logits, labels)
+            loss = period_bit_loss(logits, labels)
             batch_size = int(labels.shape[0])
             total_items += batch_size
             total_loss += float(loss.item()) * batch_size
-            total_top1 += topk_accuracy(logits, labels, 1) * batch_size
-            total_topk += topk_accuracy(logits, labels, top_k) * batch_size
+            total_top1 += topk_accuracy(logits, labels, 1, num_classes=num_classes) * batch_size
+            total_topk += topk_accuracy(logits, labels, top_k, num_classes=num_classes) * batch_size
 
     if total_items == 0:
         raise RuntimeError("dataloader is empty")
@@ -481,7 +573,7 @@ def train_period_recovery(
 
     model = DeepSetPeriodPredictor(config.nqubit, len(candidate_periods))
     optimizer = Adam(model.parameters(), lr=config.learning_rate)
-    loss_fn = nn.CrossEntropyLoss()
+    num_classes = len(candidate_periods)
 
     history: list[PeriodRecoveryEpochResult] = []
     for epoch in range(1, config.epochs + 1):
@@ -494,15 +586,15 @@ def train_period_recovery(
         for bit_matrices, labels in train_loader:
             optimizer.zero_grad()
             logits = model(bit_matrices)
-            loss = loss_fn(logits, labels)
+            loss = period_bit_loss(logits, labels)
             loss.backward()
             optimizer.step()
 
             batch_size = int(labels.shape[0])
             total_items += batch_size
             total_loss += float(loss.item()) * batch_size
-            total_top1 += topk_accuracy(logits.detach(), labels, 1) * batch_size
-            total_topk += topk_accuracy(logits.detach(), labels, config.top_k) * batch_size
+            total_top1 += topk_accuracy(logits.detach(), labels, 1, num_classes=num_classes) * batch_size
+            total_topk += topk_accuracy(logits.detach(), labels, config.top_k, num_classes=num_classes) * batch_size
 
         if total_items == 0:
             raise RuntimeError("train dataloader is empty")
@@ -510,7 +602,7 @@ def train_period_recovery(
         val_loss, val_top1, val_topk = _evaluate_model(
             model,
             val_loader,
-            loss_fn,
+            num_classes=num_classes,
             top_k=config.top_k,
         )
         result = PeriodRecoveryEpochResult(
@@ -544,6 +636,7 @@ def train_period_recovery(
         {
             "state_dict": model.state_dict(),
             "candidate_periods": candidate_periods,
+            "bit_width": model.bit_width,
             "config": serialize_train_config(config),
         },
         config.model_path,
