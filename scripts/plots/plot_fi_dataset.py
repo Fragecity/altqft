@@ -237,8 +237,11 @@ def plot_scatter_and_mean(data_dict: PlotData, xlabel: str, output_path: Path) -
         )
 
     if positive_values:
+        y_min = min(positive_values)
+        y_max = max(positive_values)
         plt.yscale("log")
-        plt.ylim(min(positive_values) * 0.8, max(positive_values) * 1.1)
+        plt.ylim(y_min, y_max * 1.1)
+    plt.grid(True, which="both", axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
     plt.legend(
         loc="upper left",
         frameon=False,
