@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Sequence
-from typing import cast
 
 import torch
 from qiskit import QuantumCircuit
@@ -10,38 +9,12 @@ from torch import Tensor, nn
 
 from altqft.circuits.layouts import count_required_phases, final_layer, iter_active_layers
 from altqft.circuits.ph_generators import ph_1_hlayout, ph_1_parametrized
+from altqft.nn.unitary_rows import (
+    apply_controlled_phase_rows,
+    apply_hadamard_rows,
+)
 
 FI_EPSILON = 1e-12
-
-
-def _kron_all(factors: Sequence[Tensor]) -> Tensor:
-    product = factors[0]
-    for factor in factors[1:]:
-        product = torch.kron(product, factor)
-    return product
-
-
-def _single_qubit_gate(gate: Tensor, qubit: int, nqubit: int) -> Tensor:
-    identity = torch.eye(2, dtype=gate.dtype, device=gate.device)
-    factors = [
-        gate if index == qubit else identity
-        for index in reversed(range(nqubit))
-    ]
-    return _kron_all(factors)
-
-
-def _controlled_phase_gate(theta: Tensor, control: int, target: int, nqubit: int) -> Tensor:
-    size = 2**nqubit
-    gate = torch.eye(size, dtype=torch.complex64, device=theta.device)
-    phase = torch.exp(1j * theta.to(torch.complex64))
-
-    for basis in range(size):
-        control_bit = (basis >> control) & 1
-        target_bit = (basis >> target) & 1
-        if control_bit == 1 and target_bit == 1:
-            gate[basis, basis] = phase
-
-    return gate
 
 
 def _probability_distribution(unitary: Tensor, period: int, shift: int = 0) -> Tensor:
@@ -80,43 +53,30 @@ class PH1MinFIModel(nn.Module):
         self.hlayout = ph_1_hlayout(nqubit)
         self.phase_count = count_required_phases(self.hlayout)
         self.phases = nn.Parameter(_initial_phase_tensor(self.phase_count, init_phases))
-        self.register_buffer(
-            "hadamard",
-            torch.tensor(
-                [[1.0, 1.0], [1.0, -1.0]],
-                dtype=torch.complex64,
-            )
-            / math.sqrt(2.0),
-        )
 
     def _identity(self) -> Tensor:
         size = 1 << self.nqubit
         return torch.eye(size, dtype=torch.complex64, device=self.phases.device)
 
-    def _apply_hadamards(self, unitary: Tensor, qubits: Sequence[int]) -> Tensor:
-        hadamard = cast(Tensor, self.hadamard)
-        for qubit in qubits:
-            unitary = _single_qubit_gate(hadamard, qubit, self.nqubit) @ unitary
-        return unitary
-
-    def _apply_controlled_phases(
+    def _apply_layer(
         self,
         unitary: Tensor,
-        control: int,
+        controls: Sequence[int],
         targets: Sequence[int],
         start_index: int,
     ) -> tuple[Tensor, int]:
         phase_index = start_index
 
-        for target in targets:
-            gate = _controlled_phase_gate(
-                self.phases[phase_index],
-                control,
-                target,
-                self.nqubit,
-            )
-            unitary = gate @ unitary
-            phase_index += 1
+        for control in controls:
+            unitary = apply_hadamard_rows(unitary, control)
+            for target in targets:
+                unitary = apply_controlled_phase_rows(
+                    unitary,
+                    control,
+                    target,
+                    self.phases[phase_index],
+                )
+                phase_index += 1
 
         return unitary, phase_index
 
@@ -125,16 +85,16 @@ class PH1MinFIModel(nn.Module):
         phase_index = 0
 
         for layer in iter_active_layers(self.hlayout):
-            unitary = self._apply_hadamards(unitary, layer.controls)
-            for control in layer.controls:
-                unitary, phase_index = self._apply_controlled_phases(
-                    unitary,
-                    control,
-                    layer.targets,
-                    phase_index,
-                )
+            unitary, phase_index = self._apply_layer(
+                unitary,
+                layer.controls,
+                layer.targets,
+                phase_index,
+            )
 
-        return self._apply_hadamards(unitary, final_layer(self.hlayout))
+        for qubit in final_layer(self.hlayout):
+            unitary = apply_hadamard_rows(unitary, qubit)
+        return unitary
 
     def min_fi(self, period_range: Iterable[int]) -> Tensor:
         periods = list(period_range)

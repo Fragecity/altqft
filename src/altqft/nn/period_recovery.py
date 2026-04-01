@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader, Dataset, TensorDataset
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact
 from altqft.nn.periods import build_default_period_range
 from altqft.nn.process_qc import ProbFunc, make_prob, probability_distribution
+from altqft.nn.runtime import configure_logger, set_random_seed, snapshot_model_state
 
 LOGGER_NAME = "altqft.nn.period_recovery"
 DatasetPayload = dict[str, Tensor | dict[str, Any]]
@@ -28,6 +29,7 @@ class PeriodRecoveryDatasetConfig:
     num_train_samples: int
     num_val_samples: int
     seed: int = 7
+    stratify_periods: bool = True
     dataset_dir: Path = Path("data/period_recovery")
 
     def __post_init__(self) -> None:
@@ -70,6 +72,11 @@ class PeriodRecoveryTrainConfig:
     batch_size: int = 32
     epochs: int = 20
     learning_rate: float = 1e-3
+    weight_decay: float = 1e-4
+    dropout: float = 0.2
+    label_smoothing: float = 0.05
+    min_epochs: int = 25
+    early_stopping_patience: int = 50
     seed: int = 7
     log_interval: int = 1
     model_dir: Path = Path("model")
@@ -90,12 +97,24 @@ class PeriodRecoveryTrainConfig:
             raise ValueError("batch_size must be positive")
         if self.epochs < 1:
             raise ValueError("epochs must be positive")
+        if self.weight_decay < 0:
+            raise ValueError("weight_decay must be non-negative")
+        if not 0.0 <= self.dropout < 1.0:
+            raise ValueError("dropout must be in [0, 1)")
+        if not 0.0 <= self.label_smoothing < 1.0:
+            raise ValueError("label_smoothing must be in [0, 1)")
+        if self.min_epochs < 1:
+            raise ValueError("min_epochs must be positive")
+        if self.early_stopping_patience < 1:
+            raise ValueError("early_stopping_patience must be positive")
         if self.log_interval < 1:
             raise ValueError("log_interval must be positive")
         if self.fi_epochs < 1:
             raise ValueError("fi_epochs must be positive")
         if self.fi_log_interval < 1:
             raise ValueError("fi_log_interval must be positive")
+        if self.min_epochs > self.epochs:
+            raise ValueError("min_epochs must not exceed epochs")
 
     @property
     def run_name(self) -> str:
@@ -143,13 +162,38 @@ class PeriodRecoveryEpochResult:
 
 
 @dataclass(frozen=True, slots=True)
+class PeriodRecoveryDataDiagnostics:
+    sample_count: int
+    measurement_count: int
+    nqubit: int
+    state_space_size: int
+    candidate_period_count: int
+    measurements_per_basis_state: float
+    samples_per_class: float
+    unique_period_count: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PeriodRecoveryCheckpoint:
+    result: PeriodRecoveryEpochResult
+    state_dict: dict[str, Tensor]
+
+
+@dataclass(frozen=True, slots=True)
 class PeriodRecoveryTrainArtifacts:
     history: list[PeriodRecoveryEpochResult]
     top_k: int
-    final_train_top1: float
-    final_train_topk: float
-    final_val_top1: float
-    final_val_topk: float
+    selected_epoch: int
+    selected_train_top1: float
+    selected_train_topk: float
+    selected_val_top1: float
+    selected_val_topk: float
+    last_epoch: int
+    last_train_top1: float
+    last_train_topk: float
+    last_val_top1: float
+    last_val_topk: float
+    stopped_early: bool
     model_path: Path
     history_path: Path
     log_path: Path
@@ -159,31 +203,36 @@ class PeriodRecoveryTrainArtifacts:
 
 
 class DeepSetPeriodPredictor(nn.Module):
-    def __init__(self, nqubit: int, num_periods: int) -> None:
+    def __init__(self, nqubit: int, num_periods: int, *, dropout: float = 0.0) -> None:
         super().__init__()
         if num_periods < 1:
             raise ValueError("num_periods must be positive")
+        if not 0.0 <= dropout < 1.0:
+            raise ValueError("dropout must be in [0, 1)")
 
         self.num_periods = num_periods
         self.bit_width = compact_label_bit_width(num_periods)
         feature_dim = 16 * nqubit
         self.phi = nn.Sequential(
             nn.Linear(nqubit, feature_dim),
-            nn.ReLU(),
+            nn.LayerNorm(feature_dim),
+            nn.GELU(),
             nn.Linear(feature_dim, feature_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
         self.head = nn.Sequential(
+            nn.LayerNorm(feature_dim),
+            nn.Dropout(dropout),
             nn.Linear(feature_dim, feature_dim),
-            nn.ReLU(),
-            nn.Linear(feature_dim, 2 * self.bit_width),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(feature_dim, num_periods),
         )
 
     def forward(self, bit_matrices: Tensor) -> Tensor:
         features = self.phi(bit_matrices.to(torch.float32))
-        pooled = features.sum(dim=1)
-        logits = self.head(pooled)
-        return cast(Tensor, logits.view(bit_matrices.shape[0], self.bit_width, 2))
+        pooled = features.mean(dim=1)
+        return cast(Tensor, self.head(pooled))
 
     def predict_topk_periods(
         self,
@@ -194,7 +243,7 @@ class DeepSetPeriodPredictor(nn.Module):
         if len(candidate_periods) != self.num_periods:
             raise ValueError("candidate_periods length does not match model output space")
         logits = self(bit_matrices)
-        return decode_topk_periods(logits, candidate_periods, k)
+        return decode_topk_periods_from_class_logits(logits, candidate_periods, k)
 
 
 def compact_label_bit_width(num_periods: int) -> int:
@@ -214,6 +263,15 @@ def period_bit_loss(bit_logits: Tensor, labels: Tensor) -> Tensor:
     target_bits = class_indices_to_bits(labels, bit_logits.shape[1]).reshape(-1)
     flattened_logits = bit_logits.reshape(-1, 2)
     return cast(Tensor, nn.functional.cross_entropy(flattened_logits, target_bits))
+
+
+def period_class_loss(logits: Tensor, labels: Tensor, *, label_smoothing: float = 0.0) -> Tensor:
+    if logits.ndim != 2:
+        raise ValueError("class logits must have shape (batch, num_classes)")
+    return cast(
+        Tensor,
+        nn.functional.cross_entropy(logits, labels, label_smoothing=label_smoothing),
+    )
 
 
 def decode_topk_class_indices(
@@ -272,17 +330,38 @@ def decode_topk_periods(
     return top_periods, top_bits, top_scores
 
 
+def decode_topk_periods_from_class_logits(
+    logits: Tensor,
+    candidate_periods: Sequence[int],
+    k: int,
+) -> tuple[Tensor, Tensor, Tensor]:
+    if logits.ndim != 2:
+        raise ValueError("class logits must have shape (batch, num_classes)")
+    if not candidate_periods:
+        raise ValueError("candidate_periods must not be empty")
+    if logits.shape[1] != len(candidate_periods):
+        raise ValueError("candidate_periods length does not match class logits width")
+
+    beam_width = min(k, len(candidate_periods))
+    top_scores, top_indices = logits.log_softmax(dim=1).topk(beam_width, dim=1)
+    candidate_tensor = torch.tensor(candidate_periods, dtype=torch.long, device=logits.device)
+    top_periods = candidate_tensor[top_indices]
+    top_bits = class_indices_to_bits(top_indices, compact_label_bit_width(len(candidate_periods)))
+    return top_periods, top_bits, top_scores
+
+
 def serialize_dataset_config(
     config: PeriodRecoveryDatasetConfig,
     *,
     split: str,
-) -> dict[str, int | str | list[int]]:
+) -> dict[str, int | str | bool | list[int]]:
     return {
         "nqubit": config.nqubit,
         "measurement_count": config.measurement_count,
         "num_train_samples": config.num_train_samples,
         "num_val_samples": config.num_val_samples,
         "seed": config.seed,
+        "stratify_periods": config.stratify_periods,
         "dataset_dir": str(config.dataset_dir),
         "candidate_periods": config.candidate_periods,
         "split": split,
@@ -296,6 +375,11 @@ def serialize_train_config(config: PeriodRecoveryTrainConfig) -> dict[str, int |
         "batch_size": config.batch_size,
         "epochs": config.epochs,
         "learning_rate": config.learning_rate,
+        "weight_decay": config.weight_decay,
+        "dropout": config.dropout,
+        "label_smoothing": config.label_smoothing,
+        "min_epochs": config.min_epochs,
+        "early_stopping_patience": config.early_stopping_patience,
         "seed": config.seed,
         "log_interval": config.log_interval,
         "model_dir": str(config.model_dir),
@@ -309,26 +393,54 @@ def serialize_train_config(config: PeriodRecoveryTrainConfig) -> dict[str, int |
     }
 
 
-def configure_logger(log_path: Path) -> logging.Logger:
-    logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(logging.INFO)
-    logger.handlers.clear()
-    logger.propagate = False
+def summarize_bitmatrix_dataset(
+    dataset: CachedPeriodDataset,
+    *,
+    measurement_count: int | None = None,
+) -> PeriodRecoveryDataDiagnostics:
+    sample_count = int(dataset.bit_matrices.shape[0])
+    resolved_measurement_count = (
+        int(measurement_count)
+        if measurement_count is not None
+        else int(dataset.bit_matrices.shape[1])
+    )
+    nqubit = int(dataset.bit_matrices.shape[2])
+    candidate_period_count = int(dataset.candidate_periods.numel())
+    unique_period_count = int(torch.unique(dataset.periods).numel())
+    state_space_size = 1 << nqubit
+    return PeriodRecoveryDataDiagnostics(
+        sample_count=sample_count,
+        measurement_count=resolved_measurement_count,
+        nqubit=nqubit,
+        state_space_size=state_space_size,
+        candidate_period_count=candidate_period_count,
+        measurements_per_basis_state=resolved_measurement_count / float(state_space_size),
+        samples_per_class=sample_count / float(candidate_period_count),
+        unique_period_count=unique_period_count,
+    )
 
-    formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
-    file_handler = logging.FileHandler(log_path, encoding="utf-8")
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
-    return logger
-
-
-def set_random_seed(seed: int) -> None:
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+def _log_dataset_diagnostics(
+    logger: logging.Logger,
+    split: str,
+    diagnostics: PeriodRecoveryDataDiagnostics,
+) -> None:
+    logger.info(
+        (
+            "%s dataset diagnostics samples=%s measurement_count=%s nqubit=%s "
+            "state_space=%s candidate_periods=%s unique_periods=%s "
+            "measurements_per_basis_state=%.2f samples_per_class=%.4f"
+        ),
+        split,
+        diagnostics.sample_count,
+        diagnostics.measurement_count,
+        diagnostics.nqubit,
+        diagnostics.state_space_size,
+        diagnostics.candidate_period_count,
+        diagnostics.unique_period_count,
+        diagnostics.measurements_per_basis_state,
+        diagnostics.samples_per_class,
+    )
 
 
 def _columns_to_bit_matrix(columns: np.ndarray, nqubit: int) -> np.ndarray:
@@ -351,6 +463,7 @@ def _sample_split_payload(
     rng: np.random.Generator,
     *,
     split: str,
+    period_schedule: Sequence[int] | None = None,
 ) -> DatasetPayload:
     candidate_periods = config.candidate_periods
     class_lookup = {period: index for index, period in enumerate(candidate_periods)}
@@ -364,9 +477,15 @@ def _sample_split_payload(
     labels = np.empty(sample_count, dtype=np.int64)
     periods = np.empty(sample_count, dtype=np.int64)
     shifts = np.empty(sample_count, dtype=np.int64)
+    resolved_schedule = list(period_schedule) if period_schedule is not None else None
+    if resolved_schedule is not None and len(resolved_schedule) != sample_count:
+        raise ValueError("period_schedule length must match sample_count")
 
     for sample_index in range(sample_count):
-        period = int(rng.choice(candidate_periods))
+        if resolved_schedule is None:
+            period = int(rng.choice(candidate_periods))
+        else:
+            period = int(resolved_schedule[sample_index])
         shift = int(rng.integers(0, period))
         cache_key = (period, shift)
         distribution = distribution_cache.get(cache_key)
@@ -388,6 +507,26 @@ def _sample_split_payload(
         "candidate_periods": torch.tensor(candidate_periods, dtype=torch.long),
         "config": serialize_dataset_config(config, split=split),
     }
+
+
+def _sample_period_schedule(
+    candidate_periods: Sequence[int],
+    sample_count: int,
+    rng: np.random.Generator,
+) -> list[int]:
+    if sample_count < 1:
+        raise ValueError("sample_count must be positive")
+    if not candidate_periods:
+        raise ValueError("candidate_periods must not be empty")
+
+    period_pool = np.asarray(candidate_periods, dtype=np.int64)
+    periods: list[int] = []
+    full_cycles, remainder = divmod(sample_count, len(period_pool))
+    for _ in range(full_cycles):
+        periods.extend(int(period) for period in rng.permutation(period_pool))
+    if remainder:
+        periods.extend(int(period) for period in rng.choice(period_pool, size=remainder, replace=False))
+    return periods
 
 
 def load_cached_dataset(path: Path) -> CachedPeriodDataset:
@@ -442,11 +581,9 @@ def generate_period_recovery_dataset(
         raise ValueError("optimized PH1 artifact period_range does not match dataset config")
 
     config.dataset_dir.mkdir(parents=True, exist_ok=True)
-    if not regenerate and _dataset_is_current(config.train_path, config, split="train") and _dataset_is_current(
-        config.val_path,
-        config,
-        split="val",
-    ):
+    train_is_current = _dataset_is_current(config.train_path, config, split="train")
+    val_is_current = _dataset_is_current(config.val_path, config, split="val")
+    if not regenerate and train_is_current and val_is_current:
         return PeriodRecoveryDatasetArtifacts(
             candidate_periods=config.candidate_periods,
             train_path=config.train_path,
@@ -458,6 +595,20 @@ def generate_period_recovery_dataset(
         period: make_prob(optimized_ph1.circuit, period)
         for period in config.candidate_periods
     }
+    train_period_schedule = (
+        _sample_period_schedule(config.candidate_periods, config.num_train_samples, rng)
+        if config.stratify_periods
+        else None
+    )
+    if config.stratify_periods and train_period_schedule is not None:
+        covered_periods = sorted(set(train_period_schedule))
+        if len(covered_periods) < len(config.candidate_periods):
+            val_period_pool = covered_periods
+        else:
+            val_period_pool = config.candidate_periods
+        val_period_schedule = _sample_period_schedule(val_period_pool, config.num_val_samples, rng)
+    else:
+        val_period_schedule = None
 
     train_payload = _sample_split_payload(
         config.num_train_samples,
@@ -465,6 +616,7 @@ def generate_period_recovery_dataset(
         probabilities,
         rng,
         split="train",
+        period_schedule=train_period_schedule,
     )
     val_payload = _sample_split_payload(
         config.num_val_samples,
@@ -472,6 +624,7 @@ def generate_period_recovery_dataset(
         probabilities,
         rng,
         split="val",
+        period_schedule=val_period_schedule,
     )
     torch.save(train_payload, config.train_path)
     torch.save(val_payload, config.val_path)
@@ -496,7 +649,10 @@ def create_dataloader(
 
 
 def topk_accuracy(logits: Tensor, labels: Tensor, k: int, *, num_classes: int) -> float:
-    topk_indices, _ = decode_topk_class_indices(logits, k, num_classes=num_classes)
+    if logits.ndim == 2:
+        topk_indices = logits.topk(min(k, num_classes), dim=1).indices
+    else:
+        topk_indices, _ = decode_topk_class_indices(logits, k, num_classes=num_classes)
     correct = topk_indices.eq(labels.unsqueeze(1)).any(dim=1)
     return float(correct.to(torch.float32).mean().item())
 
@@ -507,6 +663,7 @@ def _evaluate_model(
     *,
     num_classes: int,
     top_k: int,
+    label_smoothing: float,
 ) -> tuple[float, float, float]:
     model.eval()
     total_loss = 0.0
@@ -517,7 +674,7 @@ def _evaluate_model(
     with torch.no_grad():
         for bit_matrices, labels in dataloader:
             logits = model(bit_matrices)
-            loss = period_bit_loss(logits, labels)
+            loss = period_class_loss(logits, labels, label_smoothing=label_smoothing)
             batch_size = int(labels.shape[0])
             total_items += batch_size
             total_loss += float(loss.item()) * batch_size
@@ -545,6 +702,17 @@ def save_history(
     config.history_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def _is_better_result(
+    candidate: PeriodRecoveryEpochResult,
+    incumbent: PeriodRecoveryEpochResult | None,
+) -> bool:
+    if incumbent is None:
+        return True
+    candidate_key = (candidate.val_top1, candidate.val_topk, -candidate.val_loss, -candidate.epoch)
+    incumbent_key = (incumbent.val_top1, incumbent.val_topk, -incumbent.val_loss, -incumbent.epoch)
+    return candidate_key > incumbent_key
+
+
 def train_period_recovery(
     config: PeriodRecoveryTrainConfig,
     dataset_artifacts: PeriodRecoveryDatasetArtifacts,
@@ -556,7 +724,7 @@ def train_period_recovery(
     for path in (config.model_dir, config.data_dir, config.output_dir):
         path.mkdir(parents=True, exist_ok=True)
 
-    logger = configure_logger(config.log_path)
+    logger = configure_logger(LOGGER_NAME, config.log_path)
     set_random_seed(config.seed)
     logger.info("start period recovery training with config=%s", json.dumps(serialize_train_config(config)))
 
@@ -570,12 +738,24 @@ def train_period_recovery(
 
     train_loader = create_dataloader(train_dataset, batch_size=config.batch_size, shuffle=True)
     val_loader = create_dataloader(val_dataset, batch_size=config.batch_size, shuffle=False)
+    _log_dataset_diagnostics(logger, "train", summarize_bitmatrix_dataset(train_dataset))
+    _log_dataset_diagnostics(logger, "val", summarize_bitmatrix_dataset(val_dataset))
 
-    model = DeepSetPeriodPredictor(config.nqubit, len(candidate_periods))
-    optimizer = Adam(model.parameters(), lr=config.learning_rate)
+    model = DeepSetPeriodPredictor(
+        config.nqubit,
+        len(candidate_periods),
+        dropout=config.dropout,
+    )
+    optimizer = Adam(
+        model.parameters(),
+        lr=config.learning_rate,
+        weight_decay=config.weight_decay,
+    )
     num_classes = len(candidate_periods)
 
     history: list[PeriodRecoveryEpochResult] = []
+    best_checkpoint: PeriodRecoveryCheckpoint | None = None
+    stale_epochs = 0
     for epoch in range(1, config.epochs + 1):
         model.train()
         total_loss = 0.0
@@ -586,7 +766,11 @@ def train_period_recovery(
         for bit_matrices, labels in train_loader:
             optimizer.zero_grad()
             logits = model(bit_matrices)
-            loss = period_bit_loss(logits, labels)
+            loss = period_class_loss(
+                logits,
+                labels,
+                label_smoothing=config.label_smoothing,
+            )
             loss.backward()
             optimizer.step()
 
@@ -604,6 +788,7 @@ def train_period_recovery(
             val_loader,
             num_classes=num_classes,
             top_k=config.top_k,
+            label_smoothing=config.label_smoothing,
         )
         result = PeriodRecoveryEpochResult(
             epoch=epoch,
@@ -615,6 +800,14 @@ def train_period_recovery(
             val_topk=val_topk,
         )
         history.append(result)
+        if _is_better_result(result, best_checkpoint.result if best_checkpoint is not None else None):
+            best_checkpoint = PeriodRecoveryCheckpoint(
+                result=result,
+                state_dict=snapshot_model_state(model),
+            )
+            stale_epochs = 0
+        else:
+            stale_epochs += 1
 
         if epoch == 1 or epoch % config.log_interval == 0 or epoch == config.epochs:
             logger.info(
@@ -631,31 +824,65 @@ def train_period_recovery(
                 config.top_k,
                 result.val_topk,
             )
+        if epoch >= config.min_epochs and stale_epochs >= config.early_stopping_patience:
+            logger.info(
+                "early stopping at epoch=%s after %s stale epoch(s); best_epoch=%s best_val_top1=%.4f best_val_top%d=%.4f",
+                epoch,
+                stale_epochs,
+                best_checkpoint.result.epoch if best_checkpoint is not None else epoch,
+                best_checkpoint.result.val_top1 if best_checkpoint is not None else result.val_top1,
+                config.top_k,
+                best_checkpoint.result.val_topk if best_checkpoint is not None else result.val_topk,
+            )
+            break
+
+    if best_checkpoint is None:
+        raise RuntimeError("training did not produce any checkpoint")
 
     torch.save(
         {
-            "state_dict": model.state_dict(),
+            "state_dict": best_checkpoint.state_dict,
             "candidate_periods": candidate_periods,
             "bit_width": model.bit_width,
+            "num_periods": model.num_periods,
+            "selected_epoch": best_checkpoint.result.epoch,
             "config": serialize_train_config(config),
         },
         config.model_path,
     )
     save_history(config, history, dataset_artifacts, optimized_ph1)
-    final_epoch = history[-1]
+    last_epoch = history[-1]
+    selected_epoch = best_checkpoint.result
+    stopped_early = len(history) < config.epochs
     logger.info(
-        "training finished final_val_top1=%.4f final_val_top%d=%.4f",
-        final_epoch.val_top1,
+        (
+            "training finished selected_epoch=%s selected_val_top1=%.4f selected_val_top%d=%.4f "
+            "last_epoch=%s last_val_top1=%.4f last_val_top%d=%.4f stopped_early=%s"
+        ),
+        selected_epoch.epoch,
+        selected_epoch.val_top1,
         config.top_k,
-        final_epoch.val_topk,
+        selected_epoch.val_topk,
+        last_epoch.epoch,
+        last_epoch.val_top1,
+        config.top_k,
+        last_epoch.val_topk,
+        stopped_early,
     )
     return PeriodRecoveryTrainArtifacts(
         history=history,
         top_k=config.top_k,
-        final_train_top1=final_epoch.train_top1,
-        final_train_topk=final_epoch.train_topk,
-        final_val_top1=final_epoch.val_top1,
-        final_val_topk=final_epoch.val_topk,
+        selected_epoch=selected_epoch.epoch,
+        selected_train_top1=selected_epoch.train_top1,
+        selected_train_topk=selected_epoch.train_topk,
+        selected_val_top1=selected_epoch.val_top1,
+        selected_val_topk=selected_epoch.val_topk,
+        last_epoch=last_epoch.epoch,
+        last_train_top1=last_epoch.train_top1,
+        last_train_topk=last_epoch.train_topk,
+        last_val_top1=last_epoch.val_top1,
+        last_val_topk=last_epoch.val_topk,
+        stopped_early=stopped_early,
         model_path=config.model_path,
         history_path=config.history_path,
         log_path=config.log_path,

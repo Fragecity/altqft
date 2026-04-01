@@ -15,3 +15,6 @@
 2026-03-28 18:08:21,797 | INFO | epoch=275/300 loss=-0.00000000 min_fi=0.00000000
 2026-03-28 18:08:21,920 | INFO | epoch=300/300 loss=-0.00000000 min_fi=0.00000000
 2026-03-28 18:08:21,924 | INFO | training finished final_min_fi=0.00000000 best_min_fi=0.00000000 best_epoch=1
+2026-04-01 13:37:15,765 | INFO | start training with config={"nqubit": 4, "period_range": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "epochs": 1, "learning_rate": 0.05, "monte_carlo_samples": 0, "seed": 7, "log_interval": 1, "model_dir": "C:\\Users\\15246\\Projects\\altqft\\model", "data_dir": "C:\\Users\\15246\\Projects\\altqft\\data", "output_dir": "C:\\Users\\15246\\Projects\\altqft\\outputs", "model_stem": "ph1_min_fi"}
+2026-04-01 13:37:16,863 | INFO | epoch=1/1 loss=-0.00000000 min_fi=0.00000000
+2026-04-01 13:37:16,867 | INFO | training finished final_min_fi=0.00000000 best_min_fi=0.00000000 best_epoch=1

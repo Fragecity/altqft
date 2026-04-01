@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import json
 import logging
-import random
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-import numpy as np
 import torch
 from torch import Tensor
 from torch.optim import Adam, Optimizer
 
 from altqft.nn.model import PH1MinFIModel
+from altqft.nn.runtime import configure_logger, set_random_seed, snapshot_model_state
 
 LOGGER_NAME = "altqft.nn.train"
 SerializedConfig = dict[str, int | float | str | list[int]]
@@ -106,35 +105,9 @@ def serialize_config(config: TrainConfig) -> SerializedConfig:
         "output_dir": str(config.output_dir),
         "model_stem": config.model_stem,
     }
-
-
-def set_random_seed(seed: int) -> None:
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-
-
 def prepare_output_dirs(config: TrainConfig) -> None:
     for path in (config.model_dir, config.data_dir, config.output_dir):
         path.mkdir(parents=True, exist_ok=True)
-
-
-def configure_logger(log_path: Path) -> logging.Logger:
-    logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(logging.INFO)
-    logger.handlers.clear()
-    logger.propagate = False
-
-    formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
-
-    file_handler = logging.FileHandler(log_path, encoding="utf-8")
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
-    return logger
 
 
 def sample_phase_tensor(phase_count: int) -> torch.Tensor:
@@ -192,13 +165,6 @@ def initialize_model(config: TrainConfig, logger: logging.Logger) -> PH1MinFIMod
 
 def create_optimizer(model: PH1MinFIModel, config: TrainConfig) -> Optimizer:
     return Adam(model.parameters(), lr=config.learning_rate)
-
-
-def snapshot_model_state(model: PH1MinFIModel) -> dict[str, Tensor]:
-    return {
-        name: value.detach().cpu().clone()
-        for name, value in model.state_dict().items()
-    }
 
 
 def checkpoint_model(model: PH1MinFIModel, epoch: int, min_fi: float) -> ModelCheckpoint:
@@ -310,7 +276,7 @@ def summarize_training(
 
 def train_model(config: TrainConfig) -> TrainArtifacts:
     prepare_output_dirs(config)
-    logger = configure_logger(config.log_path)
+    logger = configure_logger(LOGGER_NAME, config.log_path)
     set_random_seed(config.seed)
     logger.info("start training with config=%s", json.dumps(serialize_config(config)))
 

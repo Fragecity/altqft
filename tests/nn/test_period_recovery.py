@@ -10,12 +10,16 @@ from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, phase_artifact_is_curr
 from altqft.nn.period_recovery import (
     DeepSetPeriodPredictor,
     PeriodRecoveryDatasetConfig,
+    PeriodRecoveryTrainConfig,
     compact_label_bit_width,
     decode_topk_periods,
     generate_period_recovery_dataset,
     load_cached_dataset,
+    period_class_loss,
     period_bit_loss,
+    summarize_bitmatrix_dataset,
     topk_accuracy,
+    train_period_recovery,
 )
 from altqft.nn.periods import build_default_period_range
 
@@ -79,17 +83,102 @@ def test_generate_period_recovery_dataset_caches_expected_tensors(tmp_path: Path
     assert cached_train.labels.min().item() >= 0
     assert cached_train.labels.max().item() < len(cached_train.candidate_periods)
     assert cached_val.bit_matrices.shape == (2, 32, 4)
+    assert set(cached_val.periods.tolist()).issubset(set(cached_train.periods.tolist()))
 
 
-def test_deepset_model_returns_expected_bit_logits_shape() -> None:
+def test_summarize_bitmatrix_dataset_reports_sample_class_ratio(tmp_path: Path) -> None:
+    artifact = build_optimized_artifact(tmp_path)
+    config = PeriodRecoveryDatasetConfig(
+        nqubit=4,
+        measurement_count=32,
+        num_train_samples=4,
+        num_val_samples=2,
+        seed=11,
+        dataset_dir=tmp_path / "datasets",
+    )
+
+    dataset_artifacts = generate_period_recovery_dataset(config, artifact, regenerate=True)
+    cached_train = load_cached_dataset(dataset_artifacts.train_path)
+    summary = summarize_bitmatrix_dataset(cached_train)
+
+    assert summary.sample_count == 4
+    assert summary.measurement_count == 32
+    assert summary.state_space_size == 16
+    assert math.isclose(summary.measurements_per_basis_state, 2.0, rel_tol=1e-6)
+    assert math.isclose(
+        summary.samples_per_class,
+        4 / len(build_default_period_range(4)),
+        rel_tol=1e-6,
+    )
+
+
+def test_train_period_recovery_runs_end_to_end_for_4q(tmp_path: Path) -> None:
+    artifact = build_optimized_artifact(tmp_path)
+    dataset_config = PeriodRecoveryDatasetConfig(
+        nqubit=4,
+        measurement_count=128,
+        num_train_samples=8,
+        num_val_samples=4,
+        seed=13,
+        dataset_dir=tmp_path / "datasets",
+    )
+    train_config = PeriodRecoveryTrainConfig(
+        nqubit=4,
+        top_k=2,
+        batch_size=4,
+        epochs=4,
+        min_epochs=2,
+        early_stopping_patience=2,
+        seed=13,
+        log_interval=1,
+        model_dir=tmp_path / "models",
+        data_dir=tmp_path / "data",
+        output_dir=tmp_path / "outputs",
+        force_reoptimize_phases=False,
+        regenerate_dataset=True,
+        fi_epochs=1,
+    )
+
+    dataset_artifacts = generate_period_recovery_dataset(
+        dataset_config,
+        artifact,
+        regenerate=True,
+    )
+    artifacts = train_period_recovery(train_config, dataset_artifacts, artifact)
+
+    assert artifacts.model_path.exists()
+    assert artifacts.history_path.exists()
+    assert artifacts.log_path.exists()
+    assert artifacts.selected_epoch >= 1
+    assert artifacts.last_epoch == len(artifacts.history)
+    assert artifacts.last_epoch <= train_config.epochs
+    assert 0.0 <= artifacts.selected_val_top1 <= 1.0
+    assert 0.0 <= artifacts.selected_val_topk <= 1.0
+
+
+def test_deepset_model_returns_expected_class_logits_shape() -> None:
     num_periods = len(build_default_period_range(4))
     model = DeepSetPeriodPredictor(nqubit=4, num_periods=num_periods)
     inputs = torch.randint(0, 2, (3, 8, 4), dtype=torch.int8)
-    bit_logits = model(inputs)
-    loss = period_bit_loss(bit_logits, torch.tensor([0, 1, 2]))
+    class_logits = model(inputs)
+    loss = period_class_loss(class_logits, torch.tensor([0, 1, 2]))
 
     assert model.bit_width == compact_label_bit_width(num_periods)
-    assert bit_logits.shape == (3, compact_label_bit_width(num_periods), 2)
+    assert class_logits.shape == (3, num_periods)
+    assert torch.isfinite(loss)
+
+
+def test_period_bit_loss_accepts_bitwise_logits() -> None:
+    bit_logits = torch.tensor(
+        [
+            [[5.0, 0.0], [4.0, 0.0]],
+            [[4.0, 2.0], [3.0, 2.0]],
+            [[4.0, 2.0], [4.0, 3.0]],
+        ]
+    )
+
+    loss = period_bit_loss(bit_logits, torch.tensor([0, 1, 2]))
+
     assert torch.isfinite(loss)
 
 
@@ -105,6 +194,20 @@ def test_topk_accuracy_counts_hits_in_top_k() -> None:
 
     assert math.isclose(topk_accuracy(bit_logits, labels, 1, num_classes=4), 1 / 3, rel_tol=1e-6)
     assert math.isclose(topk_accuracy(bit_logits, labels, 2, num_classes=4), 2 / 3, rel_tol=1e-6)
+
+
+def test_topk_accuracy_supports_class_logits() -> None:
+    class_logits = torch.tensor(
+        [
+            [5.0, 0.0, -1.0, -2.0],
+            [0.0, 4.0, 3.0, -1.0],
+            [0.0, -1.0, 5.0, 4.0],
+        ]
+    )
+    labels = torch.tensor([0, 1, 3], dtype=torch.long)
+
+    assert math.isclose(topk_accuracy(class_logits, labels, 1, num_classes=4), 2 / 3, rel_tol=1e-6)
+    assert math.isclose(topk_accuracy(class_logits, labels, 2, num_classes=4), 1.0, rel_tol=1e-6)
 
 
 def test_decode_topk_periods_prunes_invalid_bit_patterns() -> None:

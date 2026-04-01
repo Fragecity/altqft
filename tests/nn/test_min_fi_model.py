@@ -42,3 +42,12 @@ def test_ph1_min_fi_model_matches_process_qc_min_fi() -> None:
     actual = float(model(period_range).detach().cpu().item())
 
     assert actual == pytest.approx(expected, rel=1e-6, abs=1e-6)
+
+
+def test_ph1_min_fi_model_backward_produces_finite_gradients() -> None:
+    model = PH1MinFIModel(nqubit=4, init_phases=[0.1, 0.2, 0.3, 0.4])
+    value = model([2, 4])
+    value.backward()
+
+    assert model.phases.grad is not None
+    assert torch.isfinite(model.phases.grad).all()

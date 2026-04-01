@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from dataclasses import asdict
 from pathlib import Path
+from typing import TypedDict
 
 from altqft.nn.train import (
     EpochResult,
@@ -20,6 +20,23 @@ MONTE_CARLO_SAMPLES = 32
 SEED = 42
 LOG_INTERVAL = 25
 SUMMARY_PATH = Path("data/shared/ph1_min_fi_summary.json")
+
+
+class EpochSummary(TypedDict):
+    epoch: int
+    loss: float
+    min_fi: float
+
+
+class SummaryEntry(TypedDict):
+    nqubit: int
+    period_range: list[int]
+    best_epoch: EpochSummary
+    final_epoch: EpochSummary
+    model_path: str
+    phase_path: str
+    history_path: str
+    log_path: str
 
 
 def build_config(nqubit: int) -> TrainConfig:
@@ -67,32 +84,62 @@ def select_best_epoch(history: list[EpochResult]) -> EpochResult:
     return min(history, key=lambda item: item.loss)
 
 
+def _load_json_object(path: Path) -> dict[str, object]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError(f"invalid JSON payload: {path}")
+    return payload
+
+
+def _parse_epoch_result(item: object, path: Path) -> EpochResult:
+    if not isinstance(item, dict):
+        raise TypeError(f"invalid epoch payload in {path}")
+
+    epoch = item.get("epoch")
+    loss = item.get("loss")
+    min_fi = item.get("min_fi")
+    if not isinstance(epoch, int):
+        raise TypeError(f"invalid epoch value in {path}")
+    if not isinstance(loss, (int, float)) or not isinstance(min_fi, (int, float)):
+        raise TypeError(f"invalid FI payload in {path}")
+
+    return EpochResult(epoch=epoch, loss=float(loss), min_fi=float(min_fi))
+
+
+def _epoch_summary(result: EpochResult) -> EpochSummary:
+    return {
+        "epoch": result.epoch,
+        "loss": result.loss,
+        "min_fi": result.min_fi,
+    }
+
+
 def load_history(config: TrainConfig) -> list[EpochResult]:
-    payload = json.loads(config.history_path.read_text(encoding="utf-8"))
+    payload = _load_json_object(config.history_path)
     history_items = payload.get("history", [])
     if not isinstance(history_items, list):
         raise TypeError(f"invalid history payload: {config.history_path}")
-    return [EpochResult(**item) for item in history_items]
+    return [_parse_epoch_result(item, config.history_path) for item in history_items]
 
 
 def history_matches_config(config: TrainConfig) -> bool:
     if not config.history_path.exists():
         return False
 
-    payload = json.loads(config.history_path.read_text(encoding="utf-8"))
+    payload = _load_json_object(config.history_path)
     stored_config = payload.get("config")
-    return stored_config == serialize_config(config)
+    return isinstance(stored_config, dict) and stored_config == serialize_config(config)
 
 
 def build_summary_entry(
     config: TrainConfig, history: list[EpochResult]
-) -> dict[str, object]:
+) -> SummaryEntry:
     best_epoch = select_best_epoch(history)
     return {
         "nqubit": config.nqubit,
         "period_range": list(config.period_range),
-        "best_epoch": asdict(best_epoch),
-        "final_epoch": asdict(history[-1]),
+        "best_epoch": _epoch_summary(best_epoch),
+        "final_epoch": _epoch_summary(history[-1]),
         "model_path": str(config.model_path),
         "phase_path": str(config.phase_path),
         "history_path": str(config.history_path),
@@ -100,25 +147,64 @@ def build_summary_entry(
     }
 
 
-def load_existing_summary_results() -> list[dict[str, object]]:
+def load_existing_summary_results() -> list[SummaryEntry]:
     if not SUMMARY_PATH.exists():
         return []
 
-    payload = json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
+    payload = _load_json_object(SUMMARY_PATH)
     results = payload.get("results", [])
     if not isinstance(results, list):
         raise TypeError(f"invalid summary payload: {SUMMARY_PATH}")
 
-    summary_results: list[dict[str, object]] = []
+    summary_results: list[SummaryEntry] = []
     for item in results:
-        if isinstance(item, dict) and isinstance(item.get("nqubit"), int):
-            summary_results.append(item)
+        if not isinstance(item, dict):
+            continue
+
+        nqubit = item.get("nqubit")
+        period_range = item.get("period_range")
+        best_epoch = item.get("best_epoch")
+        final_epoch = item.get("final_epoch")
+        model_path = item.get("model_path")
+        phase_path = item.get("phase_path")
+        history_path = item.get("history_path")
+        log_path = item.get("log_path")
+        if not isinstance(nqubit, int):
+            continue
+        if not isinstance(period_range, list) or not all(
+            isinstance(value, int) for value in period_range
+        ):
+            continue
+        if not isinstance(best_epoch, dict) or not isinstance(final_epoch, dict):
+            continue
+        if not all(
+            isinstance(path, str)
+            for path in (model_path, phase_path, history_path, log_path)
+        ):
+            continue
+        assert isinstance(model_path, str)
+        assert isinstance(phase_path, str)
+        assert isinstance(history_path, str)
+        assert isinstance(log_path, str)
+
+        summary_results.append(
+            {
+                "nqubit": nqubit,
+                "period_range": period_range,
+                "best_epoch": _epoch_summary(_parse_epoch_result(best_epoch, SUMMARY_PATH)),
+                "final_epoch": _epoch_summary(_parse_epoch_result(final_epoch, SUMMARY_PATH)),
+                "model_path": model_path,
+                "phase_path": phase_path,
+                "history_path": history_path,
+                "log_path": log_path,
+            }
+        )
     return summary_results
 
 
-def save_summary(results: list[dict[str, object]], nqubit_range: range) -> None:
+def save_summary(results: list[SummaryEntry], nqubit_range: range) -> None:
     SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    merged_results_by_nqubit = {
+    merged_results_by_nqubit: dict[int, SummaryEntry] = {
         entry["nqubit"]: entry for entry in load_existing_summary_results()
     }
     for entry in results:
@@ -164,7 +250,7 @@ def train_or_resume(config: TrainConfig) -> tuple[list[EpochResult], bool]:
 def main() -> None:
     args = parse_args()
     nqubit_range = resolve_nqubit_range(args.nqubit_start, args.nqubit_end)
-    summary_results: list[dict[str, object]] = []
+    summary_results: list[SummaryEntry] = []
 
     for nqubit in nqubit_range:
         config = build_config(nqubit)
@@ -174,7 +260,6 @@ def main() -> None:
         save_summary(summary_results, nqubit_range)
 
         best_epoch = summary_entry["best_epoch"]
-        assert isinstance(best_epoch, dict)
         print(
             f"status={'resumed' if resumed else 'trained'} "
             f"nqubit={nqubit} "

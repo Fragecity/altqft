@@ -12,6 +12,7 @@ from typing import DefaultDict, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.collections import PolyCollection
 from matplotlib.font_manager import FontProperties
 from matplotlib.lines import Line2D
 
@@ -317,7 +318,7 @@ def plot_layer_violin(data_dict: PlotData, output_path: Path) -> None:
             showextrema=False,
         )
 
-        for body in violin["bodies"]:
+        for body in cast(list[PolyCollection], violin["bodies"]):
             body.set_facecolor(color)
             body.set_edgecolor(color)
             body.set_alpha(0.45)
