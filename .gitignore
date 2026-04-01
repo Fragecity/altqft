@@ -14,7 +14,7 @@ wheels/
 data/*
 !data/shared/
 !data/shared/**
-model/
+
 
 # paper
 
