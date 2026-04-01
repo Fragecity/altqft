@@ -15,7 +15,9 @@ from altqft.nn.period_recovery import (
 DEFAULT_NQUBIT = 10
 DEFAULT_TOP_K = 3
 DEFAULT_BATCH_SIZE = 16
-DEFAULT_EPOCHS = 300
+DEFAULT_EPOCHS = 500
+DEFAULT_NUM_TRAIN_SAMPLES = 1440
+DEFAULT_NUM_VAL_SAMPLES = 360
 DEFAULT_SEED = 7
 DEFAULT_MODEL_DIR = Path("model")
 DEFAULT_DATA_DIR = Path("data")
@@ -49,13 +51,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--num-train-samples",
         type=int,
-        default=256,
+        default=DEFAULT_NUM_TRAIN_SAMPLES,
         help="Number of training bitmatrices to generate.",
     )
     parser.add_argument(
         "--num-val-samples",
         type=int,
-        default=64,
+        default=DEFAULT_NUM_VAL_SAMPLES,
         help="Number of validation bitmatrices to generate.",
     )
     parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help="Top-k metric to track.")
