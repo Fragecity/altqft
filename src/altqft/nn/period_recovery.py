@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+from collections.abc import Sequence
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from collections.abc import Sequence
 from typing import Any, cast
 
 import numpy as np
@@ -15,11 +17,17 @@ from torch.utils.data import DataLoader, Dataset, TensorDataset
 
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact
 from altqft.nn.periods import build_default_period_range
-from altqft.nn.process_qc import ProbFunc, make_prob, probability_distribution
+from altqft.nn.process_qc import (
+    ProbFunc,
+    make_prob,
+    probability_distribution,
+    resolve_compute_device,
+)
 from altqft.nn.runtime import configure_logger, set_random_seed, snapshot_model_state
 
 LOGGER_NAME = "altqft.nn.period_recovery"
 DatasetPayload = dict[str, Tensor | dict[str, Any]]
+TrainBatch = tuple[Tensor, Tensor]
 
 
 @dataclass(slots=True)
@@ -230,7 +238,12 @@ class DeepSetPeriodPredictor(nn.Module):
         )
 
     def forward(self, bit_matrices: Tensor) -> Tensor:
-        features = self.phi(bit_matrices.to(torch.float32))
+        features_input = (
+            bit_matrices
+            if bit_matrices.dtype == torch.float32
+            else bit_matrices.to(dtype=torch.float32)
+        )
+        features = self.phi(features_input)
         pooled = features.mean(dim=1)
         return cast(Tensor, self.head(pooled))
 
@@ -552,6 +565,43 @@ def load_cached_dataset(path: Path) -> CachedPeriodDataset:
     )
 
 
+def resolve_train_device() -> torch.device:
+    requested = os.environ.get("ALTQFT_TRAIN_DEVICE", "auto").strip().lower()
+    if requested.startswith("cuda:"):
+        if not torch.cuda.is_available():
+            raise ValueError("CUDA device requested for period recovery but CUDA is unavailable")
+        return torch.device(requested)
+    return torch.device(resolve_compute_device(requested))
+
+
+def configure_train_backend(device: torch.device) -> None:
+    if device.type != "cuda":
+        return
+    torch.set_float32_matmul_precision("high")
+    torch.backends.cuda.matmul.allow_tf32 = True
+    cudnn_backend = getattr(torch.backends, "cudnn", None)
+    if cudnn_backend is not None:
+        cudnn_backend.allow_tf32 = True
+
+
+def move_batch_to_device(
+    bit_matrices: Tensor,
+    labels: Tensor,
+    device: torch.device,
+) -> TrainBatch:
+    non_blocking = device.type == "cuda"
+    return (
+        bit_matrices.to(device=device, dtype=torch.float32, non_blocking=non_blocking),
+        labels.to(device=device, dtype=torch.long, non_blocking=non_blocking),
+    )
+
+
+def autocast_context(device: torch.device):
+    if device.type != "cuda":
+        return nullcontext()
+    return torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+
+
 def _dataset_is_current(
     path: Path,
     config: PeriodRecoveryDatasetConfig,
@@ -640,12 +690,18 @@ def create_dataloader(
     *,
     batch_size: int,
     shuffle: bool,
+    device: torch.device,
 ) -> DataLoader[tuple[Tensor, Tensor]]:
     tensor_dataset = cast(
         Dataset[tuple[Tensor, Tensor]],
         TensorDataset(dataset.bit_matrices, dataset.labels),
     )
-    return DataLoader(tensor_dataset, batch_size=batch_size, shuffle=shuffle)
+    return DataLoader(
+        tensor_dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        pin_memory=device.type == "cuda",
+    )
 
 
 def topk_accuracy(logits: Tensor, labels: Tensor, k: int, *, num_classes: int) -> float:
@@ -661,6 +717,7 @@ def _evaluate_model(
     model: DeepSetPeriodPredictor,
     dataloader: DataLoader[tuple[Tensor, Tensor]],
     *,
+    device: torch.device,
     num_classes: int,
     top_k: int,
     label_smoothing: float,
@@ -671,10 +728,16 @@ def _evaluate_model(
     total_topk = 0.0
     total_items = 0
 
-    with torch.no_grad():
+    with torch.inference_mode():
         for bit_matrices, labels in dataloader:
-            logits = model(bit_matrices)
-            loss = period_class_loss(logits, labels, label_smoothing=label_smoothing)
+            bit_matrices, labels = move_batch_to_device(bit_matrices, labels, device)
+            with autocast_context(device):
+                logits = model(bit_matrices)
+                loss = period_class_loss(
+                    logits,
+                    labels,
+                    label_smoothing=label_smoothing,
+                )
             batch_size = int(labels.shape[0])
             total_items += batch_size
             total_loss += float(loss.item()) * batch_size
@@ -726,7 +789,18 @@ def train_period_recovery(
 
     logger = configure_logger(LOGGER_NAME, config.log_path)
     set_random_seed(config.seed)
+    device = resolve_train_device()
+    configure_train_backend(device)
     logger.info("start period recovery training with config=%s", json.dumps(serialize_train_config(config)))
+    logger.info(
+        "period recovery runtime device=%s amp=%s pin_memory=%s requested_device=%s",
+        device,
+        device.type == "cuda",
+        device.type == "cuda",
+        os.environ.get("ALTQFT_TRAIN_DEVICE", "auto"),
+    )
+    if device.type == "cpu" and torch.version.cuda is None:
+        logger.info("torch build has no CUDA runtime; period recovery will run on CPU")
 
     train_dataset = load_cached_dataset(dataset_artifacts.train_path)
     val_dataset = load_cached_dataset(dataset_artifacts.val_path)
@@ -736,8 +810,18 @@ def train_period_recovery(
     if val_dataset.candidate_periods.tolist() != candidate_periods:
         raise ValueError("cached val dataset candidate periods do not match train dataset")
 
-    train_loader = create_dataloader(train_dataset, batch_size=config.batch_size, shuffle=True)
-    val_loader = create_dataloader(val_dataset, batch_size=config.batch_size, shuffle=False)
+    train_loader = create_dataloader(
+        train_dataset,
+        batch_size=config.batch_size,
+        shuffle=True,
+        device=device,
+    )
+    val_loader = create_dataloader(
+        val_dataset,
+        batch_size=config.batch_size,
+        shuffle=False,
+        device=device,
+    )
     _log_dataset_diagnostics(logger, "train", summarize_bitmatrix_dataset(train_dataset))
     _log_dataset_diagnostics(logger, "val", summarize_bitmatrix_dataset(val_dataset))
 
@@ -745,7 +829,7 @@ def train_period_recovery(
         config.nqubit,
         len(candidate_periods),
         dropout=config.dropout,
-    )
+    ).to(device)
     optimizer = Adam(
         model.parameters(),
         lr=config.learning_rate,
@@ -764,13 +848,15 @@ def train_period_recovery(
         total_items = 0
 
         for bit_matrices, labels in train_loader:
-            optimizer.zero_grad()
-            logits = model(bit_matrices)
-            loss = period_class_loss(
-                logits,
-                labels,
-                label_smoothing=config.label_smoothing,
-            )
+            bit_matrices, labels = move_batch_to_device(bit_matrices, labels, device)
+            optimizer.zero_grad(set_to_none=True)
+            with autocast_context(device):
+                logits = model(bit_matrices)
+                loss = period_class_loss(
+                    logits,
+                    labels,
+                    label_smoothing=config.label_smoothing,
+                )
             loss.backward()
             optimizer.step()
 
@@ -786,6 +872,7 @@ def train_period_recovery(
         val_loss, val_top1, val_topk = _evaluate_model(
             model,
             val_loader,
+            device=device,
             num_classes=num_classes,
             top_k=config.top_k,
             label_smoothing=config.label_smoothing,

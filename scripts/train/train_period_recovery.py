@@ -15,7 +15,7 @@ from altqft.nn.period_recovery import (
 DEFAULT_NQUBIT = 10
 DEFAULT_TOP_K = 3
 DEFAULT_BATCH_SIZE = 16
-DEFAULT_EPOCHS = 500
+DEFAULT_EPOCHS = 300
 DEFAULT_NUM_TRAIN_SAMPLES = 1440
 DEFAULT_NUM_VAL_SAMPLES = 360
 DEFAULT_SEED = 7
@@ -41,7 +41,9 @@ def parse_args() -> argparse.Namespace:
             "By default this reuses an existing optimized PH1 phase artifact if present."
         ),
     )
-    parser.add_argument("--nqubit", type=int, default=DEFAULT_NQUBIT, help="Qubit count.")
+    parser.add_argument(
+        "--nqubit", type=int, default=DEFAULT_NQUBIT, help="Qubit count."
+    )
     parser.add_argument(
         "--measurement-count",
         type=int,
@@ -60,9 +62,15 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_NUM_VAL_SAMPLES,
         help="Number of validation bitmatrices to generate.",
     )
-    parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help="Top-k metric to track.")
-    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE, help="Batch size.")
-    parser.add_argument("--epochs", type=int, default=DEFAULT_EPOCHS, help="Maximum classifier epochs.")
+    parser.add_argument(
+        "--top-k", type=int, default=DEFAULT_TOP_K, help="Top-k metric to track."
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=DEFAULT_BATCH_SIZE, help="Batch size."
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=DEFAULT_EPOCHS, help="Maximum classifier epochs."
+    )
     parser.add_argument(
         "--learning-rate",
         type=float,
