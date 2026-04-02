@@ -22,10 +22,10 @@ SUPPORTED_TORCH_DEVICES = {"auto", "cpu", "cuda", "mps"}
 
 
 def _probability_vector(unitary: np.ndarray, period: int, shift: int) -> FloatArray:
-    row_count = unitary.shape[0] // period
-    row_indices = shift + np.arange(row_count) * period
-    amplitudes = unitary[row_indices].sum(axis=0)
-    return np.asarray(np.abs(amplitudes) ** 2 / row_count, dtype=np.float64)
+    support_count = unitary.shape[1] // period
+    support_indices = shift + np.arange(support_count) * period
+    amplitudes = unitary[:, support_indices].sum(axis=1)
+    return np.asarray(np.abs(amplitudes) ** 2 / support_count, dtype=np.float64)
 
 
 def resolve_compute_device(device: str = "auto") -> str:
@@ -60,14 +60,14 @@ def available_cuda_device_count() -> int:
 
 
 def _torch_probability_vector(unitary: Tensor, period: int, shift: int) -> Tensor:
-    row_count = unitary.shape[0] // period
-    row_indices = shift + torch.arange(
-        row_count,
+    support_count = unitary.shape[1] // period
+    support_indices = shift + torch.arange(
+        support_count,
         device=unitary.device,
         dtype=torch.long,
     ) * period
-    amplitudes = unitary.index_select(0, row_indices).sum(dim=0)
-    return amplitudes.abs().pow(2) / float(row_count)
+    amplitudes = unitary.index_select(1, support_indices).sum(dim=1)
+    return amplitudes.abs().pow(2) / float(support_count)
 
 
 def _torch_fi(prob1: Tensor, prob2: Tensor) -> Tensor:

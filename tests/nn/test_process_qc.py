@@ -1,9 +1,11 @@
 import pytest
 import math
 from unittest.mock import patch
+import numpy as np
 from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
 from altqft.circuits.ph_generators import qft
-from altqft.nn.process_qc import fi, min_fi
+from altqft.nn.process_qc import circuit_probability_distribution, fi, min_fi
 
 # ----------------- 测试用例 1: fi 函数基础测试 -----------------
 def test_fi_basic():
@@ -85,4 +87,20 @@ def test_min_fi_torch_cpu_matches_numpy() -> None:
     actual = min_fi(circuit, period_range, device="cpu")
 
     assert math.isclose(actual, expected, rel_tol=1e-5, abs_tol=1e-6)
+
+
+def test_circuit_probability_distribution_matches_statevector_evolution() -> None:
+    circuit = qft(3)
+    period = 3
+    shift = 1
+    size = 1 << circuit.num_qubits
+    support = shift + np.arange(size // period) * period
+
+    amplitudes = np.zeros(size, dtype=np.complex128)
+    amplitudes[support] = 1.0 / math.sqrt(len(support))
+    expected = np.asarray(Statevector(amplitudes).evolve(circuit).probabilities(), dtype=np.float64)
+
+    actual = circuit_probability_distribution(circuit, period, shift=shift)
+
+    assert np.allclose(actual, expected, atol=1e-9)
 

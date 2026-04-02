@@ -19,11 +19,11 @@ FI_EPSILON = 1e-12
 
 def _probability_distribution(unitary: Tensor, period: int, shift: int = 0) -> Tensor:
     dimension = unitary.shape[0]
-    num_k = dimension // period
-    row_indices = shift + torch.arange(num_k, device=unitary.device) * period
-    selected_rows = unitary.index_select(0, row_indices)
-    amplitudes = selected_rows.sum(dim=0)
-    return amplitudes.abs().pow(2) / float(num_k)
+    support_count = dimension // period
+    support_indices = shift + torch.arange(support_count, device=unitary.device) * period
+    selected_columns = unitary.index_select(1, support_indices)
+    amplitudes = selected_columns.sum(dim=1)
+    return amplitudes.abs().pow(2) / float(support_count)
 
 
 def fisher_information(prob1: Tensor, prob2: Tensor, eps: float = FI_EPSILON) -> Tensor:
