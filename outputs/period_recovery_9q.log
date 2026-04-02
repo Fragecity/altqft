@@ -1,0 +1,45 @@
+2026-04-02 01:31:33,266 | INFO | start period recovery training with config={"nqubit": 9, "top_k": 3, "batch_size": 16, "epochs": 500, "learning_rate": 0.001, "weight_decay": 0.0001, "dropout": 0.2, "label_smoothing": 0.05, "min_epochs": 50, "early_stopping_patience": 75, "seed": 7, "log_interval": 10, "model_dir": "model", "data_dir": "data", "output_dir": "outputs", "force_reoptimize_phases": false, "regenerate_dataset": false, "fi_epochs": 1000, "fi_learning_rate": 0.05, "fi_log_interval": 10}
+2026-04-02 01:31:34,051 | INFO | train dataset diagnostics samples=1440 measurement_count=82944 nqubit=9 state_space=512 candidate_periods=72 unique_periods=72 measurements_per_basis_state=162.00 samples_per_class=20.0000
+2026-04-02 01:31:34,051 | INFO | val dataset diagnostics samples=360 measurement_count=82944 nqubit=9 state_space=512 candidate_periods=72 unique_periods=72 measurements_per_basis_state=162.00 samples_per_class=5.0000
+2026-04-02 01:37:28,394 | INFO | epoch=1/500 train_loss=4.30644888 train_top1=0.0167 train_top3=0.0444 val_loss=4.26963963 val_top1=0.0278 val_top3=0.0556
+2026-04-02 02:30:23,016 | INFO | epoch=10/500 train_loss=0.99539344 train_top1=0.8299 train_top3=0.9639 val_loss=0.88917210 val_top1=0.8750 val_top3=0.9889
+2026-04-02 02:38:52,674 | INFO | start period recovery training with config={"nqubit": 9, "top_k": 3, "batch_size": 16, "epochs": 200, "learning_rate": 0.001, "weight_decay": 0.0001, "dropout": 0.2, "label_smoothing": 0.05, "min_epochs": 50, "early_stopping_patience": 75, "seed": 7, "log_interval": 10, "model_dir": "model", "data_dir": "data", "output_dir": "outputs", "force_reoptimize_phases": false, "regenerate_dataset": false, "fi_epochs": 1000, "fi_learning_rate": 0.05, "fi_log_interval": 10}
+2026-04-02 02:38:53,456 | INFO | train dataset diagnostics samples=1440 measurement_count=82944 nqubit=9 state_space=512 candidate_periods=72 unique_periods=72 measurements_per_basis_state=162.00 samples_per_class=20.0000
+2026-04-02 02:38:53,456 | INFO | val dataset diagnostics samples=360 measurement_count=82944 nqubit=9 state_space=512 candidate_periods=72 unique_periods=72 measurements_per_basis_state=162.00 samples_per_class=5.0000
+2026-04-02 02:44:47,521 | INFO | epoch=1/200 train_loss=4.30644888 train_top1=0.0167 train_top3=0.0444 val_loss=4.26963963 val_top1=0.0278 val_top3=0.0556
+2026-04-02 02:54:57,297 | INFO | start period recovery training with config={"nqubit": 9, "top_k": 3, "batch_size": 16, "epochs": 300, "learning_rate": 0.001, "weight_decay": 0.0001, "dropout": 0.2, "label_smoothing": 0.05, "min_epochs": 50, "early_stopping_patience": 75, "seed": 7, "log_interval": 10, "model_dir": "model", "data_dir": "data", "output_dir": "outputs", "force_reoptimize_phases": false, "regenerate_dataset": false, "fi_epochs": 1000, "fi_learning_rate": 0.05, "fi_log_interval": 10}
+2026-04-02 02:54:57,297 | INFO | period recovery runtime device=cuda amp=True pin_memory=True requested_device=auto
+2026-04-02 02:54:58,085 | INFO | train dataset diagnostics samples=1440 measurement_count=82944 nqubit=9 state_space=512 candidate_periods=72 unique_periods=72 measurements_per_basis_state=162.00 samples_per_class=20.0000
+2026-04-02 02:54:58,085 | INFO | val dataset diagnostics samples=360 measurement_count=82944 nqubit=9 state_space=512 candidate_periods=72 unique_periods=72 measurements_per_basis_state=162.00 samples_per_class=5.0000
+2026-04-02 02:55:01,844 | INFO | epoch=1/300 train_loss=4.30444409 train_top1=0.0187 train_top3=0.0437 val_loss=4.27814203 val_top1=0.0139 val_top3=0.0556
+2026-04-02 02:55:24,923 | INFO | epoch=10/300 train_loss=1.05805758 train_top1=0.8160 train_top3=0.9576 val_loss=0.89077062 val_top1=0.8611 val_top3=0.9778
+2026-04-02 02:55:50,053 | INFO | epoch=20/300 train_loss=0.62646157 train_top1=0.9667 train_top3=0.9993 val_loss=0.57094919 val_top1=0.9778 val_top3=1.0000
+2026-04-02 02:56:15,281 | INFO | epoch=30/300 train_loss=0.54871594 train_top1=0.9861 train_top3=0.9993 val_loss=0.49421958 val_top1=0.9917 val_top3=1.0000
+2026-04-02 02:56:40,648 | INFO | epoch=40/300 train_loss=0.50711647 train_top1=0.9938 train_top3=1.0000 val_loss=0.47076396 val_top1=0.9917 val_top3=1.0000
+2026-04-02 02:57:06,144 | INFO | epoch=50/300 train_loss=0.50091781 train_top1=0.9951 train_top3=1.0000 val_loss=0.45842150 val_top1=0.9972 val_top3=1.0000
+2026-04-02 02:57:31,632 | INFO | epoch=60/300 train_loss=0.49069339 train_top1=0.9958 train_top3=1.0000 val_loss=0.45436618 val_top1=0.9917 val_top3=1.0000
+2026-04-02 02:57:56,692 | INFO | epoch=70/300 train_loss=0.48874874 train_top1=0.9972 train_top3=1.0000 val_loss=0.44764824 val_top1=0.9972 val_top3=1.0000
+2026-04-02 02:58:21,904 | INFO | epoch=80/300 train_loss=0.47445946 train_top1=0.9979 train_top3=1.0000 val_loss=0.44727003 val_top1=0.9944 val_top3=1.0000
+2026-04-02 02:58:47,503 | INFO | epoch=90/300 train_loss=0.47115453 train_top1=0.9979 train_top3=1.0000 val_loss=0.43853672 val_top1=0.9972 val_top3=1.0000
+2026-04-02 02:59:13,205 | INFO | epoch=100/300 train_loss=0.47872837 train_top1=0.9979 train_top3=1.0000 val_loss=0.43901496 val_top1=0.9944 val_top3=1.0000
+2026-04-02 02:59:38,379 | INFO | epoch=110/300 train_loss=0.47216325 train_top1=0.9979 train_top3=1.0000 val_loss=0.44315712 val_top1=0.9944 val_top3=1.0000
+2026-04-02 03:00:03,573 | INFO | epoch=120/300 train_loss=0.46752933 train_top1=0.9965 train_top3=1.0000 val_loss=0.43866151 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:00:29,181 | INFO | epoch=130/300 train_loss=0.45786202 train_top1=0.9979 train_top3=1.0000 val_loss=0.43311829 val_top1=0.9972 val_top3=1.0000
+2026-04-02 03:00:54,707 | INFO | epoch=140/300 train_loss=0.46327114 train_top1=0.9979 train_top3=1.0000 val_loss=0.43803516 val_top1=0.9972 val_top3=1.0000
+2026-04-02 03:01:27,078 | INFO | epoch=150/300 train_loss=0.46267207 train_top1=0.9986 train_top3=1.0000 val_loss=0.43357903 val_top1=0.9972 val_top3=1.0000
+2026-04-02 03:02:31,771 | INFO | epoch=160/300 train_loss=0.47471377 train_top1=0.9958 train_top3=1.0000 val_loss=0.43581869 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:03:33,015 | INFO | epoch=170/300 train_loss=0.45613597 train_top1=0.9986 train_top3=1.0000 val_loss=0.42897257 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:04:36,090 | INFO | epoch=180/300 train_loss=0.45918617 train_top1=0.9972 train_top3=1.0000 val_loss=0.43042866 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:05:38,560 | INFO | epoch=190/300 train_loss=0.45851583 train_top1=0.9986 train_top3=1.0000 val_loss=0.42889871 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:06:42,172 | INFO | epoch=200/300 train_loss=0.45658654 train_top1=0.9986 train_top3=1.0000 val_loss=0.42981154 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:07:48,136 | INFO | epoch=210/300 train_loss=0.45828097 train_top1=0.9986 train_top3=1.0000 val_loss=0.42552322 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:08:51,629 | INFO | epoch=220/300 train_loss=0.45564741 train_top1=0.9993 train_top3=1.0000 val_loss=0.43016127 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:09:57,904 | INFO | epoch=230/300 train_loss=0.45284322 train_top1=0.9979 train_top3=1.0000 val_loss=0.42367921 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:11:03,366 | INFO | epoch=240/300 train_loss=0.45688148 train_top1=0.9979 train_top3=1.0000 val_loss=0.42914879 val_top1=0.9972 val_top3=1.0000
+2026-04-02 03:12:47,195 | INFO | epoch=250/300 train_loss=0.45694148 train_top1=0.9979 train_top3=1.0000 val_loss=0.43187216 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:15:00,764 | INFO | epoch=260/300 train_loss=0.45648147 train_top1=1.0000 train_top3=1.0000 val_loss=0.42892081 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:17:09,721 | INFO | epoch=270/300 train_loss=0.45061558 train_top1=0.9993 train_top3=1.0000 val_loss=0.42622907 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:19:20,828 | INFO | epoch=280/300 train_loss=0.45182161 train_top1=0.9993 train_top3=1.0000 val_loss=0.42488435 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:21:51,620 | INFO | epoch=290/300 train_loss=0.45314760 train_top1=0.9993 train_top3=1.0000 val_loss=0.42873667 val_top1=0.9972 val_top3=1.0000
+2026-04-02 03:24:21,992 | INFO | epoch=300/300 train_loss=0.45240985 train_top1=1.0000 train_top3=1.0000 val_loss=0.42516831 val_top1=1.0000 val_top3=1.0000
+2026-04-02 03:24:22,002 | INFO | training finished selected_epoch=282 selected_val_top1=1.0000 selected_val_top3=1.0000 last_epoch=300 last_val_top1=1.0000 last_val_top3=1.0000 stopped_early=False
