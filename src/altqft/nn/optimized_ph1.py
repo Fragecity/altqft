@@ -52,6 +52,7 @@ def phase_artifact_is_current(
 def build_fi_train_config(
     nqubit: int,
     *,
+    period_range: list[int] | None = None,
     epochs: int,
     learning_rate: float,
     seed: int,
@@ -62,7 +63,7 @@ def build_fi_train_config(
 ) -> TrainConfig:
     return TrainConfig(
         nqubit=nqubit,
-        period_range=build_default_period_range(nqubit),
+        period_range=list(period_range) if period_range is not None else build_default_period_range(nqubit),
         epochs=epochs,
         learning_rate=learning_rate,
         seed=seed,
@@ -102,6 +103,7 @@ def _artifact_from_payload(
 def ensure_optimized_ph1(
     nqubit: int,
     *,
+    period_range: list[int] | None = None,
     epochs: int,
     learning_rate: float = 0.05,
     seed: int = 7,
@@ -110,9 +112,11 @@ def ensure_optimized_ph1(
     data_dir: Path = Path("data"),
     output_dir: Path = Path("outputs"),
     force_reoptimize: bool = False,
+    require_existing: bool = False,
 ) -> OptimizedPH1Artifact:
     config = build_fi_train_config(
         nqubit,
+        period_range=period_range,
         epochs=epochs,
         learning_rate=learning_rate,
         seed=seed,
@@ -130,6 +134,12 @@ def ensure_optimized_ph1(
             payload,
             reused_existing=True,
             final_min_fi=None,
+        )
+
+    if require_existing:
+        raise FileNotFoundError(
+            f"no existing optimized PH1 artifact for nqubit={config.nqubit} period_range={config.period_range} "
+            f"at {config.phase_path}"
         )
 
     train_artifacts = train_model(config)

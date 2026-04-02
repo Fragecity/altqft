@@ -11,6 +11,7 @@ from torch import Tensor
 from torch.optim import Adam, Optimizer
 
 from altqft.nn.model import PH1MinFIModel
+from altqft.nn.periods import period_range_artifact_suffix
 from altqft.nn.runtime import configure_logger, set_random_seed, snapshot_model_state
 
 LOGGER_NAME = "altqft.nn.train"
@@ -45,7 +46,8 @@ class TrainConfig:
 
     @property
     def run_name(self) -> str:
-        return f"{self.model_stem}_{self.nqubit}q"
+        suffix = period_range_artifact_suffix(self.nqubit, self.period_range)
+        return f"{self.model_stem}_{self.nqubit}q{suffix}"
 
     @property
     def model_path(self) -> Path:
@@ -105,6 +107,8 @@ def serialize_config(config: TrainConfig) -> SerializedConfig:
         "output_dir": str(config.output_dir),
         "model_stem": config.model_stem,
     }
+
+
 def prepare_output_dirs(config: TrainConfig) -> None:
     for path in (config.model_dir, config.data_dir, config.output_dir):
         path.mkdir(parents=True, exist_ok=True)

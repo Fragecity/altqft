@@ -3,33 +3,76 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import matplotlib.pyplot as plt
 
 
 DEFAULT_HISTORY_DIR = Path("outputs")
 DEFAULT_FIGURE_DIR = Path("figs/recover")
+DEFAULT_OUTPUT_SUFFIX = ".svg"
+DEFAULT_COMBINED_NQUBITS = (9, 10, 11)
+DEFAULT_MAX_EPOCH = 100
+TITLE_FONT_SIZE = 24
+LABEL_FONT_SIZE = 21
+LEGEND_FONT_SIZE = 21
+TICK_FONT_SIZE = 18
+GROUP_COLORS: dict[int, dict[str, str]] = {
+    9: {
+        "loss": "#1d4ed8",
+        "top1": "#3b82f6",
+        "topk": "#93c5fd",
+    },
+    10: {
+        "loss": "#be185d",
+        "top1": "#ec4899",
+        "topk": "#f9a8d4",
+    },
+    11: {
+        "loss": "#6d28d9",
+        "top1": "#8b5cf6",
+        "topk": "#c4b5fd",
+    },
+}
+FALLBACK_METRIC_COLORS = {
+    "loss": "#1f77b4",
+    "top1": "#d62728",
+    "topk": "#2ca02c",
+}
+METRIC_LINESTYLES = {
+    "loss": "solid",
+    "top1": "--",
+    "topk": "-.",
+}
+METRIC_LABELS = {
+    "loss": "loss",
+    "top1": "top1",
+    "topk": "top{top_k}",
+}
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Plot period-recovery training history with epoch on the x-axis, "
+            "Plot one or more period-recovery training histories with epoch on the x-axis, "
             "loss on the left y-axis, and top-k accuracy on the right y-axis."
         )
     )
     parser.add_argument(
         "--history",
         type=Path,
+        nargs="+",
         default=None,
-        help="History JSON path. Defaults to the newest outputs/period_recovery_*_history.json.",
+        help=(
+            "One or more history JSON paths. Defaults to outputs/period_recovery_{9,10,11}q_history.json "
+            "when all three exist, otherwise the newest outputs/period_recovery_*_history.json."
+        ),
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=None,
-        help="Output figure path. Defaults to figs/recover/<history_stem>_<split>.png.",
+        help="Output figure path. Defaults to figs/recover/<history_stem>_<split>.svg.",
     )
     parser.add_argument(
         "--split",
@@ -40,9 +83,23 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def resolve_history_path(candidate: Path | None) -> Path:
-    if candidate is not None:
-        return candidate
+def _default_combined_history_paths() -> list[Path] | None:
+    paths = [
+        DEFAULT_HISTORY_DIR / f"period_recovery_{nqubit}q_history.json"
+        for nqubit in DEFAULT_COMBINED_NQUBITS
+    ]
+    if all(path.exists() for path in paths):
+        return paths
+    return None
+
+
+def resolve_history_paths(candidates: Sequence[Path] | None) -> list[Path]:
+    if candidates is not None:
+        return [Path(candidate) for candidate in candidates]
+
+    default_combined = _default_combined_history_paths()
+    if default_combined is not None:
+        return default_combined
 
     matches = sorted(
         DEFAULT_HISTORY_DIR.glob("period_recovery_*_history.json"),
@@ -51,7 +108,7 @@ def resolve_history_path(candidate: Path | None) -> Path:
     )
     if not matches:
         raise FileNotFoundError("No period recovery history JSON found under outputs/.")
-    return matches[0]
+    return [matches[0]]
 
 
 def load_history_payload(path: Path) -> dict[str, Any]:
@@ -64,14 +121,26 @@ def load_history_payload(path: Path) -> dict[str, Any]:
     return payload
 
 
-def resolve_output_path(history_path: Path, split: str, candidate: Path | None) -> Path:
+def resolve_output_path(
+    history_paths: Sequence[Path], split: str, candidate: Path | None
+) -> Path:
     if candidate is not None:
-        return candidate
-    stem = history_path.stem.removesuffix("_history")
-    return DEFAULT_FIGURE_DIR / f"{stem}_{split}_metrics.png"
+        if candidate.suffix:
+            return candidate
+        return candidate.with_suffix(DEFAULT_OUTPUT_SUFFIX)
+    stems = [
+        history_path.stem.removesuffix("_history") for history_path in history_paths
+    ]
+    if len(stems) == 1:
+        stem = stems[0]
+    else:
+        stem = "_".join(stems)
+    return DEFAULT_FIGURE_DIR / f"{stem}_{split}_metrics{DEFAULT_OUTPUT_SUFFIX}"
 
 
-def build_metric_series(payload: dict[str, Any], split: str) -> tuple[list[int], list[float], list[float], list[float], int]:
+def build_metric_series(
+    payload: dict[str, Any], split: str
+) -> tuple[list[int], list[float], list[float], list[float], int]:
     history = payload["history"]
     config = payload.get("config", {})
     if not isinstance(config, dict):
@@ -111,60 +180,103 @@ def build_metric_series(payload: dict[str, Any], split: str) -> tuple[list[int],
         top1_values.append(float(top1))
         topk_values.append(float(topk))
 
+    if DEFAULT_MAX_EPOCH > 0:
+        selected_indices = [
+            index for index, epoch in enumerate(epochs) if epoch <= DEFAULT_MAX_EPOCH
+        ]
+        epochs = [epochs[index] for index in selected_indices]
+        losses = [losses[index] for index in selected_indices]
+        top1_values = [top1_values[index] for index in selected_indices]
+        topk_values = [topk_values[index] for index in selected_indices]
+
     return epochs, losses, top1_values, topk_values, top_k
 
 
+def resolve_nqubit_label(
+    payload: dict[str, Any], history_path: Path
+) -> tuple[int | None, str]:
+    config = payload.get("config", {})
+    if isinstance(config, dict):
+        nqubit = config.get("nqubit")
+        if isinstance(nqubit, int):
+            return nqubit, f"{nqubit}q"
+
+    stem = history_path.stem.removesuffix("_history")
+    parts = stem.split("_")
+    nqubit_token = parts[-1] if parts else ""
+    if nqubit_token.endswith("q") and nqubit_token[:-1].isdigit():
+        nqubit = int(nqubit_token[:-1])
+        return nqubit, f"{nqubit}q"
+    return None, stem
+
+
 def plot_history(
-    history_path: Path,
+    histories: Sequence[tuple[Path, dict[str, Any]]],
     output_path: Path,
     split: str,
-    epochs: list[int],
-    losses: list[float],
-    top1_values: list[float],
-    topk_values: list[float],
-    top_k: int,
 ) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fig, ax_loss = plt.subplots(figsize=(10, 5.5), constrained_layout=True)
+    fig, ax_loss = plt.subplots(figsize=(11.5, 6.05), constrained_layout=True)
     ax_acc = ax_loss.twinx()
+    legend_lines = []
 
-    loss_line = ax_loss.plot(
-        epochs,
-        losses,
-        color="#1f77b4",
-        linewidth=2.2,
-        label=f"{split} loss",
-    )[0]
-    top1_line = ax_acc.plot(
-        epochs,
-        top1_values,
-        color="#d62728",
-        linewidth=2.0,
-        label=f"{split} top1",
-    )[0]
-    topk_line = ax_acc.plot(
-        epochs,
-        topk_values,
-        color="#2ca02c",
-        linewidth=2.0,
-        label=f"{split} top{top_k}",
-    )[0]
+    for history_path, payload in histories:
+        epochs, losses, top1_values, topk_values, top_k = build_metric_series(
+            payload, split
+        )
+        nqubit, run_label = resolve_nqubit_label(payload, history_path)
+        palette = GROUP_COLORS.get(nqubit, FALLBACK_METRIC_COLORS)
 
-    ax_loss.set_xlabel("Epoch")
-    ax_loss.set_ylabel("Loss", color=loss_line.get_color())
-    ax_acc.set_ylabel("Accuracy", color=top1_line.get_color())
-    ax_loss.tick_params(axis="y", labelcolor=loss_line.get_color())
-    ax_acc.tick_params(axis="y", labelcolor=top1_line.get_color())
+        loss_line = ax_loss.plot(
+            epochs,
+            losses,
+            color=palette["loss"],
+            linewidth=2.2,
+            linestyle=METRIC_LINESTYLES["loss"],
+            label=f"{run_label} loss",
+        )[0]
+        top1_line = ax_acc.plot(
+            epochs,
+            top1_values,
+            color=palette["top1"],
+            linewidth=2.0,
+            linestyle=METRIC_LINESTYLES["top1"],
+            label=f"{run_label} top1 accuracy",
+        )[0]
+        topk_line = ax_acc.plot(
+            epochs,
+            topk_values,
+            color=palette["topk"],
+            linewidth=2.0,
+            linestyle=METRIC_LINESTYLES["topk"],
+            label=f"{run_label} top{top_k} accuracy",
+        )[0]
+        legend_lines.extend((loss_line, top1_line, topk_line))
+
+    ax_loss.set_xlabel("Epoch", fontsize=LABEL_FONT_SIZE)
+    ax_loss.set_ylabel("Loss", fontsize=LABEL_FONT_SIZE)
+    ax_acc.set_ylabel("Accuracy", fontsize=LABEL_FONT_SIZE)
     ax_acc.set_ylim(0.0, 1.0)
+    loss_ymin, loss_ymax = ax_loss.get_ylim()
+    acc_ymin, acc_ymax = ax_acc.get_ylim()
+    ax_loss.set_ylim(loss_ymin, loss_ymax * 1.1)
+    ax_acc.set_ylim(acc_ymin, acc_ymax * 1.1)
     ax_loss.grid(True, alpha=0.25)
+    ax_loss.tick_params(axis="both", labelsize=TICK_FONT_SIZE)
+    ax_acc.tick_params(axis="both", labelsize=TICK_FONT_SIZE)
+    title_text = f"Recover Period"
 
-    title_stem = history_path.stem.removesuffix("_history")
-    ax_loss.set_title(f"{title_stem} ({split} metrics)")
+    ax_loss.set_title(title_text, fontsize=TITLE_FONT_SIZE, pad=10)
 
-    lines = [loss_line, top1_line, topk_line]
-    labels = [line.get_label() for line in lines]
-    ax_loss.legend(lines, labels, loc="upper right")
+    labels = [line.get_label() for line in legend_lines]
+    ax_loss.legend(
+        legend_lines,
+        labels,
+        loc="center right",
+        fontsize=LEGEND_FONT_SIZE,
+        frameon=False,
+    )
 
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
@@ -172,23 +284,22 @@ def plot_history(
 
 def main() -> None:
     args = parse_args()
-    history_path = resolve_history_path(args.history)
-    payload = load_history_payload(history_path)
-    epochs, losses, top1_values, topk_values, top_k = build_metric_series(payload, args.split)
-    output_path = resolve_output_path(history_path, args.split, args.output)
+    history_paths = resolve_history_paths(args.history)
+    histories = [
+        (history_path, load_history_payload(history_path))
+        for history_path in history_paths
+    ]
+    output_path = resolve_output_path(history_paths, args.split, args.output)
 
     plot_history(
-        history_path=history_path,
+        histories=histories,
         output_path=output_path,
         split=args.split,
-        epochs=epochs,
-        losses=losses,
-        top1_values=top1_values,
-        topk_values=topk_values,
-        top_k=top_k,
     )
 
-    print(f"history_path={history_path}")
+    print(
+        "history_paths=" + ",".join(str(history_path) for history_path in history_paths)
+    )
     print(f"output_path={output_path}")
 
 

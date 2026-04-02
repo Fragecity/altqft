@@ -51,6 +51,18 @@ def parse_args() -> argparse.Namespace:
         help="Measurements per bitmatrix sample. Defaults to 1024 * nqubit^2.",
     )
     parser.add_argument(
+        "--period-min",
+        type=int,
+        default=2,
+        help="Smallest candidate period to include in training labels.",
+    )
+    parser.add_argument(
+        "--period-max",
+        type=int,
+        default=None,
+        help="Largest candidate period to include in training labels.",
+    )
+    parser.add_argument(
         "--num-train-samples",
         type=int,
         default=DEFAULT_NUM_TRAIN_SAMPLES,
@@ -191,6 +203,8 @@ def build_configs(
     dataset_dir = resolve_dataset_dir(args)
     train_config = PeriodRecoveryTrainConfig(
         nqubit=args.nqubit,
+        period_min=args.period_min,
+        period_max=args.period_max,
         top_k=args.top_k,
         batch_size=args.batch_size,
         epochs=args.epochs,
@@ -216,6 +230,8 @@ def build_configs(
         measurement_count=measurement_count,
         num_train_samples=args.num_train_samples,
         num_val_samples=args.num_val_samples,
+        period_min=args.period_min,
+        period_max=args.period_max,
         seed=args.seed,
         stratify_periods=not args.disable_stratified_period_sampling,
         dataset_dir=dataset_dir,
@@ -229,6 +245,7 @@ def main() -> None:
 
     optimized_ph1 = ensure_optimized_ph1(
         args.nqubit,
+        period_range=dataset_config.candidate_periods,
         epochs=train_config.fi_epochs,
         learning_rate=train_config.fi_learning_rate,
         seed=train_config.seed,
@@ -249,6 +266,7 @@ def main() -> None:
         f"ph_status={'reused' if optimized_ph1.reused_existing else 'trained'} "
         f"phase_path={optimized_ph1.phase_path}"
     )
+    print(f"period_range={dataset_config.candidate_periods}")
     print(
         f"dataset train={dataset_artifacts.train_path} val={dataset_artifacts.val_path}"
     )

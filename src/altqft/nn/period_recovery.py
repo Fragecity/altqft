@@ -16,7 +16,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact
-from altqft.nn.periods import build_default_period_range
+from altqft.nn.periods import build_period_range, period_range_artifact_suffix
 from altqft.nn.process_qc import (
     ProbFunc,
     make_prob,
@@ -36,6 +36,8 @@ class PeriodRecoveryDatasetConfig:
     measurement_count: int
     num_train_samples: int
     num_val_samples: int
+    period_min: int = 2
+    period_max: int | None = None
     seed: int = 7
     stratify_periods: bool = True
     dataset_dir: Path = Path("data/period_recovery")
@@ -52,12 +54,17 @@ class PeriodRecoveryDatasetConfig:
 
     @property
     def candidate_periods(self) -> list[int]:
-        return build_default_period_range(self.nqubit)
+        return build_period_range(
+            self.nqubit,
+            min_period=self.period_min,
+            max_period=self.period_max,
+        )
 
     @property
     def dataset_stem(self) -> str:
+        suffix = period_range_artifact_suffix(self.nqubit, self.candidate_periods)
         return (
-            f"period_recovery_{self.nqubit}q_"
+            f"period_recovery_{self.nqubit}q{suffix}_"
             f"m{self.measurement_count}_"
             f"train{self.num_train_samples}_"
             f"val{self.num_val_samples}_"
@@ -76,6 +83,8 @@ class PeriodRecoveryDatasetConfig:
 @dataclass(slots=True)
 class PeriodRecoveryTrainConfig:
     nqubit: int
+    period_min: int = 2
+    period_max: int | None = None
     top_k: int = 3
     batch_size: int = 32
     epochs: int = 20
@@ -126,7 +135,16 @@ class PeriodRecoveryTrainConfig:
 
     @property
     def run_name(self) -> str:
-        return f"period_recovery_{self.nqubit}q"
+        suffix = period_range_artifact_suffix(self.nqubit, self.candidate_periods)
+        return f"period_recovery_{self.nqubit}q{suffix}"
+
+    @property
+    def candidate_periods(self) -> list[int]:
+        return build_period_range(
+            self.nqubit,
+            min_period=self.period_min,
+            max_period=self.period_max,
+        )
 
     @property
     def model_path(self) -> Path:
@@ -367,12 +385,14 @@ def serialize_dataset_config(
     config: PeriodRecoveryDatasetConfig,
     *,
     split: str,
-) -> dict[str, int | str | bool | list[int]]:
+) -> dict[str, int | str | bool | list[int] | None]:
     return {
         "nqubit": config.nqubit,
         "measurement_count": config.measurement_count,
         "num_train_samples": config.num_train_samples,
         "num_val_samples": config.num_val_samples,
+        "period_min": config.period_min,
+        "period_max": config.period_max,
         "seed": config.seed,
         "stratify_periods": config.stratify_periods,
         "dataset_dir": str(config.dataset_dir),
@@ -381,9 +401,13 @@ def serialize_dataset_config(
     }
 
 
-def serialize_train_config(config: PeriodRecoveryTrainConfig) -> dict[str, int | float | str | bool]:
+def serialize_train_config(
+    config: PeriodRecoveryTrainConfig,
+) -> dict[str, int | float | str | bool | None]:
     return {
         "nqubit": config.nqubit,
+        "period_min": config.period_min,
+        "period_max": config.period_max,
         "top_k": config.top_k,
         "batch_size": config.batch_size,
         "epochs": config.epochs,
