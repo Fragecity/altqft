@@ -39,3 +39,24 @@
 2026-04-02 03:51:02,101 | INFO | epoch=290/300 train_loss=0.47144035 train_top1=1.0000 train_top3=1.0000 val_loss=0.44749811 val_top1=1.0000 val_top3=1.0000
 2026-04-02 03:51:48,000 | INFO | epoch=300/300 train_loss=0.47007281 train_top1=1.0000 train_top3=1.0000 val_loss=0.45209959 val_top1=1.0000 val_top3=1.0000
 2026-04-02 03:51:48,015 | INFO | training finished selected_epoch=260 selected_val_top1=1.0000 selected_val_top3=1.0000 last_epoch=300 last_val_top1=1.0000 last_val_top3=1.0000 stopped_early=False
+2026-04-03 01:06:10,833 | INFO | start period recovery training with config={"nqubit": 11, "period_min": 11, "period_max": null, "top_k": 3, "batch_size": 16, "epochs": 300, "learning_rate": 0.001, "weight_decay": 0.0001, "dropout": 0.2, "label_smoothing": 0.05, "min_epochs": 50, "early_stopping_patience": 75, "seed": 7, "log_interval": 10, "model_dir": "model", "data_dir": "data", "output_dir": "outputs", "force_reoptimize_phases": true, "regenerate_dataset": true, "fi_epochs": 1000, "fi_learning_rate": 0.05, "fi_log_interval": 10}
+2026-04-03 01:06:10,836 | INFO | period recovery runtime device=cpu amp=False pin_memory=False requested_device=auto
+2026-04-03 01:06:10,837 | INFO | torch build has no CUDA runtime; period recovery will run on CPU
+2026-04-03 01:06:11,784 | INFO | train dataset diagnostics samples=1440 measurement_count=123904 nqubit=11 state_space=2048 candidate_periods=110 unique_periods=110 measurements_per_basis_state=60.50 samples_per_class=13.0909
+2026-04-03 01:06:11,785 | INFO | val dataset diagnostics samples=360 measurement_count=123904 nqubit=11 state_space=2048 candidate_periods=110 unique_periods=110 measurements_per_basis_state=60.50 samples_per_class=3.2727
+2026-04-03 01:11:35,357 | INFO | epoch=1/300 train_loss=4.73794078 train_top1=0.0069 train_top3=0.0215 val_loss=4.69703414 val_top1=0.0167 val_top3=0.0500
+2026-04-03 01:57:11,261 | INFO | epoch=10/300 train_loss=1.65689979 train_top1=0.6354 train_top3=0.8618 val_loss=1.44591901 val_top1=0.7472 val_top3=0.9056
+2026-04-03 02:48:06,810 | INFO | epoch=20/300 train_loss=0.75631665 train_top1=0.9354 train_top3=0.9979 val_loss=0.66107344 val_top1=0.9528 val_top3=1.0000
+2026-04-03 03:38:49,212 | INFO | epoch=30/300 train_loss=0.60941659 train_top1=0.9812 train_top3=0.9993 val_loss=0.57276141 val_top1=0.9750 val_top3=1.0000
+2026-04-03 04:28:26,685 | INFO | epoch=40/300 train_loss=0.56722587 train_top1=0.9910 train_top3=1.0000 val_loss=0.51934241 val_top1=0.9944 val_top3=1.0000
+2026-04-03 05:16:57,150 | INFO | epoch=50/300 train_loss=0.52842544 train_top1=0.9986 train_top3=1.0000 val_loss=0.49843355 val_top1=0.9944 val_top3=1.0000
+2026-04-03 06:05:18,102 | INFO | epoch=60/300 train_loss=0.51996874 train_top1=0.9986 train_top3=1.0000 val_loss=0.49187683 val_top1=0.9972 val_top3=1.0000
+2026-04-03 06:53:48,369 | INFO | epoch=70/300 train_loss=0.51199157 train_top1=0.9986 train_top3=1.0000 val_loss=0.48390074 val_top1=0.9972 val_top3=1.0000
+2026-04-03 07:42:38,901 | INFO | epoch=80/300 train_loss=0.50480231 train_top1=0.9986 train_top3=1.0000 val_loss=0.47444708 val_top1=0.9972 val_top3=1.0000
+2026-04-03 08:31:38,623 | INFO | epoch=90/300 train_loss=0.50535285 train_top1=0.9972 train_top3=1.0000 val_loss=0.47100343 val_top1=1.0000 val_top3=1.0000
+2026-04-03 09:20:29,252 | INFO | epoch=100/300 train_loss=0.49865946 train_top1=0.9986 train_top3=1.0000 val_loss=0.48130460 val_top1=0.9972 val_top3=1.0000
+2026-04-03 10:09:30,961 | INFO | epoch=110/300 train_loss=0.49818466 train_top1=1.0000 train_top3=1.0000 val_loss=0.46771781 val_top1=0.9972 val_top3=1.0000
+2026-04-03 10:58:26,542 | INFO | epoch=120/300 train_loss=0.49998028 train_top1=0.9986 train_top3=1.0000 val_loss=0.46472740 val_top1=0.9972 val_top3=1.0000
+2026-04-03 11:47:22,724 | INFO | epoch=130/300 train_loss=0.48969422 train_top1=0.9993 train_top3=1.0000 val_loss=0.46439616 val_top1=0.9972 val_top3=1.0000
+2026-04-03 12:36:18,972 | INFO | epoch=140/300 train_loss=0.49061032 train_top1=0.9986 train_top3=1.0000 val_loss=0.46686513 val_top1=1.0000 val_top3=1.0000
+2026-04-03 13:25:24,575 | INFO | epoch=150/300 train_loss=0.48456180 train_top1=1.0000 train_top3=1.0000 val_loss=0.45657859 val_top1=1.0000 val_top3=1.0000
