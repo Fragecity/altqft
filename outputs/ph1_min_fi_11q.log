@@ -146,4 +146,3 @@
 2026-04-02 23:37:56,275 | INFO | epoch=990/1000 loss=-14.79948807 min_fi=14.79948807
 2026-04-02 23:38:11,168 | INFO | epoch=1000/1000 loss=-18.45842171 min_fi=18.45842171
 2026-04-02 23:38:11,263 | INFO | training finished final_min_fi=18.45842171 best_min_fi=24.54811859 best_epoch=35
->>>>>>> ef5cebf (update data)
