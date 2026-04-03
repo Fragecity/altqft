@@ -60,3 +60,5 @@
 2026-04-03 11:47:22,724 | INFO | epoch=130/300 train_loss=0.48969422 train_top1=0.9993 train_top3=1.0000 val_loss=0.46439616 val_top1=0.9972 val_top3=1.0000
 2026-04-03 12:36:18,972 | INFO | epoch=140/300 train_loss=0.49061032 train_top1=0.9986 train_top3=1.0000 val_loss=0.46686513 val_top1=1.0000 val_top3=1.0000
 2026-04-03 13:25:24,575 | INFO | epoch=150/300 train_loss=0.48456180 train_top1=1.0000 train_top3=1.0000 val_loss=0.45657859 val_top1=1.0000 val_top3=1.0000
+2026-04-03 14:20:24,933 | INFO | epoch=160/300 train_loss=0.48446964 train_top1=1.0000 train_top3=1.0000 val_loss=0.45791303 val_top1=1.0000 val_top3=1.0000
+2026-04-03 15:11:27,330 | INFO | epoch=170/300 train_loss=0.48094388 train_top1=0.9993 train_top3=1.0000 val_loss=0.46241129 val_top1=0.9972 val_top3=1.0000
