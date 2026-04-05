@@ -21,9 +21,15 @@
   - `uv sync`
   - `uv run pytest`
   - `uv run mypy`
-  - `uv run python scripts/train/train_ph1_min_fi.py`
+  - `uv run python scripts/train/train_ph1.py`
+  - `uv run python scripts/train/train_ph1_min_fi_sweep.py`
 - Keep changes focused on source code unless the task explicitly requires updating generated artifacts or research assets.
 - When changing scripts that load saved results, keep backward compatibility with existing pickle/json outputs when practical.
+
+## Recent Findings
+- 2026-04-05: the server-side `exact_shiftce_pool10_hold1` period-recovery run is reading a cached `shift_pool` manifest with `train_draws_per_epoch=1024`. That effective train set is much smaller than the full shift pool and can make early metrics look random.
+- 2026-04-05: fully shuffling individual `shift_pool` samples was the wrong fix. It destroyed shard locality on the large cache and made each epoch far too slow.
+- 2026-04-05: the current compromise is batch-local randomization in `PoolBackedPeriodDataset.set_epoch(..., batch_size=...)`. It keeps shard-local reads but randomizes batch order. On the server run logged at `outputs/period_net_exact_shiftce_pool10_hold1_shufflefix.console.log`, metrics improved to `epoch=15 train_top1=0.0137 train_top10=0.1885 val_top1=0.0205 val_top10=0.2682`, so ordering was part of the problem.
 
 ## Refactoring Requirements
 - Keep code concise and easy to read.
@@ -42,7 +48,7 @@
 ## Refactor Review Style
 - During refactors, use a Linus-style review lens: direct, unsentimental, and technically sharp.
 - Critique the code, not the person. Be blunt about bad abstractions or unnecessary complexity, but never personal.
-- Prioritize "good taste": make the common path obvious and reduce edge handling by improving invariants.
+- Prioritize good taste: make the common path obvious and reduce edge handling by improving invariants.
 - If the logic feels tangled, question the design first instead of adding more local fixes.
 - Call out pointless indirection, leaky flags, and over-engineered abstractions early.
 - Do not preserve complexity for backward-looking reasons unless behavior or compatibility would actually break.

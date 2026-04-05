@@ -107,6 +107,8 @@ def _parse_epoch_result(item: object, path: Path) -> EpochResult:
 
 
 def _epoch_summary(result: EpochResult) -> EpochSummary:
+    if result.min_fi is None:
+        raise ValueError("expected min_fi history for PH1 min-FI sweep")
     return {
         "epoch": result.epoch,
         "loss": result.loss,

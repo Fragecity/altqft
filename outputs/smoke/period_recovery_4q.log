@@ -1,4 +1,0 @@
-2026-03-26 16:54:58,838 | INFO | start period recovery training with config={"nqubit": 4, "top_k": 3, "batch_size": 4, "epochs": 2, "learning_rate": 0.001, "seed": 7, "log_interval": 1, "model_dir": "model\\smoke", "data_dir": "data\\smoke", "output_dir": "outputs\\smoke", "force_reoptimize_phases": true, "regenerate_dataset": true, "fi_epochs": 2, "fi_learning_rate": 0.05, "fi_log_interval": 1}
-2026-03-26 16:55:00,314 | INFO | epoch=1/2 train_loss=242.09390068 train_top1=0.0625 train_top3=0.2500 val_loss=432.58264160 val_top1=0.2500 val_top3=0.2500
-2026-03-26 16:55:01,153 | INFO | epoch=2/2 train_loss=237.01579666 train_top1=0.1250 train_top3=0.5000 val_loss=639.94686890 val_top1=0.0000 val_top3=0.0000
-2026-03-26 16:55:01,163 | INFO | training finished final_val_top1=0.0000 final_val_top3=0.0000

@@ -21,11 +21,25 @@ EPSILON = 1e-12
 SUPPORTED_TORCH_DEVICES = {"auto", "cpu", "cuda", "mps"}
 
 
-def _probability_vector(unitary: np.ndarray, period: int, shift: int) -> FloatArray:
-    support_count = unitary.shape[1] // period
-    support_indices = shift + np.arange(support_count) * period
+def _surrogate_support_indices(size: int, period: int, shift: int) -> NDArray[np.int64]:
+    support_count = size // period
+    return shift + np.arange(support_count, dtype=np.int64) * period
+
+
+def _exact_support_indices(size: int, period: int, shift: int) -> NDArray[np.int64]:
+    return np.arange(shift, size, period, dtype=np.int64)
+
+
+def _probability_vector_from_support(unitary: np.ndarray, support_indices: NDArray[np.int64]) -> FloatArray:
+    if support_indices.size < 1:
+        raise ValueError("support_indices must not be empty")
     amplitudes = unitary[:, support_indices].sum(axis=1)
-    return np.asarray(np.abs(amplitudes) ** 2 / support_count, dtype=np.float64)
+    return np.asarray(np.abs(amplitudes) ** 2 / float(support_indices.size), dtype=np.float64)
+
+
+def _probability_vector(unitary: np.ndarray, period: int, shift: int) -> FloatArray:
+    support_indices = _surrogate_support_indices(unitary.shape[1], period, shift)
+    return _probability_vector_from_support(unitary, support_indices)
 
 
 def resolve_compute_device(device: str = "auto") -> str:
@@ -59,15 +73,46 @@ def available_cuda_device_count() -> int:
     return int(torch.cuda.device_count())
 
 
-def _torch_probability_vector(unitary: Tensor, period: int, shift: int) -> Tensor:
-    support_count = unitary.shape[1] // period
-    support_indices = shift + torch.arange(
+def _torch_surrogate_support_indices(
+    size: int,
+    period: int,
+    shift: int,
+    *,
+    device: torch.device,
+) -> Tensor:
+    support_count = size // period
+    return shift + torch.arange(
         support_count,
-        device=unitary.device,
+        device=device,
         dtype=torch.long,
     ) * period
+
+
+def _torch_exact_support_indices(
+    size: int,
+    period: int,
+    shift: int,
+    *,
+    device: torch.device,
+) -> Tensor:
+    return torch.arange(shift, size, period, device=device, dtype=torch.long)
+
+
+def _torch_probability_vector_from_support(unitary: Tensor, support_indices: Tensor) -> Tensor:
+    if support_indices.numel() < 1:
+        raise ValueError("support_indices must not be empty")
     amplitudes = unitary.index_select(1, support_indices).sum(dim=1)
-    return amplitudes.abs().pow(2) / float(support_count)
+    return amplitudes.abs().pow(2) / float(support_indices.numel())
+
+
+def _torch_probability_vector(unitary: Tensor, period: int, shift: int) -> Tensor:
+    support_indices = _torch_surrogate_support_indices(
+        unitary.shape[1],
+        period,
+        shift,
+        device=unitary.device,
+    )
+    return _torch_probability_vector_from_support(unitary, support_indices)
 
 
 def _torch_fi(prob1: Tensor, prob2: Tensor) -> Tensor:
@@ -151,12 +196,27 @@ def _fisher_for_period(circuit: QuantumCircuit, period: int, size: int) -> float
     )
 
 
-def make_prob(circuit: QuantumCircuit, period: int) -> ProbFunc:
+def make_prob(
+    circuit: QuantumCircuit,
+    period: int,
+    *,
+    exact_support: bool = False,
+) -> ProbFunc:
     unitary = np.asarray(Operator(circuit).data)
     cache: dict[int, FloatArray] = {}
 
     def prob(col: int, shift: int) -> float:
-        values = cache.setdefault(shift, _probability_vector(unitary, period, shift))
+        values = cache.setdefault(
+            shift,
+            (
+                _probability_vector_from_support(
+                    unitary,
+                    _exact_support_indices(unitary.shape[1], period, shift),
+                )
+                if exact_support
+                else _probability_vector(unitary, period, shift)
+            ),
+        )
         return float(values[col])
 
     return prob
@@ -166,9 +226,15 @@ def circuit_probability_distribution(
     circuit: QuantumCircuit,
     period: int,
     shift: int = 0,
+    *,
+    exact_support: bool = False,
 ) -> FloatArray:
     size = 1 << circuit.num_qubits
-    return probability_distribution(make_prob(circuit, period), size, shift=shift)
+    return probability_distribution(
+        make_prob(circuit, period, exact_support=exact_support),
+        size,
+        shift=shift,
+    )
 
 
 def fi(prob1: Sequence[float] | FloatArray, prob2: Sequence[float] | FloatArray) -> float:

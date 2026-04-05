@@ -6,6 +6,7 @@ import pytest
 import torch
 
 import altqft.nn.train as train
+from altqft.nn.model import shift_ce_mean_loss_from_distributions
 
 
 class DummyModel(torch.nn.Module):
@@ -46,6 +47,7 @@ def test_select_monte_carlo_init_phases_picks_best_sample(monkeypatch: pytest.Mo
         nqubit=4,
         period_range=[2, 3],
         monte_carlo_samples=3,
+        train_device="cpu",
     )
 
     init_phases, init_min_fi = train.select_monte_carlo_init_phases(config)
@@ -66,6 +68,7 @@ def test_initialize_model_uses_selected_monte_carlo_phases(monkeypatch: pytest.M
         nqubit=4,
         period_range=[2, 3],
         monte_carlo_samples=5,
+        train_device="cpu",
     )
 
     model = train.initialize_model(config, logging.getLogger("altqft.nn.train.test"))
@@ -79,13 +82,13 @@ def test_run_training_tracks_best_checkpoint(monkeypatch: pytest.MonkeyPatch) ->
     def fake_train_step(
         model: DummyModel,
         optimizer: torch.optim.Optimizer,
-        period_range: list[int],
-    ) -> tuple[float, float]:
-        del optimizer, period_range
+        config: train.TrainConfig,
+    ) -> tuple[float, float | None, float | None]:
+        del optimizer, config
         min_fi_value = next(values)
         with torch.no_grad():
             model.phases.copy_(torch.tensor([min_fi_value, -min_fi_value]))
-        return -min_fi_value, min_fi_value
+        return -min_fi_value, min_fi_value, None
 
     monkeypatch.setattr(train, "train_step", fake_train_step)
 
@@ -94,6 +97,7 @@ def test_run_training_tracks_best_checkpoint(monkeypatch: pytest.MonkeyPatch) ->
         period_range=[2, 3],
         epochs=3,
         log_interval=10,
+        train_device="cpu",
     )
     model = DummyModel(config.nqubit)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
@@ -109,3 +113,27 @@ def test_run_training_tracks_best_checkpoint(monkeypatch: pytest.MonkeyPatch) ->
     assert best_checkpoint.epoch == 2
     assert best_checkpoint.min_fi == pytest.approx(0.35)
     assert best_checkpoint.phases == pytest.approx([0.35, -0.35])
+
+
+def test_shift_ce_mean_loss_penalizes_mismatched_shift_distributions() -> None:
+    identical = torch.tensor(
+        [
+            [1.0, 0.0],
+            [1.0, 0.0],
+        ],
+        dtype=torch.float32,
+    )
+    mismatched = torch.tensor(
+        [
+            [1.0, 0.0],
+            [0.0, 1.0],
+        ],
+        dtype=torch.float32,
+    )
+
+    identical_loss, identical_l1 = shift_ce_mean_loss_from_distributions(identical)
+    mismatched_loss, mismatched_l1 = shift_ce_mean_loss_from_distributions(mismatched)
+
+    assert mismatched_loss > identical_loss
+    assert identical_l1 == pytest.approx(0.0)
+    assert mismatched_l1 > 0.0

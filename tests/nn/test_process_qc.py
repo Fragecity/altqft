@@ -1,82 +1,60 @@
-import pytest
+from __future__ import annotations
+
 import math
+from collections.abc import Callable
+from pathlib import Path
 from unittest.mock import patch
+
 import numpy as np
+import pytest
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
+
+from altqft.algorithms.shor_ph1 import (
+    PH1ShorConfig,
+    _collapsed_periodic_state,
+    _modular_exponentiation_outputs,
+)
 from altqft.circuits.ph_generators import qft
-from altqft.nn.process_qc import circuit_probability_distribution, fi, min_fi
-
-# ----------------- 测试用例 1: fi 函数基础测试 -----------------
-def test_fi_basic():
-    """
-    测试离散 Fisher Information 的纯数学计算逻辑。
-    公式: FI = sum((p1 - p2)^2 / p1)
-    """
-    # 场景 A: 两个概率分布完全相同，FI 应该为 0
-    p1_same = [0.5, 0.5]
-    p2_same = [0.5, 0.5]
-    fi_zero = fi(p1_same, p2_same)
-    print(f"相同分布 FI (预期 0.0): {fi_zero}")
-    assert math.isclose(fi_zero, 0.0, abs_tol=1e-9)
-
-    # 场景 B: 两个不同的概率分布
-    # p1 = [0.8, 0.2], p2 = [0.6, 0.4]
-    # FI = (0.8 - 0.6)^2 / 0.8 + (0.2 - 0.4)^2 / 0.2 
-    #    = 0.04 / 0.8 + 0.04 / 0.2 = 0.05 + 0.20 = 0.25
-    p1_diff = [0.8, 0.2]
-    p2_diff = [0.6, 0.4]
-    fi_value = fi(p1_diff, p2_diff)
-    print(f"不同分布 FI (预期 0.25): {fi_value}")
-    assert math.isclose(fi_value, 0.25, rel_tol=1e-9)
+from altqft.nn.process_qc import (
+    _exact_support_indices,
+    _surrogate_support_indices,
+    _torch_exact_support_indices,
+    _torch_probability_vector_from_support,
+    _torch_unitary,
+    circuit_probability_distribution,
+    fi,
+    min_fi,
+)
 
 
-# ----------------- 测试用例 2: min_fi 综合测试 -----------------
+def test_fi_returns_zero_for_identical_distributions() -> None:
+    assert math.isclose(fi([0.5, 0.5], [0.5, 0.5]), 0.0, abs_tol=1e-9)
 
-def mock_make_prob_dynamic(circuit: QuantumCircuit, period: int):
-    """
-    一个伪造的 make_prob 工厂函数。
-    它根据传入的 period 返回不同的概率分布函数，用来模拟随周期演化的量子态。
-    """
+
+def test_fi_matches_hand_computed_value() -> None:
+    actual = fi([0.8, 0.2], [0.6, 0.4])
+    assert math.isclose(actual, 0.25, rel_tol=1e-9)
+
+
+def _mock_make_prob(circuit: QuantumCircuit, period: int) -> Callable[[int, int], float]:
     def prob(col: int, shift: int) -> float:
-        # 为了测试，我们假定是 1 qubit (N=2，即 col=0 或 1)，并且不考虑 shift
+        del shift
         if period == 2:
-            return 0.8 if col == 0 else 0.2  # 分布 [0.8, 0.2]
-        elif period == 3:
-            return 0.6 if col == 0 else 0.4  # 分布 [0.6, 0.4]
-        elif period == 4:
-            return 0.5 if col == 0 else 0.5  # 分布 [0.5, 0.5]
-        else:
-            return 0.5 
+            return 0.8 if col == 0 else 0.2
+        if period == 3:
+            return 0.6 if col == 0 else 0.4
+        if period == 4:
+            return 0.5 if col == 0 else 0.5
+        return 0.5
+
     return prob
 
-def test_min_fi_dynamic():
-    """
-    测试 min_fi 是否正确遍历了 period_range，并比较了相邻周期的概率分布。
-    """
-    # 我们计划传入 period_range = [2, 3]
-    # 
-    # 内部执行逻辑:
-    # 1. period = 2 时:
-    #    比较 period=2 ([0.8, 0.2]) 和 period=3 ([0.6, 0.4]) 
-    #    FI = 0.25 (从 test_fi_basic 已知)
-    #
-    # 2. period = 3 时:
-    #    比较 period=3 ([0.6, 0.4]) 和 period=4 ([0.5, 0.5])
-    #    FI = (0.6-0.5)^2/0.6 + (0.4-0.5)^2/0.4 
-    #       = 0.01/0.6 + 0.01/0.4 = 1/60 + 1/40 = 5/120 = 1/24 ≈ 0.0416667
-    #
-    # 最小 FI 应为 min(0.25, 1/24) = 1/24
-    
-    # 拦截 make_prob，用 side_effect 让它能动态处理不同的入参
-    with patch('altqft.nn.process_qc.make_prob', side_effect=mock_make_prob_dynamic):
-        dummy_circuit = QuantumCircuit(1) # 1 qubit，对应 N=2 
-        
-        min_fi_value = min_fi(dummy_circuit, period_range=[2, 3])
-        expected_min_fi = 1 / 24
-        
-        print(f"动态周期 min_fi (预期 {expected_min_fi:.6f}): {min_fi_value:.6f}")
-        assert math.isclose(min_fi_value, expected_min_fi, rel_tol=1e-9)
+
+def test_min_fi_tracks_the_worst_adjacent_period_pair() -> None:
+    with patch("altqft.nn.process_qc.make_prob", side_effect=_mock_make_prob):
+        actual = min_fi(QuantumCircuit(1), period_range=[2, 3])
+    assert math.isclose(actual, 1.0 / 24.0, rel_tol=1e-9)
 
 
 def test_min_fi_torch_cpu_matches_numpy() -> None:
@@ -89,18 +67,134 @@ def test_min_fi_torch_cpu_matches_numpy() -> None:
     assert math.isclose(actual, expected, rel_tol=1e-5, abs_tol=1e-6)
 
 
-def test_circuit_probability_distribution_matches_statevector_evolution() -> None:
+def _statevector_distribution_from_support(
+    circuit: QuantumCircuit,
+    support: np.ndarray,
+) -> np.ndarray:
+    amplitudes = np.zeros(1 << circuit.num_qubits, dtype=np.complex128)
+    amplitudes[support] = 1.0 / math.sqrt(len(support))
+    return np.asarray(Statevector(amplitudes).evolve(circuit).probabilities(), dtype=np.float64)
+
+
+def test_circuit_probability_distribution_matches_surrogate_statevector_evolution() -> None:
     circuit = qft(3)
     period = 3
     shift = 1
     size = 1 << circuit.num_qubits
-    support = shift + np.arange(size // period) * period
-
-    amplitudes = np.zeros(size, dtype=np.complex128)
-    amplitudes[support] = 1.0 / math.sqrt(len(support))
-    expected = np.asarray(Statevector(amplitudes).evolve(circuit).probabilities(), dtype=np.float64)
+    support = _surrogate_support_indices(size, period, shift)
+    expected = _statevector_distribution_from_support(circuit, support)
 
     actual = circuit_probability_distribution(circuit, period, shift=shift)
 
     assert np.allclose(actual, expected, atol=1e-9)
 
+
+@pytest.mark.parametrize(("num_qubits", "period"), [(3, 3), (4, 5), (4, 6)])
+def test_exact_support_mismatch_count_matches_state_space_remainder(
+    num_qubits: int,
+    period: int,
+) -> None:
+    size = 1 << num_qubits
+    mismatched_shifts = [
+        shift
+        for shift in range(period)
+        if not np.array_equal(
+            _surrogate_support_indices(size, period, shift),
+            _exact_support_indices(size, period, shift),
+        )
+    ]
+
+    assert mismatched_shifts == list(range(size % period))
+
+
+def test_surrogate_and_exact_supports_diverge_for_non_power_of_two_period() -> None:
+    circuit = qft(3)
+    period = 3
+    size = 1 << circuit.num_qubits
+    mismatched_shifts: list[int] = []
+
+    for shift in range(period):
+        surrogate_support = _surrogate_support_indices(size, period, shift)
+        exact_support = _exact_support_indices(size, period, shift)
+        surrogate = circuit_probability_distribution(circuit, period, shift=shift)
+        exact = _statevector_distribution_from_support(circuit, exact_support)
+        if not np.array_equal(surrogate_support, exact_support):
+            mismatched_shifts.append(shift)
+            assert not np.allclose(surrogate, exact, atol=1e-9)
+        else:
+            assert np.allclose(surrogate, exact, atol=1e-9)
+
+    assert mismatched_shifts == [0, 1]
+
+
+def test_surrogate_and_exact_supports_match_for_power_of_two_period() -> None:
+    circuit = qft(3)
+    period = 4
+    size = 1 << circuit.num_qubits
+
+    for shift in range(period):
+        surrogate_support = _surrogate_support_indices(size, period, shift)
+        exact_support = _exact_support_indices(size, period, shift)
+        surrogate = circuit_probability_distribution(circuit, period, shift=shift)
+        exact = _statevector_distribution_from_support(circuit, exact_support)
+
+        assert np.array_equal(surrogate_support, exact_support)
+        assert np.allclose(surrogate, exact, atol=1e-9)
+
+
+@pytest.mark.parametrize(
+    ("nqubit", "N", "a", "true_period"),
+    [(5, 21, 2, 6), (6, 35, 2, 12)],
+)
+def test_exact_support_helper_matches_collapsed_shor_statevector(
+    tmp_path: Path,
+    nqubit: int,
+    N: int,
+    a: int,
+    true_period: int,
+) -> None:
+    config = PH1ShorConfig(
+        N=N,
+        a=a,
+        nqubit=nqubit,
+        period_min=nqubit,
+        period_max=true_period,
+        measurement_count=1,
+        top_k=1,
+        seed=7,
+        model_dir=tmp_path / "model",
+        data_dir=tmp_path / "data",
+        output_dir=tmp_path / "outputs",
+        allow_phase_retraining=False,
+    )
+    outputs = _modular_exponentiation_outputs(config)
+    size = 1 << nqubit
+    remainder = size % true_period
+    work_value = next(
+        int(value)
+        for value in np.unique(outputs)
+        if int(np.flatnonzero(outputs == value)[0]) < remainder
+    )
+    collapsed_state, support = _collapsed_periodic_state(
+        config,
+        outputs=outputs,
+        work_value=work_value,
+    )
+    shift = min(support)
+    circuit = qft(nqubit)
+    unitary = _torch_unitary(circuit, "cpu")
+
+    exact_support = _exact_support_indices(size, true_period, shift)
+    surrogate_support = _surrogate_support_indices(size, true_period, shift)
+    helper_exact_prob = _torch_probability_vector_from_support(
+        unitary,
+        _torch_exact_support_indices(size, true_period, shift, device=unitary.device),
+    ).detach().cpu().numpy()
+    exact_prob = np.asarray(collapsed_state.evolve(circuit).probabilities(), dtype=np.float64)
+    surrogate_prob = _statevector_distribution_from_support(circuit, surrogate_support)
+
+    assert remainder > 0
+    assert tuple(exact_support.tolist()) == support
+    assert surrogate_support.shape[0] < exact_support.shape[0]
+    assert np.allclose(helper_exact_prob, exact_prob, atol=1e-9)
+    assert not np.allclose(surrogate_prob, exact_prob, atol=1e-9)

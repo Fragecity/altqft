@@ -145,6 +145,12 @@ def parse_args() -> argparse.Namespace:
         help="Epoch logging interval for PH1 optimization.",
     )
     parser.add_argument(
+        "--fi-train-device",
+        type=str,
+        default="auto",
+        help="PH1 training device: auto, cpu, cuda, or mps.",
+    )
+    parser.add_argument(
         "--model-dir",
         type=Path,
         default=DEFAULT_MODEL_DIR,
@@ -183,6 +189,64 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Use unconstrained random period sampling instead of stratified sampling.",
     )
+    parser.add_argument(
+        "--dataset-mode",
+        choices=("flat", "shift_pool"),
+        default="flat",
+        help="Dataset cache mode.",
+    )
+    parser.add_argument(
+        "--exact-support",
+        action="store_true",
+        help="Use exact Shor support when generating PH1 probability distributions.",
+    )
+    parser.add_argument(
+        "--pool-multiplier",
+        type=int,
+        default=1,
+        help="Pool size multiplier for shift-pool datasets.",
+    )
+    parser.add_argument(
+        "--held-out-shifts-per-period",
+        type=int,
+        default=1,
+        help="How many shifts per period to reserve for validation in shift-pool mode.",
+    )
+    parser.add_argument(
+        "--val-draws-per-heldout-shift",
+        type=int,
+        default=4,
+        help="Deterministic validation draws per held-out shift in shift-pool mode.",
+    )
+    parser.add_argument(
+        "--train-draws-per-epoch",
+        type=int,
+        default=None,
+        help="Number of random train draws per epoch in shift-pool mode. Defaults to one draw per train shift pool.",
+    )
+    parser.add_argument(
+        "--variant-tag",
+        type=str,
+        default=None,
+        help="Optional artifact variant tag appended to PH1, dataset, and DeepSet artifacts.",
+    )
+    parser.add_argument(
+        "--cache-device",
+        type=str,
+        default="cpu",
+        help="Device used when computing cached shift-pool distributions: cpu, cuda, mps, or auto.",
+    )
+    parser.add_argument(
+        "--fi-objective",
+        choices=("min_fi", "shift_ce_mean"),
+        default="min_fi",
+        help="Objective used when optimizing PH1 phases.",
+    )
+    parser.add_argument(
+        "--dataset-only",
+        action="store_true",
+        help="Build or refresh the cached dataset, then exit without training the DeepSet model.",
+    )
     return parser.parse_args()
 
 
@@ -200,6 +264,8 @@ def build_configs(
         if args.measurement_count is not None
         else default_measurement_count(args.nqubit)
     )
+    num_train_samples = 0 if args.dataset_mode == "shift_pool" else args.num_train_samples
+    num_val_samples = 0 if args.dataset_mode == "shift_pool" else args.num_val_samples
     dataset_dir = resolve_dataset_dir(args)
     train_config = PeriodRecoveryTrainConfig(
         nqubit=args.nqubit,
@@ -224,17 +290,30 @@ def build_configs(
         fi_epochs=args.fi_epochs,
         fi_learning_rate=args.fi_learning_rate,
         fi_log_interval=args.fi_log_interval,
+        fi_objective=args.fi_objective,
+        fi_exact_support=args.exact_support,
+        fi_train_device=args.fi_train_device,
+        dataset_mode=args.dataset_mode,
+        variant_tag=args.variant_tag,
     )
     dataset_config = PeriodRecoveryDatasetConfig(
         nqubit=args.nqubit,
         measurement_count=measurement_count,
-        num_train_samples=args.num_train_samples,
-        num_val_samples=args.num_val_samples,
+        num_train_samples=num_train_samples,
+        num_val_samples=num_val_samples,
         period_min=args.period_min,
         period_max=args.period_max,
         seed=args.seed,
         stratify_periods=not args.disable_stratified_period_sampling,
         dataset_dir=dataset_dir,
+        exact_support=args.exact_support,
+        cache_mode=args.dataset_mode,
+        pool_multiplier=args.pool_multiplier,
+        held_out_shifts_per_period=args.held_out_shifts_per_period,
+        val_draws_per_heldout_shift=args.val_draws_per_heldout_shift,
+        train_draws_per_epoch=args.train_draws_per_epoch,
+        variant_tag=args.variant_tag,
+        cache_device=args.cache_device,
     )
     return train_config, dataset_config
 
@@ -254,12 +333,30 @@ def main() -> None:
         data_dir=train_config.data_dir,
         output_dir=train_config.output_dir,
         force_reoptimize=train_config.force_reoptimize_phases,
+        objective=train_config.fi_objective,
+        exact_support=train_config.fi_exact_support,
+        variant_tag=train_config.variant_tag,
+        train_device=train_config.fi_train_device,
     )
     dataset_artifacts = generate_period_recovery_dataset(
         dataset_config,
         optimized_ph1,
         regenerate=train_config.regenerate_dataset,
     )
+    if args.dataset_only:
+        print(
+            f"ph_status={'reused' if optimized_ph1.reused_existing else 'trained'} "
+            f"phase_path={optimized_ph1.phase_path}"
+        )
+        print(f"period_range={dataset_config.candidate_periods}")
+        print(
+            f"dataset_mode={dataset_artifacts.cache_mode} "
+            f"train={dataset_artifacts.train_path} "
+            f"val={dataset_artifacts.val_path}"
+        )
+        if dataset_artifacts.manifest_path is not None:
+            print(f"manifest_path={dataset_artifacts.manifest_path}")
+        return
     artifacts = train_period_recovery(train_config, dataset_artifacts, optimized_ph1)
 
     print(

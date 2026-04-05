@@ -15,6 +15,7 @@ DEFAULT_NQUBIT = 11
 DEFAULT_MEASUREMENT_COUNT = 32_768
 DEFAULT_TOP_K = 10
 DEFAULT_SEED = 7
+DEFAULT_FALLBACK_A = 13
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,20 +23,23 @@ class SemiprimeCase:
     N: int
     prime_factors: tuple[int, int]
     a: int
-    order: int
+    order: int | None
+    used_default_a: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class BaseSelection:
     a: int
-    order: int
+    order: int | None
+    used_default_a: bool = False
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Evaluate the PH1 + DeepSet replacement for QFT/continued fractions on the 19 "
-            "semiprimes in 11..120 that admit a coprime order-finding base a."
+            "Evaluate the PH1 + DeepSet replacement for QFT/continued fractions on semiprimes "
+            "in the requested range. When no period-range-compatible coprime base exists, "
+            "fall back to a default base a."
         ),
     )
     parser.add_argument("--start", type=int, default=DEFAULT_START, help="Inclusive lower bound.")
@@ -61,9 +65,32 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help="How many model-ranked periods to test.")
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="Shared RNG seed.")
+    parser.add_argument(
+        "--default-a",
+        type=int,
+        default=DEFAULT_FALLBACK_A,
+        help="Fallback base a used when no period-range-compatible coprime base is found.",
+    )
     parser.add_argument("--model-dir", type=Path, default=Path("model"), help="Model directory.")
     parser.add_argument("--data-dir", type=Path, default=Path("data"), help="Data directory.")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs"), help="Output directory.")
+    parser.add_argument(
+        "--variant-tag",
+        type=str,
+        default=None,
+        help="Optional artifact variant tag appended to PH1 and DeepSet run names.",
+    )
+    parser.add_argument(
+        "--ph1-objective",
+        choices=("min_fi", "shift_ce_mean"),
+        default="min_fi",
+        help="Expected PH1 objective for the optimized phase artifact.",
+    )
+    parser.add_argument(
+        "--exact-support",
+        action="store_true",
+        help="Expect exact-support PH1 artifacts.",
+    )
     parser.add_argument(
         "--allow-phase-retraining",
         action="store_true",
@@ -72,7 +99,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--select-only",
         action="store_true",
-        help="Only enumerate semiprimes and choose a period-range-compatible base a without running PH1 inference.",
+        help="Only enumerate semiprimes and choose the base a without running PH1 inference.",
     )
     return parser.parse_args(argv)
 
@@ -120,6 +147,7 @@ def choose_coprime_order_finding_a(
     expected_factors: tuple[int, int],
     *,
     candidate_periods: Sequence[int],
+    default_a: int | None,
 ) -> BaseSelection | None:
     allowed_periods = set(int(value) for value in candidate_periods)
     best_selection: BaseSelection | None = None
@@ -129,10 +157,19 @@ def choose_coprime_order_finding_a(
             continue
         factors = factors_from_order(a, N, order)
         if factors == expected_factors:
-            candidate = BaseSelection(a=a, order=order)
+            candidate = BaseSelection(a=a, order=order, used_default_a=False)
             if best_selection is None or (candidate.order, candidate.a) < (best_selection.order, best_selection.a):
                 best_selection = candidate
-    return best_selection
+    if best_selection is not None:
+        return best_selection
+
+    if default_a is None or not 1 < default_a < N:
+        return None
+    return BaseSelection(
+        a=default_a,
+        order=multiplicative_order(default_a, N),
+        used_default_a=True,
+    )
 
 
 def order_finding_semiprimes(
@@ -140,9 +177,11 @@ def order_finding_semiprimes(
     stop: int,
     *,
     candidate_periods: Sequence[int],
-) -> tuple[list[SemiprimeCase], list[int]]:
+    default_a: int | None,
+) -> tuple[list[SemiprimeCase], list[int], list[int]]:
     cases: list[SemiprimeCase] = []
     uncovered_cases: list[int] = []
+    default_a_cases: list[int] = []
     for N in range(start, stop + 1):
         factors = prime_factors_with_multiplicity(N)
         if len(factors) != 2:
@@ -152,23 +191,34 @@ def order_finding_semiprimes(
             N,
             expected_factors,
             candidate_periods=candidate_periods,
+            default_a=default_a,
         )
         if selection is None:
             uncovered_cases.append(N)
             continue
+        if selection.used_default_a:
+            default_a_cases.append(N)
         cases.append(
             SemiprimeCase(
                 N=N,
                 prime_factors=expected_factors,
                 a=selection.a,
                 order=selection.order,
+                used_default_a=selection.used_default_a,
             )
         )
-    return cases, uncovered_cases
+    return cases, uncovered_cases, default_a_cases
 
 
 def max_supported_modulus(nqubit: int) -> int:
     return 1 << nqubit
+
+
+def success_rank(case: SemiprimeCase, ranked_periods: Sequence[int]) -> int | None:
+    for index, period in enumerate(ranked_periods, start=1):
+        if factors_from_order(case.a, case.N, int(period)) == case.prime_factors:
+            return index
+    return None
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -186,10 +236,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_period=resolved_period_max,
         )
     )
-    cases, uncovered_cases = order_finding_semiprimes(
+    cases, uncovered_cases, default_a_cases = order_finding_semiprimes(
         requested_start,
         effective_stop,
         candidate_periods=candidate_periods,
+        default_a=int(args.default_a) if args.default_a is not None else None,
     )
 
     print(
@@ -205,6 +256,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"measurement_count={args.measurement_count} "
         f"top_k={args.top_k} "
         f"seed={args.seed} "
+        f"default_a={args.default_a} "
+        f"variant_tag={args.variant_tag} "
+        f"ph1_objective={args.ph1_objective} "
+        f"exact_support={args.exact_support} "
         f"allow_phase_retraining={args.allow_phase_retraining} "
         f"select_only={args.select_only}"
     )
@@ -217,9 +272,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     print(
         "selection "
-        f"covered_cases={len(cases)} "
+        f"cases={len(cases)} "
+        f"default_a_cases={len(default_a_cases)} "
         f"uncovered_cases={len(uncovered_cases)}"
     )
+    if default_a_cases:
+        print(f"default_a_case_ids={default_a_cases}")
     if uncovered_cases:
         print(f"uncovered_case_ids={uncovered_cases}")
 
@@ -230,6 +288,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 f"N={case.N} "
                 f"expected={case.prime_factors[0]}x{case.prime_factors[1]} "
                 f"a={case.a} "
+                f"used_default_a={case.used_default_a} "
                 f"true_period={case.order}"
             )
         return 0
@@ -253,12 +312,20 @@ def main(argv: Sequence[str] | None = None) -> int:
                 data_dir=Path(args.data_dir),
                 output_dir=Path(args.output_dir),
                 allow_phase_retraining=bool(args.allow_phase_retraining),
+                variant_tag=args.variant_tag,
+                ph1_objective=str(args.ph1_objective),
+                exact_support=bool(args.exact_support),
             )
         )
-        top1_correct = result.top1_period is not None and factors_from_order(case.a, case.N, result.top1_period) == case.prime_factors
+        found_k = success_rank(case, result.top_periods)
+        top1_correct = (
+            result.top1_period is not None
+            and factors_from_order(case.a, case.N, result.top1_period) == case.prime_factors
+        )
+        topk_correct = result.success and result.factors == case.prime_factors
         if top1_correct:
             top1_successes += 1
-        if result.success and result.factors == case.prime_factors:
+        if topk_correct:
             topk_successes += 1
             successful_cases.append(case.N)
         else:
@@ -269,11 +336,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"N={case.N} "
             f"expected={case.prime_factors[0]}x{case.prime_factors[1]} "
             f"a={case.a} "
+            f"used_default_a={case.used_default_a} "
             f"true_period={case.order} "
             f"top1_period={result.top1_period} "
             f"selected_period={result.predicted_period} "
+            f"found_k={found_k} "
             f"top1_success={top1_correct} "
-            f"topk_success={result.success and result.factors == case.prime_factors} "
+            f"topk_success={topk_correct} "
             f"found={result.factors} "
             f"top_periods={list(result.top_periods)}"
         )
@@ -281,6 +350,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(
         "summary "
         f"cases={len(cases)} "
+        f"default_a_cases={len(default_a_cases)} "
         f"top1_successes={top1_successes} "
         f"topk_successes={topk_successes}"
     )

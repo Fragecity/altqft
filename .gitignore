@@ -10,11 +10,9 @@ wheels/
 # Virtual environments
 .venv
 
-# Large files
-data/*
-!data/shared/
-!data/shared/**
-
+# Large experiment artifacts
+data/
+model/
+outputs/
 
 # paper
-

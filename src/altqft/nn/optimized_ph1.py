@@ -18,12 +18,17 @@ class OptimizedPH1Artifact:
     period_range: list[int]
     phases: list[float]
     circuit: QuantumCircuit
+    objective: str
+    exact_support: bool
+    variant_tag: str | None
     model_path: Path
     phase_path: Path
     history_path: Path
     log_path: Path
     reused_existing: bool
     final_min_fi: float | None
+    final_loss: float | None
+    final_mean_shift_l1: float | None
 
 
 def load_phase_payload(phase_path: Path) -> dict[str, Any] | None:
@@ -38,6 +43,10 @@ def phase_artifact_is_current(
     payload: dict[str, Any] | None,
     nqubit: int,
     period_range: list[int],
+    *,
+    objective: str,
+    exact_support: bool,
+    variant_tag: str | None,
 ) -> bool:
     if payload is None:
         return False
@@ -46,7 +55,17 @@ def phase_artifact_is_current(
 
     phases = payload.get("phases")
     stored_range = payload.get("period_range")
-    return isinstance(phases, list) and stored_range == period_range
+    return (
+        isinstance(phases, list)
+        and stored_range == period_range
+        and payload.get("objective", "min_fi") == objective
+        and bool(payload.get("exact_support", False)) == exact_support
+        and payload.get("variant_tag") == variant_tag
+    )
+
+
+def _default_model_stem(objective: str) -> str:
+    return "ph1_min_fi" if objective == "min_fi" else f"ph1_{objective}"
 
 
 def build_fi_train_config(
@@ -60,6 +79,11 @@ def build_fi_train_config(
     model_dir: Path,
     data_dir: Path,
     output_dir: Path,
+    objective: str = "min_fi",
+    exact_support: bool = False,
+    variant_tag: str | None = None,
+    model_stem: str | None = None,
+    train_device: str = "auto",
 ) -> TrainConfig:
     return TrainConfig(
         nqubit=nqubit,
@@ -71,6 +95,11 @@ def build_fi_train_config(
         model_dir=model_dir,
         data_dir=data_dir,
         output_dir=output_dir,
+        objective=objective,
+        exact_support=exact_support,
+        variant_tag=variant_tag,
+        model_stem=model_stem or _default_model_stem(objective),
+        train_device=train_device,
     )
 
 
@@ -80,6 +109,8 @@ def _artifact_from_payload(
     *,
     reused_existing: bool,
     final_min_fi: float | None,
+    final_loss: float | None,
+    final_mean_shift_l1: float | None,
 ) -> OptimizedPH1Artifact:
     phases = payload.get("phases")
     if not isinstance(phases, list) or not all(isinstance(value, (int, float)) for value in phases):
@@ -91,12 +122,17 @@ def _artifact_from_payload(
         period_range=list(config.period_range),
         phases=phase_values,
         circuit=ph_1_parametrized(config.nqubit, phase_values),
+        objective=str(payload.get("objective", config.objective)),
+        exact_support=bool(payload.get("exact_support", config.exact_support)),
+        variant_tag=payload.get("variant_tag"),
         model_path=config.model_path,
         phase_path=config.phase_path,
         history_path=config.history_path,
         log_path=config.log_path,
         reused_existing=reused_existing,
         final_min_fi=final_min_fi,
+        final_loss=final_loss,
+        final_mean_shift_l1=final_mean_shift_l1,
     )
 
 
@@ -113,6 +149,11 @@ def ensure_optimized_ph1(
     output_dir: Path = Path("outputs"),
     force_reoptimize: bool = False,
     require_existing: bool = False,
+    objective: str = "min_fi",
+    exact_support: bool = False,
+    variant_tag: str | None = None,
+    model_stem: str | None = None,
+    train_device: str = "auto",
 ) -> OptimizedPH1Artifact:
     config = build_fi_train_config(
         nqubit,
@@ -124,21 +165,36 @@ def ensure_optimized_ph1(
         model_dir=model_dir,
         data_dir=data_dir,
         output_dir=output_dir,
+        objective=objective,
+        exact_support=exact_support,
+        variant_tag=variant_tag,
+        model_stem=model_stem,
+        train_device=train_device,
     )
     payload = load_phase_payload(config.phase_path)
 
-    if not force_reoptimize and phase_artifact_is_current(payload, config.nqubit, config.period_range):
+    if not force_reoptimize and phase_artifact_is_current(
+        payload,
+        config.nqubit,
+        config.period_range,
+        objective=config.objective,
+        exact_support=config.exact_support,
+        variant_tag=config.variant_tag,
+    ):
         assert payload is not None
         return _artifact_from_payload(
             config,
             payload,
             reused_existing=True,
             final_min_fi=None,
+            final_loss=None,
+            final_mean_shift_l1=None,
         )
 
     if require_existing:
         raise FileNotFoundError(
             f"no existing optimized PH1 artifact for nqubit={config.nqubit} period_range={config.period_range} "
+            f"objective={config.objective} exact_support={config.exact_support} variant_tag={config.variant_tag} "
             f"at {config.phase_path}"
         )
 
@@ -152,4 +208,6 @@ def ensure_optimized_ph1(
         refreshed_payload,
         reused_existing=False,
         final_min_fi=train_artifacts.final_min_fi,
+        final_loss=train_artifacts.final_loss,
+        final_mean_shift_l1=train_artifacts.final_mean_shift_l1,
     )

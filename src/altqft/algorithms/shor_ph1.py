@@ -29,6 +29,9 @@ class PH1ShorConfig:
     output_dir: Path = Path("outputs")
     prefer_smoke_artifacts: bool = False
     allow_phase_retraining: bool = True
+    variant_tag: str | None = None
+    ph1_objective: str = "min_fi"
+    exact_support: bool = False
 
     def __post_init__(self) -> None:
         if self.N < 3:
@@ -77,7 +80,10 @@ def _artifact_root(model_dir: Path, prefer_smoke_artifacts: bool) -> Path:
 
 def _period_recovery_run_name(config: PH1ShorConfig) -> str:
     suffix = period_range_artifact_suffix(config.nqubit, config.candidate_periods)
-    return f"period_recovery_{config.nqubit}q{suffix}"
+    base_name = f"period_recovery_{config.nqubit}q{suffix}"
+    if config.variant_tag:
+        return f"{base_name}_{config.variant_tag}"
+    return base_name
 
 
 def _period_model_path(config: PH1ShorConfig) -> Path:
@@ -215,6 +221,9 @@ def run_shor_with_ph1(config: PH1ShorConfig) -> PH1ShorResult:
         output_dir=config.output_dir,
         force_reoptimize=False,
         require_existing=not config.allow_phase_retraining,
+        objective=config.ph1_objective,
+        exact_support=config.exact_support,
+        variant_tag=config.variant_tag,
     )
     model, candidate_periods, checkpoint_path = _load_period_recovery_model(config)
     if candidate_periods != expected_candidate_periods:

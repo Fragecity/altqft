@@ -9,26 +9,63 @@ from torch import Tensor, nn
 
 from altqft.circuits.layouts import count_required_phases, final_layer, iter_active_layers
 from altqft.circuits.ph_generators import ph_1_hlayout, ph_1_parametrized
+from altqft.nn.process_qc import (
+    _torch_exact_support_indices,
+    _torch_probability_vector_from_support,
+    _torch_surrogate_support_indices,
+)
 from altqft.nn.unitary_rows import (
     apply_controlled_phase_rows,
     apply_hadamard_rows,
 )
 
 FI_EPSILON = 1e-12
+OBJECTIVES = {"min_fi", "shift_ce_mean"}
 
 
-def _probability_distribution(unitary: Tensor, period: int, shift: int = 0) -> Tensor:
+def _probability_distribution(
+    unitary: Tensor,
+    period: int,
+    shift: int = 0,
+    *,
+    exact_support: bool = False,
+) -> Tensor:
     dimension = unitary.shape[0]
-    support_count = dimension // period
-    support_indices = shift + torch.arange(support_count, device=unitary.device) * period
-    selected_columns = unitary.index_select(1, support_indices)
-    amplitudes = selected_columns.sum(dim=1)
-    return amplitudes.abs().pow(2) / float(support_count)
+    support_indices = (
+        _torch_exact_support_indices(
+            dimension,
+            period,
+            shift,
+            device=unitary.device,
+        )
+        if exact_support
+        else _torch_surrogate_support_indices(
+            dimension,
+            period,
+            shift,
+            device=unitary.device,
+        )
+    )
+    return _torch_probability_vector_from_support(unitary, support_indices)
 
 
 def fisher_information(prob1: Tensor, prob2: Tensor, eps: float = FI_EPSILON) -> Tensor:
     denominator = prob1.clamp_min(eps)
     return ((prob1 - prob2).pow(2) / denominator).sum()
+
+
+def shift_ce_mean_loss_from_distributions(
+    shift_distributions: Tensor,
+    *,
+    eps: float = FI_EPSILON,
+) -> tuple[Tensor, Tensor]:
+    if shift_distributions.ndim != 2:
+        raise ValueError("shift_distributions must have shape (num_shifts, state_space)")
+    mean_distribution = shift_distributions.mean(dim=0)
+    log_mean_distribution = mean_distribution.clamp_min(eps).log()
+    shift_ce = -(shift_distributions * log_mean_distribution.unsqueeze(0)).sum(dim=1)
+    shift_l1 = (shift_distributions - mean_distribution.unsqueeze(0)).abs().sum(dim=1)
+    return shift_ce.mean(), shift_l1.mean()
 
 
 def _initial_phase_tensor(
@@ -96,7 +133,22 @@ class PH1MinFIModel(nn.Module):
             unitary = apply_hadamard_rows(unitary, qubit)
         return unitary
 
-    def min_fi(self, period_range: Iterable[int]) -> Tensor:
+    def probability_distribution(
+        self,
+        unitary: Tensor,
+        period: int,
+        shift: int = 0,
+        *,
+        exact_support: bool = False,
+    ) -> Tensor:
+        return _probability_distribution(
+            unitary,
+            period,
+            shift,
+            exact_support=exact_support,
+        )
+
+    def min_fi(self, period_range: Iterable[int], *, exact_support: bool = False) -> Tensor:
         periods = list(period_range)
         if not periods:
             raise ValueError("period_range must not be empty")
@@ -104,12 +156,55 @@ class PH1MinFIModel(nn.Module):
         unitary = self.build_unitary()
         fi_values = [
             fisher_information(
-                _probability_distribution(unitary, period),
-                _probability_distribution(unitary, period + 1),
+                self.probability_distribution(
+                    unitary,
+                    period,
+                    exact_support=exact_support,
+                ),
+                self.probability_distribution(
+                    unitary,
+                    period + 1,
+                    exact_support=exact_support,
+                ),
             )
             for period in periods
         ]
         return torch.stack(fi_values).amin()
+
+    def shift_ce_mean_loss(
+        self,
+        period_range: Iterable[int],
+        *,
+        exact_support: bool = False,
+        eps: float = FI_EPSILON,
+    ) -> tuple[Tensor, Tensor]:
+        periods = list(period_range)
+        if not periods:
+            raise ValueError("period_range must not be empty")
+
+        unitary = self.build_unitary()
+        period_losses: list[Tensor] = []
+        period_shift_l1s: list[Tensor] = []
+        for period in periods:
+            shift_distributions = torch.stack(
+                [
+                    self.probability_distribution(
+                        unitary,
+                        period,
+                        shift,
+                        exact_support=exact_support,
+                    )
+                    for shift in range(period)
+                ]
+            )
+            period_loss, period_shift_l1 = shift_ce_mean_loss_from_distributions(
+                shift_distributions,
+                eps=eps,
+            )
+            period_losses.append(period_loss)
+            period_shift_l1s.append(period_shift_l1)
+
+        return torch.stack(period_losses).mean(), torch.stack(period_shift_l1s).mean()
 
     def forward(self, period_range: Iterable[int]) -> Tensor:
         return self.min_fi(period_range)
