@@ -6,7 +6,7 @@ from collections.abc import Sequence
 def default_period_upper_bound(nqubit: int) -> int:
     if nqubit < 2:
         raise ValueError("nqubit must be at least 2")
-    return min(2**nqubit, max(nqubit**2, int(2 ** (nqubit / 4))))
+    return int(min(2**nqubit, max(nqubit**2, int(2 ** (nqubit / 4)))))
 
 
 def build_period_range(
