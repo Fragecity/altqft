@@ -1,14 +1,17 @@
 \documentclass[reprint, aps, prl, superscriptaddress]{revtex4-2}
-
 \usepackage{graphicx, float}
 \graphicspath{{../../figs/}}
 \usepackage{physics}
 \usepackage{hyperref}
 \usepackage{amsthm, amssymb}
+
+\let\originalsection\section
+
+\renewcommand{\section}[1]{\par\medskip\noindent\textit{#1.} ---}
 \newcommand{\ii}{\mathrm{i}}
 \newcommand{\myqc}{ PH }
 
-
+\newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 
 \newtheorem{lemma}[theorem]{Lemma}
@@ -23,96 +26,106 @@
 \date{\today}
 
 \begin{abstract}
-    abc
+The hidden subgroup problem (HSP) yielding exponential quantum speedup over the best known classical algorithms, uses the Quantum Fourier Transform (QFT). Standard HSP algorithms require the full quantum Fourier transform (QFT), whose circuit depth and long-range gates remain challenging for near-term hardware. We propose a departure from conventional QFT approximations: instead of mimicking its gate structure, we identify two functional properties that are exploited by the QFT to enable HSP. Firstly the shift invariance property of the QFT allows for the removal of a random overall shift. Secondly, the information about the hidden subgroup needs to be available in the computational basis and we quantify that via the Fisher information. We construct a family of shallow circuits that preserve shift invariance. Numerical analysis shows these circuits retain Fisher information.  We demonstrate successful reconstruction using a neural network and analyze performance under noise, outlining a potential path to practical HSP implementations.
 \end{abstract}
 
 \maketitle
 
 
-\textit{Introduction.}---
-\begin{figure}
-    \includegraphics[width = 0.35\textwidth]{illus/illus v0.2.0.pdf}
-    \caption{1}
+\section{Introduction}
+The hidden subgroup problem (HSP) serves as a central source of exponential quantum speedups, establishing Fourier-type interference as a foundational primitive in quantum algorithms. Traditionally, standard HSP solvers rely heavily on the quantum Fourier transform (QFT) to extract subgroup information. However, implementing the full QFT necessitates long-range controlled-phase operations and entails a nontrivial circuit depth, both of which present significant challenges for near-term experimental realizations.
+
+To mitigate these hardware demands, most existing approaches aim to reduce the operational cost by constructing approximate-QFT circuits. Nevertheless, this line of work predominantly treats the QFT itself as the ultimate target, limiting its scope primarily to gate-level simplifications. In this work, we adopt a fundamentally different perspective: rather than attempting to approximate the QFT gate by gate, we investigate which intrinsic structural properties of the transformation are genuinely responsible for extracting hidden subgroup information.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\columnwidth]{illus/illus v0.2.0.pdf}
+    \caption{\label{fig:illus} \textbf{Conceptual framework of the shift-invariant \myqc circuit.} (a) Relationship between different families of quantum transformations. The proposed \myqc circuit belongs to the broader class of shift-invariant circuits and serves as a shallow-depth alternative to the standard quantum Fourier transform (QFT). (b) Schematic of the hidden subgroup problem (HSP) solver. Following the oracle $U_f$ evaluation, the traditional QFT block is replaced by our shift-invariant \myqc circuit to extract the subgroup information before measurement.}
 \end{figure}
-
-\begin{itemize}
-    \item We begin with the hidden subgroup problem (HSP) as a central source of exponential quantum speedups and use it to motivate why Fourier-type interference remains a foundational primitive in quantum algorithms.
-    \item Standard HSP solvers rely heavily on the quantum Fourier transform (QFT), but implementing the full QFT still requires long-range controlled-phase operations and nontrivial circuit depth, which remain challenging in near-term experiments.
-    \item Most existing approaches reduce the cost of QFT by constructing approximate-QFT circuits; however, this line of work still treats QFT itself as the target object and focuses mainly on gate-level simplification.
-    \item Our perspective is different: instead of approximating the QFT gate by gate, we ask which structural properties of QFT are actually responsible for extracting hidden subgroup information.
-    \item We focus on two such properties, namely shift invariance and Fisher information. Shift invariance characterizes whether the interference pattern induced by subgroup cosets is preserved in the measurement statistics, while Fisher information quantifies how efficiently the hidden subgroup parameter can be inferred from samples.
-    \item Based on this perspective, we identify a family of circuits that satisfies the shift-invariance requirement and therefore serves as a principled alternative to QFT rather than a purely heuristic approximation.
-    \item We then numerically study how the Fisher information of this circuit family scales with the number of qubits and with circuit depth, which provides evidence about whether the hidden subgroup can still be recovered with feasible classical post-processing.
-    \item Our experiments indicate that the Fisher-information scaling remains acceptable over the parameter regimes we test, suggesting that even relatively shallow circuits may retain enough information for hidden subgroup recovery.
-    \item To make this claim operational, we use a neural network as a classical post-processing module and show that the hidden subgroup can indeed be reconstructed from the corresponding measurement data.
-    \item Finally, we compare the behavior of the proposed circuits in the presence of noise, with the goal of understanding when they may offer a practical advantage over standard QFT-based implementations.
-\end{itemize}
-
-\textit{Shift invariant circuit.}---
-\begin{itemize}
-    \item We first recall the mathematical definition of HSP and the standard quantum routine used to solve it, so that the role played by Fourier-type transformations is stated precisely.
-    \item Within this routine, we explain why shift invariance is the key property that allows different cosets of the hidden subgroup to interfere in a controlled and information-preserving way.
-    \item We then introduce our formal definition of a shift-invariant circuit and discuss how it captures the operational requirement needed by the HSP measurement stage.
-    \item Starting from this definition, we derive necessary conditions that any candidate circuit must satisfy, which narrows the search space for QFT alternatives and clarifies the structure behind successful constructions.
-\end{itemize}
-
-\textit{\myqc circuit.}---
-
-\begin{itemize}
-    \item We identify a concrete circuit family that satisfies the shift-invariance conditions derived above, thereby providing an explicit nontrivial replacement for the usual QFT circuit.
-    \item This family is strictly broader than the set generated by standard QFT constructions, which shows that shift invariance is not unique to QFT and can arise in a larger design space of useful circuits.
-\end{itemize}
-\textit{HSP solver for $\mathbb{Z}_{2^n}$.}---
-\begin{itemize}
-    \item We first study the case of the cyclic group $\mathbb{Z}_{2^n}$, because it is naturally encoded by an $n$-qubit register and therefore provides the cleanest setting for circuit-level analysis.
-    \item In this setting, the subgroup structure is especially transparent, which allows us to isolate the role of the circuit transformation from complications caused by group embedding or discretization.
-    \item We show that for this family of groups, a transversal layer of Hadamard gates already captures the information needed to identify the hidden subgroup in the idealized setting.
-    \item This gives a concrete algorithmic baseline and helps explain why shallow, structured alternatives to QFT may already be sufficient for a meaningful subclass of HSP instances.
-\end{itemize}
-
-
-\textit{Approximate $\mathbb{Z}_{q}$.}---
-\begin{itemize}
-    \item The previous setting is mathematically clean, but it is also algorithmically limited because classical methods are already effective in several such special cases, reducing the practical need for a quantum advantage.
-    \item The more interesting regime is to work over $\mathbb{Z}$ and recover the subgroup $\mathbb{Z}_q$ through a finite-dimensional approximation, which is where the standard QFT demonstrates its real power.
-    \item A key strength of QFT is that it can use a sufficiently large register $\mathbb{Z}_{2^n}$ to approximate the infinite-group problem and still recover $\mathbb{Z}_q$, even when $\mathbb{Z}_q$ is not literally a subgroup of $\mathbb{Z}_{2^n}$.
-    \item We therefore ask whether our shift-invariant circuit family can inherit part of this robustness, and in particular whether some shallow members of the family remain useful in this approximate setting.
-\end{itemize}
-
-\textit{Neural net as post processing.}---
-\begin{figure}
-    \includegraphics[width=0.4\textwidth]{recover/v0.2.pdf}
-    \caption{2}
-\end{figure}
-\begin{itemize}
-    \item We use a neural network as a learnable classical post-processing layer that takes measurement outcomes from the candidate circuit family and predicts the hidden subgroup parameter.
-    \item This experiment is intended to test the practical recoverability of subgroup information, rather than only reporting information-theoretic quantities in the abstract.
-    \item The resulting performance shows that the measurement distributions produced by these circuits still contain usable structure, and that a flexible classical decoder can successfully exploit it.
-\end{itemize}
-
-\textit{Fisher information.}---
-\begin{figure*}
-    \includegraphics[width=0.8\textwidth]{fi_fig/fi_fig.pdf}
-    \caption{2}
+\begin{figure*}[t]
+    \includegraphics[width=0.9\textwidth]{fi_fig/fi_fig.pdf}
+    \caption{Fisher Information scaling for candidate circuits.}
 \end{figure*}
+
+Specifically, we focus on two critical properties: shift invariance and Fisher information. Shift invariance characterizes whether the interference pattern induced by subgroup cosets is effectively preserved in the measurement statistics, while Fisher information provides a quantitative measure of how efficiently the hidden subgroup parameter can be inferred from the resulting samples. Driven by these structural requirements, we identify a distinct family of quantum circuits that strictly satisfies the shift-invariance condition. Consequently, this circuit family serves as a principled alternative to the QFT, moving beyond purely heuristic approximations.
+
+To evaluate the viability of this approach, we numerically investigate how the Fisher information of our proposed circuit family scales with both the number of qubits and the circuit depth. This analysis provides critical evidence regarding whether the hidden subgroup can still be recovered using feasible classical post-processing. Our experiments indicate that the Fisher-information scaling remains acceptable across the tested parameter regimes, suggesting that even relatively shallow circuits can retain sufficient information for hidden subgroup recovery.
+
+To render this claim operational, we employ a neural network as a classical post-processing module, demonstrating that the hidden subgroup can indeed be successfully reconstructed directly from the corresponding measurement data. Finally, we analyze the behavior of the proposed circuits in the presence of noise, aiming to delineate the conditions under which they may offer a practical advantage over standard QFT-based implementations in realistic hardware environments.
+
+\section{Necessary condition for shift invariance}
+To establish a precise foundation for the role of Fourier-type transformations, we first review the mathematical definition of the hidden subgroup problem (HSP) alongside the standard quantum routine employed for its resolution. Within the context of this routine, we elucidate how shift invariance serves as the fundamental physical property enabling the controlled, information-preserving interference of distinct hidden subgroup cosets.
+
+\begin{definition}[Shift invariance]
+    A quantum circuit $U$ is shift-invariant with respect to an abelian group $G$ if for any input state $\ket{\psi}$ and any group element $g \in G$, the output state satisfies $U \ket{\psi} = U \ket{\psi + g}$, where the addition is defined according to the group operation.
+
+\end{definition}
+
+\begin{lemma}
+    A unitary operator $U$ is shift-invariant only if the matrix elements of $U$ satisfy the condition $U_{ij} = 1/\sqrt{ |G| } e^{\ii \theta_{ij}}$, where $\theta$ and group size $|G|$.
+\end{lemma}
+
+the proof of this lemma is provided in the Appendix.
+
+Building upon this conceptual framework, we then introduce a formal definition of a shift-invariant circuit, detailing how this mathematical formulation encapsulates the critical operational requirements of the HSP measurement stage. Based on this definition, we derive the strict necessary conditions that any prospective candidate circuit must fulfill. This derivation systematically narrows the search space for viable alternatives to the quantum Fourier transform (QFT), thereby illuminating the underlying structural properties requisite for successful circuit constructions.
+
+
+
+\textit{\myqc: A shift invariant family of circuits.}---
 \begin{itemize}
-    \item To justify the post-processing approach more systematically, we ask whether the hidden subgroup parameter can be estimated using only a polynomial number of measurement samples.
-    \item Fisher information provides a natural metric for this question because it quantifies the local statistical sensitivity of the measurement distribution to changes in the hidden parameter.
-    \item We therefore compute the Fisher information numerically as a function of circuit depth and system size, and use these trends to assess whether efficient recovery should remain possible.
-    \item The observed scaling offers evidence that the proposed circuit family can preserve enough information for practical inference, even when the circuit is considerably shallower than a full QFT implementation.
+    \item We identify a concrete circuit family that satisfies the shift-invariance conditions derived above, thereby providing an explicit nontrivial replacement for the usual QFT circuit[cite: 29].
+    \item This family is strictly broader than the set generated by standard QFT constructions, which shows that shift invariance is not unique to QFT and can arise in a larger design space of useful circuits[cite: 30].
 \end{itemize}
 
+\textit{\myqc-0 for hidden subgroup on $\mathbb{Z}_{2^n}$.}---
+\begin{itemize}
+    \item We first study the case of the cyclic group $\mathbb{Z}_{2^n}$, because it is naturally encoded by an $n$-qubit register and therefore provides the cleanest setting for circuit-level analysis[cite: 31].
+    \item In this setting, the subgroup structure is especially transparent, which allows us to isolate the role of the circuit transformation from complications caused by group embedding or discretization[cite: 32].
+    \item We show that for this family of groups, a transversal layer of Hadamard gates (which we conceptualize as \myqc-0) already captures the information needed to identify the hidden subgroup in the idealized setting[cite: 33]. This gives a concrete algorithmic baseline and helps explain why shallow, structured alternatives to QFT may already be sufficient for a meaningful subclass of HSP instances[cite: 34].
+    \item However, it is necessary to go beyond \myqc-0. While the $\mathbb{Z}_{2^n}$ setting is mathematically clean, it is algorithmically limited since classical methods are already effective in several such special cases, reducing the practical need for a quantum advantage[cite: 35]. The more critical regime is working over $\mathbb{Z}$ and recovering the subgroup $\mathbb{Z}_q$ through a finite-dimensional approximation, where QFT demonstrates its true robustness by approximating the infinite-group problem[cite: 36, 37]. We must therefore expand our circuit family to ensure it can inherit this robustness[cite: 38].
+\end{itemize}
 
+\textit{Retention of Fisher information on hidden subgroup.}---
 
-\textit{\myqc performance under noise}---
-\begin{figure}
-    \includegraphics[width = 0.5\textwidth]{noise/noise_ov.png}
+\begin{itemize}
+    \item To justify the post-processing approach more systematically, we ask whether the hidden subgroup parameter can be estimated using only a polynomial number of measurement samples[cite: 39].
+    \item Fisher information provides a natural metric for this question because it quantifies the local statistical sensitivity of the measurement distribution to changes in the hidden parameter[cite: 40].
+    \item As a baseline, the Fisher information for the standard QFT serves as the theoretical upper bound for our structural approximations. (Detailed derivations and scaling results for the QFT Fisher information are provided in the Appendix).
+\end{itemize}
+
+\textit{\myqc-1 retains Fisher information with fewer layers than QFT.}---
+\begin{itemize}
+    \item We compute the Fisher information numerically as a function of circuit depth and system size[cite: 41].
+    \item The observed scaling offers strong evidence that the proposed circuit family preserves enough information for practical inference[cite: 42].
+    \item Most notably, \myqc-1 retains a comparable level of Fisher information while remaining considerably shallower than a full QFT implementation, minimizing the depth requirements[cite: 42].
+\end{itemize}
+
+\textit{Simulation of HSP with \myqc-1 and efficient neural net post-processing.}---
+\begin{figure}[h]
+    \includegraphics[width=0.4\textwidth]{recover/v0.2.pdf}
+    \caption{Subgroup recovery using a neural network over measurement outcomes.}
 \end{figure}
 \begin{itemize}
-    \item We evaluate the proposed circuit family under noisy dynamics to determine whether its structural simplifications also translate into improved robustness in realistic hardware settings.
-    \item In particular, we compare its degradation pattern with that of standard QFT-based circuits and analyze whether shallower alternatives can preserve useful subgroup information for longer.
+    \item We use a neural network as a learnable classical post-processing layer that takes measurement outcomes from the \myqc-1 circuit and predicts the hidden subgroup parameter[cite: 43].
+    \item This experiment is intended to test the practical recoverability of subgroup information, rather than only reporting information-theoretic quantities in the abstract[cite: 44].
+    \item The resulting performance shows that the measurement distributions produced by these shallow circuits still contain highly usable structure, and that an efficient classical decoder can successfully exploit it[cite: 45].
 \end{itemize}
 
+\textit{Robustness under noise.}---
+\begin{figure}[h]
+    \includegraphics[width = 0.5\textwidth]{noise/noise_ov.png}
+    \caption{Performance degradation of the \myqc circuit family under noisy dynamics.}
+\end{figure}
+\begin{itemize}
+    \item We evaluate the proposed circuit family under noisy dynamics to determine whether its structural simplifications also translate into improved robustness in realistic hardware settings[cite: 46].
+    \item In particular, we compare its degradation pattern with that of standard QFT-based circuits. The analysis demonstrates that our shallower alternatives preserve useful subgroup information for longer under equivalent noise constraints[cite: 47].
+\end{itemize}
+
+\textit{Summary and outlook.}---
+\begin{itemize}
+    \item In summary, we have established a framework for solving the Hidden Subgroup Problem using shift-invariant circuits that circumvent the depth and gate-connectivity bottlenecks of the traditional QFT.
+    \item The core problem with the current proposal that remains to be addressed is its Generalization Ability. Extending this approach and its corresponding classical post-processing to more complex group structures requires further investigation, which will form the basis of our future work.
+\end{itemize}
 
 
 \input{appendix.tex}
