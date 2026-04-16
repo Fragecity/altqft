@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+import altqft.experiments.period_noise_9q10q as period_noise_module
 from altqft.experiments.period_noise_9q10q import (
     DEFAULT_EXPERIMENT_ROOTS,
     ExperimentRoots,
@@ -66,6 +67,25 @@ def test_run_period_noise_experiment_smoke(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("ALTQFT_TRAIN_DEVICE", "cpu")
+    sample_call_count = 0
+    original_sampler = period_noise_module._sample_bit_matrix_from_distribution
+
+    def counting_sampler(
+        distribution: np.ndarray,
+        sample_count: int,
+        basis_bit_rows: np.ndarray,
+        rng: np.random.Generator,
+    ) -> np.ndarray:
+        nonlocal sample_call_count
+        sample_call_count += 1
+        return original_sampler(distribution, sample_count, basis_bit_rows, rng)
+
+    monkeypatch.setattr(
+        period_noise_module,
+        "_sample_bit_matrix_from_distribution",
+        counting_sampler,
+    )
+
     roots = ExperimentRoots(
         model_dir=tmp_path / "models",
         output_dir=tmp_path / "outputs",
@@ -90,7 +110,7 @@ def test_run_period_noise_experiment_smoke(
         seed=13,
         log_interval=1,
         pool_multiplier=2,
-        held_out_shifts_per_period=1,
+        held_out_shifts_per_period=2,
         val_draws_per_heldout_shift=2,
         train_draws_per_epoch=6,
         cache_device="cpu",
@@ -106,7 +126,7 @@ def test_run_period_noise_experiment_smoke(
         qubit_specs=(spec,),
         roots=roots,
         recipe=recipe,
-        noise_levels=(0.01, 0.001),
+        noise_levels=(1.0, 0.001),
     )
 
     assert summary.json_path.exists()
@@ -117,6 +137,10 @@ def test_run_period_noise_experiment_smoke(
     assert len(summary.results) == 1
     assert summary.results[0].nqubit == 4
     assert len(summary.results[0].points) == 2
+    assert summary.results[0].points[0].total == 8
+    assert summary.results[0].points[1].total == 8
+    assert summary.results[0].points[0].accuracy < 1.0
+    assert sample_call_count == 16
     assert summary.results[0].model_path.parent == roots.model_dir
     assert summary.results[0].manifest_path.parent.parent == roots.dataset_dir
     payload = json.loads(summary.json_path.read_text(encoding="utf-8"))

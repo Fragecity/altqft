@@ -81,8 +81,8 @@ class PeriodNoiseRecipe:
     log_interval: int = 5
     dataset_mode: str = "shift_pool"
     pool_multiplier: int = 10
-    held_out_shifts_per_period: int = 1
-    val_draws_per_heldout_shift: int = 4
+    held_out_shifts_per_period: int = 3
+    val_draws_per_heldout_shift: int = 8
     train_draws_per_epoch: int = 51200
     cache_device: str = "cuda"
 
@@ -141,12 +141,12 @@ class TrainedQubitExperiment:
 
 DEFAULT_EXPERIMENT_ROOTS = ExperimentRoots()
 DEFAULT_PERIOD_NOISE_RECIPE = PeriodNoiseRecipe()
-DEFAULT_NOISE_LEVELS = tuple(float(value) for value in np.geomspace(1e-2, 1e-3, 10))
+DEFAULT_NOISE_LEVELS = tuple(float(value) for value in np.geomspace(1.0, 1e-3, 10))
 
 
 def build_noise_levels(
     *,
-    start: float = 1e-2,
+    start: float = 1.0,
     stop: float = 1e-3,
     count: int = 10,
 ) -> tuple[float, ...]:
@@ -358,37 +358,21 @@ def _load_period_predictor(
     return model, tuple(int(value) for value in candidate_periods)
 
 
-def _val_entry_row_indices(
-    *,
-    manifest_seed: int,
-    period: int,
-    shift: int,
-    draw_index: int,
-    entry_index: int,
-    pool_size: int,
-    measurement_count: int,
-) -> np.ndarray:
-    rng = np.random.default_rng(
-        manifest_seed
-        + period * 100_003
-        + shift * 1_009
-        + draw_index * 17
-        + entry_index
-    )
-    return np.asarray(
-        rng.choice(pool_size, size=measurement_count, replace=False),
-        dtype=np.int64,
-    )
-
-
-def _noise_pool_seed(
+def _noise_draw_seed(
     *,
     seed: int,
     noise_index: int,
     period: int,
     shift: int,
+    draw_index: int,
 ) -> int:
-    return seed + (noise_index + 1) * 1_000_003 + period * 10_007 + shift * 101
+    return (
+        seed
+        + (noise_index + 1) * 1_000_003
+        + period * 10_007
+        + shift * 101
+        + draw_index * 17
+    )
 
 
 def _evaluate_noise_sweep(
@@ -415,7 +399,10 @@ def _evaluate_noise_sweep(
         np.arange(1 << experiment.spec.nqubit, dtype=np.int64),
         experiment.spec.nqubit,
     )
-    total_examples = len(manifest.candidate_periods) * manifest.val_draws_per_heldout_shift
+    total_examples = sum(
+        len(shard.val_shifts) * manifest.val_draws_per_heldout_shift
+        for shard in manifest.shards
+    )
     non_blocking = device.type == "cuda"
     results: list[NoiseSweepPoint] = []
 
@@ -428,7 +415,6 @@ def _evaluate_noise_sweep(
     with torch.inference_mode():
         for noise_index, noise_strength in enumerate(noise_levels):
             correct = 0
-            entry_index = 0
             for shard in manifest.shards:
                 for shift in shard.val_shifts:
                     ideal_distribution = _period_shift_distribution(
@@ -441,21 +427,6 @@ def _evaluate_noise_sweep(
                         ideal_distribution,
                         noise_strength,
                     )
-                    pool_rng = np.random.default_rng(
-                        _noise_pool_seed(
-                            seed=manifest.seed,
-                            noise_index=noise_index,
-                            period=shard.period,
-                            shift=shift,
-                        )
-                    )
-                    bit_pool = _sample_bit_matrix_from_distribution(
-                        noisy_distribution,
-                        manifest.pool_size,
-                        basis_bit_rows,
-                        pool_rng,
-                    )
-
                     batch_matrices = np.empty(
                         (
                             manifest.val_draws_per_heldout_shift,
@@ -470,17 +441,21 @@ def _evaluate_noise_sweep(
                         dtype=np.int64,
                     )
                     for draw_index in range(manifest.val_draws_per_heldout_shift):
-                        row_indices = _val_entry_row_indices(
-                            manifest_seed=manifest.seed,
-                            period=shard.period,
-                            shift=shift,
-                            draw_index=draw_index,
-                            entry_index=entry_index,
-                            pool_size=manifest.pool_size,
-                            measurement_count=manifest.measurement_count,
+                        draw_rng = np.random.default_rng(
+                            _noise_draw_seed(
+                                seed=manifest.seed,
+                                noise_index=noise_index,
+                                period=shard.period,
+                                shift=shift,
+                                draw_index=draw_index,
+                            )
                         )
-                        batch_matrices[draw_index] = bit_pool[row_indices]
-                        entry_index += 1
+                        batch_matrices[draw_index] = _sample_bit_matrix_from_distribution(
+                            noisy_distribution,
+                            manifest.measurement_count,
+                            basis_bit_rows,
+                            draw_rng,
+                        )
 
                     batch = torch.from_numpy(batch_matrices).to(
                         device=device,
