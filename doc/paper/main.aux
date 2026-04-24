@@ -2,35 +2,72 @@
 \providecommand\hyper@newdestlabel[2]{}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{Shor1994,Shor1999}
+\citation{Simon1997}
+\citation{Kitaev1995,Jozsa2001,Lomont2004}
+\citation{kim2023evidence}
+\citation{google2025quantum}
+\citation{nam2020approximate}
+\citation{park2023reducing}
+\citation{baumer2024quantum}
+\citation{tang2021cutqc,bravyi2016trading}
+\citation{aumann2026demonstrating}
 \newlabel{FirstPage}{{}{1}{}{section*.1}{}}
-\@writefile{toc}{\contentsline {title}{Alternative QFT}{1}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {title}{An alternative to the Quantum Fourier Transform }{1}{section*.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {abstract}{Abstract}{1}{section*.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  \textbf  {Conceptual framework of the shift-invariant \text  {HP}circuit.} (a) Relationship between different families of quantum transformations. The proposed \text  {HP}circuit belongs to the broader class of shift-invariant circuits and serves as a shallow-depth alternative to the standard quantum Fourier transform (QFT). (b) Schematic of the hidden subgroup problem (HSP) solver. Following the oracle $U_f$ evaluation, the traditional QFT block is replaced by our shift-invariant \text  {HP}circuit to extract the subgroup information before measurement.}}{1}{figure.1}\protected@file@percent }
-\newlabel{fig:illus}{{1}{1}{\textbf {Conceptual framework of the shift-invariant \myqc circuit.} (a) Relationship between different families of quantum transformations. The proposed \myqc circuit belongs to the broader class of shift-invariant circuits and serves as a shallow-depth alternative to the standard quantum Fourier transform (QFT). (b) Schematic of the hidden subgroup problem (HSP) solver. Following the oracle $U_f$ evaluation, the traditional QFT block is replaced by our shift-invariant \myqc circuit to extract the subgroup information before measurement}{figure.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Fisher Information scaling for candidate circuits.}}{2}{figure.2}\protected@file@percent }
-\newlabel{lemma: 1}{{1}{2}{}{theorem.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Subgroup recovery using a neural network over measurement outcomes.}}{4}{figure.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  \textbf  {Shallow shift-invariant alternative to the QFT.} (a) Shift invariance is a critical property of the QFT. We identify a circuit family, denoted as \text  {HP}-k, that inherently preserves the property. Within this broader family, \text  {HP}-1 specifically serves as shallow-depth gates that are friendly to experiment. (b) In the proposed HSP algorithmic routine, the deep QFT block (the left gray gate) is directly replaced by the \text  {HP}circuit to extract subgroup information prior to measurement. A neural network then decodes the measurement outcomes, bypassing the standard continued fraction expansion (the right gray gate) typically used in classical post-processing.}}{1}{figure.1}\protected@file@percent }
+\newlabel{fig:illus}{{1}{1}{\textbf {Shallow shift-invariant alternative to the QFT.} (a) Shift invariance is a critical property of the QFT. We identify a circuit family, denoted as \myqc -k, that inherently preserves the property. Within this broader family, \myqc -1 specifically serves as shallow-depth gates that are friendly to experiment. (b) In the proposed HSP algorithmic routine, the deep QFT block (the left gray gate) is directly replaced by the \myqc circuit to extract subgroup information prior to measurement. A neural network then decodes the measurement outcomes, bypassing the standard continued fraction expansion (the right gray gate) typically used in classical post-processing}{figure.1}{}}
+\citation{carolan2015universal}
+\citation{saffman2010quantum,evered2023high,graham2022multi,mohan2025parametrized}
+\citation{shapira2023fast,srinivas2021high}
+\citation{vandersypen2004nmr,o2022quantum}
+\citation{Shor1994,Shor1999,Simon1997}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Numerical Fisher-information benchmarks for the candidate circuit families. (a) Minimum discrete Fisher information as a function of the number of qubits for the QFT reference and the HP-family circuits. The HP-family curves remain below the QFT benchmark, but all increase with system size. (b) Fisher-information distributions as a function of the number of layers, showing how additional layers increase the retained information. Appendix~\ref {app:fi_log_linear_growth} shows that, over the sampled qubit window, both the QFT reference and the HP-family curves are well described by the same log-linear model $\ln I_{\min }(n)=kn+b$, corresponding to exponential growth in $n$, with smaller effective exponents for the HP-family circuits.}}{2}{figure.2}\protected@file@percent }
+\newlabel{fig:fi_scaling}{{2}{2}{Numerical Fisher-information benchmarks for the candidate circuit families. (a) Minimum discrete Fisher information as a function of the number of qubits for the QFT reference and the HP-family circuits. The HP-family curves remain below the QFT benchmark, but all increase with system size. (b) Fisher-information distributions as a function of the number of layers, showing how additional layers increase the retained information. Appendix~\ref {app:fi_log_linear_growth} shows that, over the sampled qubit window, both the QFT reference and the HP-family curves are well described by the same log-linear model $\ln I_{\min }(n)=kn+b$, corresponding to exponential growth in $n$, with smaller effective exponents for the HP-family circuits}{figure.2}{}}
+\newlabel{thm:necessary_modulus_condition}{{1}{3}{Necessary condition of shift invariance}{theorem.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  Classical post-processing pipeline for subgroup recovery from \text  {HP}-1 measurement data. The measured bit strings produced after the shallow quantum circuit are passed through a shared feature map and then ranked by a beam-search decoder to infer the candidate period. The figure illustrates that the measurement outcomes still retain period-dependent structure after the HP transformation, which can be extracted by an efficient neural post-processing stage rather than by an explicit QFT inversion.}}{4}{figure.3}\protected@file@percent }
+\newlabel{fig:recovery_pipeline}{{3}{4}{Classical post-processing pipeline for subgroup recovery from \myqc -1 measurement data. The measured bit strings produced after the shallow quantum circuit are passed through a shared feature map and then ranked by a beam-search decoder to infer the candidate period. The figure illustrates that the measurement outcomes still retain period-dependent structure after the HP transformation, which can be extracted by an efficient neural post-processing stage rather than by an explicit QFT inversion}{figure.3}{}}
+\bibdata{mainNotes,ref.bib}
+\bibcite{Kitaev1995}{{1}{1995}{{Kitaev}}{{}}}
+\bibcite{Jozsa2001}{{2}{2001}{{Jozsa}}{{}}}
+\bibcite{Lomont2004}{{3}{2004}{{Lomont}}{{}}}
+\bibcite{NielsenChuang2000}{{4}{2000}{{Nielsen\ and\ Chuang}}{{}}}
+\bibcite{EttingerHoyerKnill2004}{{5}{2004}{{Ettinger\ \emph  {et~al.}}}{{Ettinger, H{\o }yer,\ and\ Knill}}}
+\citation{Kitaev1995,Jozsa2001,Lomont2004}
+\citation{Kitaev1995,NielsenChuang2000}
+\@writefile{toc}{\contentsline {section}{\numberline {}References}{5}{section*.3}\protected@file@percent }
+\newlabel{LastBibItem}{{5}{5}{}{section*.3}{}}
 \@writefile{toc}{\appendix }
-\@writefile{toc}{\contentsline {section}{\numberline {}Appendix}{4}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A}Hidden Subgroup Problem and Fourier Sampling}{4}{section*.4}\protected@file@percent }
-\newlabel{app:hsp and fourier sampling}{{A}{4}{}{section*.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Necessary condition of shift invariance}{4}{section*.5}\protected@file@percent }
-\newlabel{app:necessary condition of sinv}{{B}{4}{}{section*.5}{}}
-\newlabel{eq:prob_shift_invariance}{{B3}{5}{}{equation.B.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {C}Transversal Hadamard sampling and efficiency guarantee}{5}{section*.6}\protected@file@percent }
-\newlabel{app:transversal_hadamard_sampling}{{C}{5}{}{section*.6}{}}
-\newlabel{app:efficiency_guarantee}{{C}{5}{}{section*.6}{}}
-\newlabel{eq:coset_state_z2n}{{C4}{5}{}{equation.C.4}{}}
-\newlabel{eq:hadamard_coset_z2n}{{C7}{6}{}{equation.C.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {D}QFT Fisher information for subgroup-generator estimation}{6}{section*.7}\protected@file@percent }
-\newlabel{app:qft_fisher_information}{{D}{6}{}{section*.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {E}Noise-robustness experiment details}{7}{section*.8}\protected@file@percent }
-\newlabel{app:noise_robustness_details}{{E}{7}{}{section*.8}{}}
-\bibdata{mainNotes}
+\@writefile{toc}{\contentsline {section}{\numberline {}Appendix}{5}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Hidden Subgroup Problem and Fourier Sampling}{5}{section*.5}\protected@file@percent }
+\newlabel{append: hsp and fs}{{A}{5}{}{section*.5}{}}
+\citation{Kitaev1995,Jozsa2001}
+\citation{Kitaev1995,EttingerHoyerKnill2004,Lomont2004}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Necessary condition of shift invariance}{8}{section*.6}\protected@file@percent }
+\newlabel{app:necessary condition of sinv}{{B}{8}{}{section*.6}{}}
+\newlabel{eq:prob_shift_invariance}{{B3}{8}{}{equation.B.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Transversal Hadamard sampling and efficiency guarantee}{9}{section*.7}\protected@file@percent }
+\newlabel{app:transversal_hadamard_sampling}{{C}{9}{}{section*.7}{}}
+\newlabel{app:efficiency_guarantee}{{C}{9}{}{section*.7}{}}
+\newlabel{eq:coset_state_z2n}{{C4}{9}{}{equation.C.4}{}}
+\newlabel{eq:hadamard_coset_z2n}{{C7}{9}{}{equation.C.7}{}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces Transversal Hadamard Sampling for $H_p\le \mathbb  {Z}_{2^n}$}}{10}{algocf.1}\protected@file@percent }
+\newlabel{alg:transversal_hadamard_sampling}{{1}{10}{}{algocf.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}QFT Fisher information for subgroup-generator estimation}{10}{section*.8}\protected@file@percent }
+\newlabel{app:qft_fisher_information}{{D}{10}{}{section*.8}{}}
+\newlabel{thm:qft_fisher_information}{{3}{11}{QFT Fisher-information benchmark}{theorem.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {E}Log-linear growth fit for the numerical Fisher-information scan}{13}{section*.9}\protected@file@percent }
+\newlabel{app:fi_log_linear_growth}{{E}{13}{}{section*.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces  Effective exponents obtained from the log-linear model $\ln I_{\min }(n)=kn+b$ applied to the numerical Fisher-information curves in Fig.~\ref {fig:fi_scaling}(b).}}{13}{table.1}\protected@file@percent }
+\newlabel{tab:fi_log_regression_results}{{I}{13}{Effective exponents obtained from the log-linear model $\ln I_{\min }(n)=kn+b$ applied to the numerical Fisher-information curves in Fig.~\ref {fig:fi_scaling}(b)}{table.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Log-linear fits of the qubit-scaling curves in Fig.~\ref {fig:fi_scaling}(b). Markers denote the mean Fisher-information values plotted in Fig.~\ref {fig:fi_scaling}(b), after applying the transformation $I_{\min }\DOTSB \mapstochar \rightarrow \ln I_{\min }$, and solid lines denote the corresponding least-squares fits $\ln I_{\min }(n)=kn+b$.}}{14}{figure.4}\protected@file@percent }
+\newlabel{fig:fi_log_regression}{{4}{14}{Log-linear fits of the qubit-scaling curves in Fig.~\ref {fig:fi_scaling}(b). Markers denote the mean Fisher-information values plotted in Fig.~\ref {fig:fi_scaling}(b), after applying the transformation $I_{\min }\mapsto \ln I_{\min }$, and solid lines denote the corresponding least-squares fits $\ln I_{\min }(n)=kn+b$}{figure.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F}Noise-robustness experiment details}{14}{section*.10}\protected@file@percent }
+\newlabel{app:noise_robustness_details}{{F}{14}{}{section*.10}{}}
 \bibstyle{apsrev4-2}
 \citation{REVTEX42Control}
 \citation{apsrev42Control}
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Held-out period-recovery accuracy under post-\text  {HP}-1 global depolarizing noise.}}{8}{table.1}\protected@file@percent }
-\newlabel{tab:noise_robustness_results}{{I}{8}{Held-out period-recovery accuracy under post-\myqc -1 global depolarizing noise}{table.1}{}}
-\newlabel{LastPage}{{}{8}{}{}{}}
-\gdef \@abspage@last{8}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Held-out period-recovery accuracy under post-\text  {HP}-1 global depolarizing noise.}}{15}{table.2}\protected@file@percent }
+\newlabel{tab:noise_robustness_results}{{II}{15}{Held-out period-recovery accuracy under post-\myqc -1 global depolarizing noise}{table.2}{}}
+\newlabel{LastPage}{{}{15}{}{}{}}
+\gdef \@abspage@last{15}

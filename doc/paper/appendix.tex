@@ -10,32 +10,145 @@
 \makeatother
 
 \section{Hidden Subgroup Problem and Fourier Sampling}
-\label{app:hsp and fourier sampling}
-Many significant quantum algorithms, including Shor's algorithm, are special instances of the HSP.
+\label{append: hsp and fs}
+In this section, we outline the standard method for solving the Hidden Subgroup Problem (HSP) over finite abelian groups \cite{Kitaev1995,Jozsa2001,Lomont2004}. Formally, the HSP is defined as follows:
 
 \begin{definition}[Hidden Subgroup Problem]
-Let $G$ be a group and $H \le G$ be an unknown subgroup. We are given oracle access to a function $f: G \to X$. The function $f$ has the property that for any $g_1, g_2 \in G$:
-\begin{equation}
-    f(g_1) = f(g_2) \iff g_1g_2^{-1} \in H
-\end{equation}
-In other words, $f$ is constant on the right cosets of $H$ and distinct on different cosets. The goal is to find a hidden subgroup $H$.
+    Given a function $f: G \to X$ defined on a group $G$, with the promise that there exists a hidden subgroup $H \leq G$ such that for all $g_1, g_2 \in G$
+    \begin{equation}
+        f(g_1) = f(g_2) \Longleftrightarrow g_1 - g_2 \in H
+    \end{equation}
+    The objective of this task is to identify the hidden subgroup $H$.
 \end{definition}
 
-For the HSP of finite abelian group $G$, like Shor algorithm, there is a standard algorithm that solves the problem efficiently.
-For simplicity and convenience, we will assume that the group $G$ we discussed in this section is finite and abelian.
-
-Group theory reveals that all finite abelian groups are isomorphic to a direct product of cyclic groups,
+In the context of this paper, we restrict our attention to finite abelian groups. For such groups, the fundamental theorem of finite abelian groups allows us to express the group structure as a direct product of cyclic groups:
 \begin{equation}
-	G = \mathbb{Z}_{n_1} \times \mathbb{Z}_{n_2} \times \cdots \times \mathbb{Z}_{n_k}
+    G \cong \mathbb{Z}_{p_1} \times \mathbb{Z}_{p_2} \times \cdots \times \mathbb{Z}_{p_k}.
 \end{equation}
+
+The standard quantum procedure for solving the hidden subgroup problem begins by preparing a uniform superposition over all elements of the group $G$ \cite{Kitaev1995,NielsenChuang2000}. We initialize the system in the state
+\begin{equation}
+    \ket{\psi} = \frac{1}{\sqrt{|G|}} \sum_{g \in G} \ket{g} \ket{0},
+\end{equation}
+where $|G|$ is the element num of the group $G$. The first register holds the group elements and the second register is initialized to a standard basis state. Next, we evaluate the quantum oracle corresponding to the function $f$, which acts on the two registers and entangles the group elements with their corresponding function values
+\begin{equation}
+    \ket{\psi} = \frac{1}{\sqrt{|G|}} \sum_{g \in G} \ket{g} \ket{f(g)}.
+\end{equation}
+
+Since the function $f$ is constant on the cosets of the hidden subgroup $H$ and distinct on different cosets, it is highly advantageous to group the terms in the superposition according to these cosets.
+
+Before proceeding, it is useful to formalize the state notation for a subset. For any subset $S \subseteq G$, we define its corresponding normalized quantum state $\ket{S}$ as the uniform superposition over all elements within the set:
+\begin{equation}
+    \ket{S} = \frac{1}{\sqrt{|S|}} \sum_{s \in S} \ket{s}.
+\end{equation}
+Using this definition, the normalized state for a specific coset $c+H$ is directly given by
+\begin{equation}
+    \ket{c+H} = \frac{1}{\sqrt{|H|}} \sum_{h \in H} \ket{c+h}.
+\end{equation}
+
+By applying this coset state definition, the post-oracle state can be elegantly rewritten as a superposition of these orthogonal coset states, each perfectly entangled with its unique function evaluation:
+\begin{equation}
+    \ket{\psi} = \sqrt{\frac{|H|}{|G|}} \sum_{c\in C} \ket{c+H} \ket{f(c)},
+\end{equation}
+where $C$ is the set of all possible coset representatives. For simplicity, we assume that the second register is measured immediately after the oracle query. Measuring the second register yields a specific outcome $f(c)$ with a uniform probability of $|H|/|G|$. Consequently, the first register collapses into the corresponding pure coset state:
+\begin{equation}
+    \ket{\psi_{\text{post}}} = \ket{c+H}.
+\end{equation}
+From this point forward, our analysis will focus exclusively on the quantum state of this first register.
+
+These two descriptions are different at the state level, but they induce the same Fourier-basis statistics because every coset state has the same measurement distribution after the quantum Fourier transform.
+
+A direct measurement in the computational basis is uninformative. Indeed, using the definition of the coset state,
+\begin{equation}
+    \langle g|c+H\rangle
+    = \frac{1}{\sqrt{|H|}} \sum_{h \in H} \langle g|c+h\rangle
+    = \frac{1}{\sqrt{|H|}} \sum_{h \in H} \delta_{g,c+h}.
+\end{equation}
+For fixed $c$, the map $h \mapsto c+h$ is a bijection from $H$ to the coset $c+H$. Therefore the sum $\sum_{h \in H} \delta_{g,c+h}$ equals $1$ when $g \in c+H$ and equals $0$ when $g \notin c+H$. Hence
+\begin{equation}
+    \Pr[g\,|\,c,H] = |\langle g|c+H\rangle|^2 =
+    \begin{cases}
+        1/|H|,& g\in c+H,\\
+        0,& g\notin c+H,
+    \end{cases}
+\end{equation}
+so the observed element is uniform on the unknown coset. Averaging over uniformly random cosets gives the marginal distribution
+\begin{equation}
+    \Pr[g]=\frac{1}{|G|},
+\end{equation}
+which contains no direct information about the hidden subgroup $H$.
+
+To extract meaningful information, we must apply the quantum Fourier transform (QFT) over the group $G$ before measuring \cite{Kitaev1995,Jozsa2001}. Let $\chi_y(g)$ denote the group characters. The QFT maps a computational basis state $\ket{g}$ as follows:
+\begin{equation}
+    \text{QFT} \ket{g} = \frac{1}{\sqrt{|G|}} \sum_{y \in G} \chi_y(g) \ket{y}.
+\end{equation}
+Applying this transformation to our pure coset state $\ket{c+H}$ yields:
+\begin{align}
+    \text{QFT} \ket{c+H} &= \frac{1}{\sqrt{|H|}} \sum_{h \in H} \text{QFT} \ket{c+h} \nonumber \\
+    &= \frac{1}{\sqrt{|H||G|}} \sum_{h \in H} \sum_{y \in G} \chi_y(c+h) \ket{y} \nonumber \\
+    &= \frac{1}{\sqrt{|H||G|}} \sum_{y \in G} \chi_y(c) \left( \sum_{h \in H} \chi_y(h) \right) \ket{y}.
+\end{align}
+By the orthogonality of group characters, the sum $\sum_{h \in H} \chi_y(h)$ evaluates to $|H|$ if the character $\chi_y$ is trivial on $H$ (i.e., $y$ belongs to the orthogonal subgroup $H^\perp$), and evaluates to $0$ otherwise. Thus, the state simplifies to a superposition over $H^\perp$:
+\begin{equation}
+    \text{QFT} \ket{c+H} = \sqrt{\frac{|H|}{|G|}} \sum_{y \in H^\perp} \chi_y(c) \ket{y}.
+\end{equation}
+Measuring this state in the computational basis gives the probability of observing an outcome $y \in H^\perp$:
+\begin{equation}
+    \Pr[y] = \left| \sqrt{\frac{|H|}{|G|}} \chi_y(c) \right|^2 = \frac{|H|}{|G|} |\chi_y(c)|^2 = \frac{|H|}{|G|}.
+\end{equation}
+Crucially, because $|\chi_y(c)|^2 = 1$ for all group characters, the resulting measurement distribution is uniformly distributed over $H^\perp$ and is strictly independent of the random coset representative $c$. This shift invariance is the fundamental property that allows the extraction of subgroup information by effectively removing the unknown shift at the probability level.
+
+The quantum Fourier transform over $G$ is defined using the character group $\hat{G}$ by
+\begin{equation}
+F_G|g\rangle = \frac{1}{\sqrt{|G|}} \sum_{\chi\in\hat{G}} \chi(g)\,|\chi\rangle,
+\end{equation}
+where $\{|\chi\rangle:\chi\in\hat{G}\}$ is the Fourier basis and each character $\chi:G\to \mathbb{C}^\times$ is a group homomorphism. Here $\mathbb{C}^\times=\mathbb{C}\setminus\{0\}$ denotes the multiplicative group of nonzero complex numbers, so with additive notation on $G$ one has $\chi(g_1+g_2)=\chi(g_1)\chi(g_2)$. For finite abelian $G$, every character has unit modulus. Applying $F_G$ to a coset state gives
+\begin{align}
+F_G|c+H\rangle
+&= \frac{1}{\sqrt{|H|}} \sum_{h\in H} F_G|c+h\rangle \nonumber\\
+&= \frac{1}{\sqrt{|H||G|}} \sum_{\chi\in\hat{G}} \sum_{h\in H} \chi(c+h)\,|\chi\rangle \nonumber\\
+&= \frac{1}{\sqrt{|H||G|}} \sum_{\chi\in\hat{G}} \chi(c)\left(\sum_{h\in H}\chi(h)\right)|\chi\rangle.
+\end{align}
+The character sum over $H$ satisfies
+\begin{equation}
+\sum_{h\in H}\chi(h)=
+\begin{cases}
+|H|,& \chi\in H^\perp,\\
+0,& \chi\notin H^\perp,
+\end{cases}
+\qquad
+H^\perp=\{\chi\in\hat{G}:\chi(h)=1\ \text{for all }h\in H\}.
+\end{equation}
+Hence
+\begin{equation}
+F_G|c+H\rangle
+=
+\sqrt{\frac{|H|}{|G|}}
+\sum_{\chi\in H^\perp} \chi(c)\,|\chi\rangle.
+\end{equation}
+The Fourier-basis measurement distribution is therefore
+\begin{equation}
+p(\chi\,|\,c,H)=
+\begin{cases}
+|H|/|G|,& \chi\in H^\perp,\\
+0,& \chi\notin H^\perp,
+\end{cases}
+\end{equation}
+which is independent of the coset representative $c$. The same formula holds for the mixed state $\rho_H$, since it is a convex combination of pure coset states with identical Fourier statistics.
+
+Repeating the procedure therefore produces samples from $H^\perp$. In the finite abelian setting, classical post-processing reconstructs $H^\perp$ from the sample span and then recovers the hidden subgroup using the duality identity \cite{Kitaev1995,EttingerHoyerKnill2004,Lomont2004}
+\begin{equation}
+(H^\perp)^\perp = H.
+\end{equation}
+Fourier sampling thus converts hidden translational structure in the oracle into explicit linear constraints in the dual group.
 
 \section{Necessary condition of shift invariance}
 \label{app:necessary condition of sinv}
 Here we make explicit the probability-level shift-invariance condition used in Fourier sampling.
 Let $G$ be a finite abelian group with $N=|G|$, and let $\{\ket{g}:g\in G\}$ denote the computational basis.
-For $c\in G$, define the shift operator
+For $g\in G$, define the shift operator
 \begin{equation}
-    T_c\ket{g}=\ket{g+c}.
+    T_g\ket{h}=\ket{h+g}.
 \end{equation}
 For a subgroup $H\le G$, write the normalized subgroup state as
 \begin{equation}
@@ -45,42 +158,58 @@ The shift-invariance requirement relevant to HSP sampling is that the measuremen
 \begin{equation}
     \left|\bra{x}U\ket{H}\right|^2
     =
-    \left|\bra{x}U T_c\ket{H}\right|^2,
+    \left|\bra{x}U T_g\ket{H}\right|^2,
     \qquad
-    \forall x,c\in G,\ \forall H\le G.
+    \forall x,g\in G,\ \forall H\le G.
     \label{eq:prob_shift_invariance}
 \end{equation}
-Thus $U\ket{H}$ and $U\ket{c+H}$ may differ by phases, but they must produce the same probabilities in the computational basis.
-The necessary modulus condition in Lemma~\ref{lemma: 1} follows by applying Eq.~\eqref{eq:prob_shift_invariance} to the trivial subgroup.
+Thus $U\ket{H}$ and $U\ket{g+H}$ may differ by phases, but they must produce the same probabilities in the computational basis.
 
-\begin{proof}[Proof of Lemma~\ref{lemma: 1}]
+This is the operational notion of shift invariance relevant for HSP sampling. The random coset representative should disappear from the observed distribution after the transformation, even though it need not disappear from the output state itself. Any candidate replacement for the QFT must therefore satisfy Eq.~\eqref{eq:prob_shift_invariance} if it is to reproduce the same basic sampling mechanism.
+
+The next question is how restrictive Eq.~\eqref{eq:prob_shift_invariance} already is at the level of matrix elements. A useful simplification is that one can extract a necessary condition from the trivial subgroup $H=\{0\}$ alone. In that case the subgroup state is just a computational-basis state, so the shift-invariance requirement becomes a direct constraint on how the columns of $U$ are seen from each measurement outcome $x$.
+
+The idea is simple. If the output probabilities for $\ket{0}$ and $\ket{g}$ must agree for every shift $g$, then for each fixed $x$ all entries in the $x$-th row of $U$ must have the same modulus. Unitarity then forces that common modulus to be exactly $1/\sqrt{|G|}$. This is the content of Theorem~\ref{thm:necessary_modulus_condition}, which we restate here in the precise form used in this appendix.
+
+\begin{restatedtheorem}[Necessary modulus condition]
+    Suppose $U$ is a unitary on the group register that satisfies Eq.~\eqref{eq:prob_shift_invariance}. Then, for every $x,y\in G$,
+    \begin{equation}
+        \left|\bra{x}U\ket{y}\right|=\frac{1}{\sqrt{|G|}}.
+    \end{equation}
+    Equivalently, there exist phases $\theta_{xy}\in\mathbb{R}$ such that
+    \begin{equation}
+        \bra{x}U\ket{y}=\frac{1}{\sqrt{|G|}}e^{\ii\theta_{xy}}.
+    \end{equation}
+\end{restatedtheorem}
+
+\begin{proof}[Proof of Theorem~\ref{thm:necessary_modulus_condition}]
     Take the trivial subgroup $H=\{0\}$.
-    Then $\ket{H}=\ket{0}$ and $T_c\ket{H}=\ket{c}$ for every $c\in G$.
+    Then $\ket{H}=\ket{0}$ and $T_g\ket{H}=\ket{g}$ for every $g\in G$.
     Equation~\eqref{eq:prob_shift_invariance} therefore implies
     \begin{equation}
         \left|\bra{x}U\ket{0}\right|^2
         =
-        \left|\bra{x}U\ket{c}\right|^2,
+        \left|\bra{x}U\ket{g}\right|^2,
         \qquad
-        \forall x,c\in G.
+        \forall x,g\in G.
     \end{equation}
-    With the convention $U_{xc}=\bra{x}U\ket{c}$, this says that for each fixed output label $x$, all entries in the $x$-th row of $U$ have the same squared modulus.
+    With the convention $U_{xy}=\bra{x}U\ket{y}$, this says that for each fixed output label $x$, all entries in the $x$-th row of $U$ have the same squared modulus.
     Denote this common value by $a_x$.
     Since $U$ is unitary, each row is normalized:
     \begin{equation}
-        1=\sum_{c\in G}|U_{xc}|^2=Na_x.
+        1=\sum_{y\in G}|U_{xy}|^2=Na_x.
     \end{equation}
     Hence $a_x=1/N$ for every $x\in G$.
     Therefore every matrix element satisfies
     \begin{equation}
-        |U_{xc}|=\frac{1}{\sqrt{N}}=\frac{1}{\sqrt{|G|}}.
+        |U_{xy}|=\frac{1}{\sqrt{N}}=\frac{1}{\sqrt{|G|}}.
     \end{equation}
-    Writing each nonzero complex number in polar form gives
+    Because this modulus is nonzero, each entry admits a polar decomposition
     \begin{equation}
-        U_{xc}=\frac{1}{\sqrt{|G|}}e^{\ii\theta_{xc}},
-        \qquad \theta_{xc}\in\mathbb{R}.
+        U_{xy}=\frac{1}{\sqrt{|G|}}e^{\ii\theta_{xy}},
+        \qquad \theta_{xy}\in\mathbb{R}.
     \end{equation}
-    This proves the claimed necessary condition.
+    This proves the claim.
 \end{proof}
 
 \section{Transversal Hadamard sampling and efficiency guarantee}
@@ -148,19 +277,47 @@ The coset representative $c$ only contributes the phase factor in Eq.~\eqref{eq:
 Consequently, the measurement distribution is independent of $c$: the first $n-p$ bits are always zero, while the remaining $p$ bits are uniformly random.
 
 This immediately gives a simple reconstruction procedure for the idealized $\mathbb{Z}_{2^n}$ HSP.
-Prepare independent coset states using the HSP oracle, apply $H^{\otimes n}$ to the first register, and measure in the computational basis.
-For each bit position, record whether a $1$ ever appears.
-A bit that is always zero is classified as fixed by the subgroup, while a bit for which a $1$ appears at least once is classified as free.
-The number of free trailing bits determines $p$, and hence determines $H_p=\langle 2^p\rangle$ under the bit-ordering convention above.
+Each application of the oracle-and-measurement routine prepares a random coset state, and Eq.~\eqref{eq:hadamard_coset_z2n} shows that a subsequent transversal Hadamard layer converts that coset state into a sample whose first $n-p$ bits are deterministically zero while the remaining $p$ bits are unbiased.
+The resulting sampling-and-recovery routine is summarized in Algorithm~\ref{alg:transversal_hadamard_sampling}.
+
+\begin{algorithm}[H]
+\caption{Transversal Hadamard Sampling for $H_p\le \mathbb{Z}_{2^n}$}
+\label{alg:transversal_hadamard_sampling}
+\KwIn{Oracle access to an HSP instance over $\mathbb{Z}_{2^n}$, sample count $m$}
+\KwOut{Hidden subgroup $H_p=\langle 2^p\rangle$}
+
+Initialize an empty list of samples $\mathcal{B}$\;
+\For{$i=1$ \KwTo $m$}{
+    Prepare the uniform superposition $\frac{1}{\sqrt{2^n}}\sum_{g\in \mathbb{Z}_{2^n}}\ket{g}\ket{0}$\;
+    Query the oracle and measure the second register to obtain a coset state $\ket{c_i+H_p}$\;
+    Apply $H^{\otimes n}$ to the first register\;
+    Measure the first register and record the bit string $b^{(i)}\in\{0,1\}^n$\;
+    Append $b^{(i)}$ to $\mathcal{B}$\;
+}
+\For{$j=1$ \KwTo $n$}{
+    Mark bit position $j$ as fixed if $b^{(i)}_j=0$ for all recorded samples\;
+    Otherwise mark bit position $j$ as free\;
+}
+Let $p$ be the number of free trailing bit positions\;
+\Return{$H_p=\langle 2^p\rangle$}\;
+\end{algorithm}
+
+Algorithm~\ref{alg:transversal_hadamard_sampling} is correct because, under the bit-ordering convention above, the free positions occur exactly in the final $p$ bits.
+Equivalently, the measurement data have the form
+\begin{equation}
+    0\cdots 0 * \cdots *,
+\end{equation}
+where each star denotes an unbiased bit.
+Identifying which positions ever take the value $1$ therefore determines $p$, and hence determines the subgroup $H_p=\langle 2^p\rangle$.
 
 The sample complexity is logarithmic in the number of qubits.
-Fixed bits are never misclassified, because they are exactly zero in every sample.
+For Algorithm~\ref{alg:transversal_hadamard_sampling}, fixed bits are never misclassified, because they are exactly zero in every sample.
 For a free bit, the probability that it appears as zero in all $m$ independent samples is $2^{-m}$.
 By the union bound, the probability of misclassifying at least one free bit is at most
 \begin{equation}
     p2^{-m}\le n2^{-m}.
 \end{equation}
-Thus $m\ge \lceil \log_2(n/\epsilon)\rceil$ samples are sufficient to identify the fixed and free bit positions, and therefore the hidden subgroup $H_p$, with probability at least $1-\epsilon$.
+Thus $m\ge \lceil \log_2(n/\epsilon)\rceil$ samples are sufficient for Algorithm~\ref{alg:transversal_hadamard_sampling} to identify the fixed and free bit positions, and therefore the hidden subgroup $H_p$, with probability at least $1-\epsilon$.
 
 \section{QFT Fisher information for subgroup-generator estimation}
 \label{app:qft_fisher_information}
@@ -234,49 +391,201 @@ with score function
     2Rx\cot(Rrx)-2x\cot(rx).
 \end{equation}
 
-To obtain a more explicit form, we use the Fejer-kernel identity
+The integral representation above makes the statistical meaning of the benchmark transparent, but it still hides the dependence on the support size $R$ inside a strongly oscillatory quotient of sines. For the comparison carried out in the main text, what we need is a formula in which the explicit $R$-scaling is separated from the oscillatory corrections.
+
+There is one additional simplification that closes this gap. If we write
 \begin{equation}
-    \left(
-        \frac{\sin(Rrx)}{\sin(rx)}
-    \right)^2
+    S(u)=\frac{\sin(Ru)}{\sin u},
+\end{equation}
+then $f(x|r)=S(rx)^2/(\pi R)$, and the score function implies
+\begin{equation}
+    f(x|r)\left[\pdv{}{r}\ln f(x|r)\right]^2
     =
-    R + 2\sum_{m=1}^{R-1}(R-m)\cos(2mrx).
+    \frac{4x^2}{\pi R}\left[S'(rx)\right]^2.
 \end{equation}
-Substituting this expansion into the integral above and using
-\begin{equation}
-    \int_0^{\pi}x^2\,dx=\frac{\pi^3}{3}
-\end{equation}
-and
-\begin{equation}
-    \int_0^{\pi}x^2\cos(2jrx)\,dx
-    =
-    \frac{4\pi jr\cos(2\pi jr)+(4\pi^2j^2r^2-2)\sin(2\pi jr)}{(2jr)^3},
-\end{equation}
-we obtain the exact series expression
-\begin{align}
-    I_{\mathrm{QFT}}(r)
-    &=
-    \frac{8}{\pi R}
-    \sum_{k=1}^{R-1}(R-k)
-    \left[
-        \frac{k\pi^3}{3}
-        +
-        \sum_{j=1}^{k-1}
-        \frac{k-j}{j^3r^3}
+Thus the Fisher-information integral is reduced to the square of a finite trigonometric polynomial. Once that polynomial is expanded into cosine modes, the remaining calculation involves only the moments of $x^2$ against those modes.
+
+\begin{theorem}[QFT Fisher-information benchmark]
+\label{thm:qft_fisher_information}
+    For the continuum density
+    \begin{equation}
+        f(x|r)
+        =
+        \frac{1}{\pi R}
         \left(
-            2\pi jr\cos(2\pi jr)
+            \frac{\sin(Rrx)}{\sin(rx)}
+        \right)^2,
+        \qquad x\in[0,\pi],
+    \end{equation}
+    the Fisher information with respect to the generator $r$ is
+    \begin{align}
+        I_{\mathrm{QFT}}(r)
+        &=
+        \frac{4\pi^2}{9}(R^2-1)
+        +
+        \frac{8}{3\pi R}
+        \sum_{j=1}^{R-1}
+        (R-j)(R^2-2Rj-2j^2-1)\,M_j(r), \nonumber\\
+        M_j(r)
+        &=
+        \frac{4\pi jr\cos(2\pi jr)+(4\pi^2j^2r^2-2)\sin(2\pi jr)}{(2jr)^3}.
+    \end{align}
+    In particular, since $M_j(r)=O(r^{-2})$ for fixed $j$, the large-$r$ regime is governed by the non-oscillatory term
+    \begin{equation}
+        I_{\mathrm{QFT}}(r)
+        \approx
+        \frac{4\pi^2}{9}(R^2-1).
+    \end{equation}
+\end{theorem}
+
+To derive Theorem~\ref{thm:qft_fisher_information}, it is convenient to pass from the Fejer-kernel representation of $S(u)^2$ to an exponential representation of $S(u)$ itself. Differentiating that exponential sum yields a finite trigonometric polynomial, and squaring it produces an exact cosine expansion for $[S'(u)]^2$. After that step, the Fisher-information integral reduces to $\int_0^\pi x^2\,dx$ and $\int_0^\pi x^2\cos(2jrx)\,dx$. The asymptotic formula follows because the oscillatory moments decay as $r^{-2}$.
+
+\begin{proof}
+    From
+    \begin{equation}
+        S(u)=\frac{\sin(Ru)}{\sin u}
+        =
+        \sum_{m=0}^{R-1}e^{\ii(R-1-2m)u},
+    \end{equation}
+    we obtain
+    \begin{equation}
+        S'(u)
+        =
+        \ii\sum_{m=0}^{R-1}(R-1-2m)e^{\ii(R-1-2m)u}.
+    \end{equation}
+    Squaring this expression and grouping equal frequencies gives an even cosine series
+    \begin{equation}
+        [S'(u)]^2
+        =
+        A_0 + 2\sum_{j=1}^{R-1}A_j\cos(2ju),
+    \end{equation}
+    where
+    \begin{equation}
+        A_j
+        =
+        -\sum_{m=0}^{R-1-j}(R-1-2m)(2j-R+1+2m)
+        =
+        \frac{(R-j)(R^2-2Rj-2j^2-1)}{3},
+        \qquad j=0,\ldots,R-1.
+    \end{equation}
+    In particular,
+    \begin{equation}
+        A_0=\frac{R(R^2-1)}{3}.
+    \end{equation}
+    Since
+    \begin{equation}
+        I_{\mathrm{QFT}}(r)
+        =
+        \frac{4}{\pi R}\int_0^\pi x^2[S'(rx)]^2\,dx,
+    \end{equation}
+    substituting the cosine expansion yields
+    \begin{equation}
+        I_{\mathrm{QFT}}(r)
+        =
+        \frac{4}{\pi R}
+        \left[
+            A_0\int_0^\pi x^2\,dx
             +
-            (2\pi^2j^2r^2-1)\sin(2\pi jr)
-        \right)
-    \right].
-\end{align}
-Keeping only the leading contribution in the large-$r$ regime gives
+            2\sum_{j=1}^{R-1}A_j\int_0^\pi x^2\cos(2jrx)\,dx
+        \right].
+    \end{equation}
+    The required moments are
+    \begin{equation}
+        \int_0^{\pi}x^2\,dx=\frac{\pi^3}{3}
+    \end{equation}
+    and
+    \begin{equation}
+        \int_0^{\pi}x^2\cos(2jrx)\,dx
+        =
+        \frac{4\pi jr\cos(2\pi jr)+(4\pi^2j^2r^2-2)\sin(2\pi jr)}{(2jr)^3}.
+    \end{equation}
+    Substituting these expressions gives
+    \begin{align}
+        I_{\mathrm{QFT}}(r)
+        &=
+        \frac{4}{\pi R}
+        \left[
+            \frac{R(R^2-1)}{3}\cdot\frac{\pi^3}{3}
+            +
+            \frac{2}{3}
+            \sum_{j=1}^{R-1}
+            (R-j)(R^2-2Rj-2j^2-1)\,M_j(r)
+        \right] \nonumber\\
+        &=
+        \frac{4\pi^2}{9}(R^2-1)
+        +
+        \frac{8}{3\pi R}
+        \sum_{j=1}^{R-1}
+        (R-j)(R^2-2Rj-2j^2-1)\,M_j(r),
+    \end{align}
+    which is the stated exact formula.
+
+    Finally, the oscillatory correction term is subleading because $M_j(r)=O(r^{-2})$ for fixed $j$. Keeping only the constant contribution therefore gives
+    \begin{equation}
+        I_{\mathrm{QFT}}(r)
+        \approx
+        \frac{4\pi^2}{9}(R^2-1).
+    \end{equation}
+    This proves the theorem.
+\end{proof}
+
+Theorem~\ref{thm:qft_fisher_information} provides the analytical QFT benchmark used in the main text.
+
+\section{Log-linear growth fit for the numerical Fisher-information scan}
+\label{app:fi_log_linear_growth}
+The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling}(b) probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. For the qubit range shown in Fig.~\ref{fig:fi_scaling}(b), that window extends up to $r_{\max}(n)=n^2$, so the relevant QFT comparator is the worst case within the same scan rather than a single fixed value of $r$.
+
+The leading term in Theorem~\ref{thm:qft_fisher_information} is monotone in $R$, and in the sampled regime $R\approx 2^n/r$. Consequently the smallest QFT Fisher information inside the scan window is attained near the largest sampled period, which yields the window-matched estimate
 \begin{equation}
-    I_{\mathrm{QFT}}(r)
+    I_{\mathrm{QFT,win}}(n)
     \approx
-    \frac{4\pi^2}{9}(R^2-1).
+    \frac{4\pi^2}{9}
+    \left(
+        \left\lfloor \frac{2^n}{n^2} \right\rfloor^2
+        - 1
+    \right).
 \end{equation}
-This expression provides the analytical QFT benchmark used in the main text.
+If one keeps only the dominant exponential factor, this becomes
+\begin{equation}
+    \ln I_{\mathrm{QFT,win}}(n)
+    =
+    (2\ln 2)\,n - 4\ln n + O(1),
+\end{equation}
+so the asymptotic QFT exponent is $k_{\mathrm{QFT},\infty}=2\ln 2\approx 1.386$, while a direct log-linear fit over the finite window $n=7,\dots,14$ gives the effective slope $k_{\mathrm{QFT,win}}=1.067$.
+
+This observation suggests a simple diagnostic for the numerical data in Fig.~\ref{fig:fi_scaling}(b). If the plotted curves retain a stable exponential dependence on the qubit count over the sampled window, then the transformed data should be well approximated by
+\begin{equation}
+    \ln I_{\min}(n)=kn+b.
+\end{equation}
+We therefore perform ordinary least-squares fits to the log-transformed mean values of each curve shown in Fig.~\ref{fig:fi_scaling}(b). Figure~\ref{fig:fi_log_regression} displays the resulting regressions.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\columnwidth]{fi_fig/fi_log_regression_plot.pdf}
+    \caption{\label{fig:fi_log_regression} Log-linear fits of the qubit-scaling curves in Fig.~\ref{fig:fi_scaling}(b). Markers denote the mean Fisher-information values plotted in Fig.~\ref{fig:fi_scaling}(b), after applying the transformation $I_{\min}\mapsto \ln I_{\min}$, and solid lines denote the corresponding least-squares fits $\ln I_{\min}(n)=kn+b$.}
+\end{figure}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l c c c c}
+        \hline
+        Circuit & qubits & $k$ & $95\%$ CI & $R^2$ \\
+        \hline
+        ph1 & $7$--$14$ & $0.378$ & $[0.306,\,0.449]$ & $0.965$ \\
+        optimized 1ph & $7$--$12$ & $0.443$ & $[0.253,\,0.632]$ & $0.913$ \\
+        ph1\_random & $7$--$14$ & $0.386$ & $[0.318,\,0.453]$ & $0.970$ \\
+        ph\_random & $7$--$14$ & $0.406$ & $[0.361,\,0.451]$ & $0.988$ \\
+        ph\_random\_phase & $7$--$14$ & $0.363$ & $[0.319,\,0.407]$ & $0.986$ \\
+        \hline
+    \end{tabular}
+    \caption{\label{tab:fi_log_regression_results} Effective exponents obtained from the log-linear model $\ln I_{\min}(n)=kn+b$ applied to the numerical Fisher-information curves in Fig.~\ref{fig:fi_scaling}(b).}
+\end{table}
+
+The fitted lines account for nearly all of the log-scale variance across the sampled window. The coefficient of determination ranges from $0.913$ to $0.988$, the log-space root-mean-square residual lies between $0.101$ and $0.233$, and every fitted slope is significantly positive with $p\leq 2.9\times 10^{-3}$. In that sense, a linear regression on $\ln I_{\min}$ is justified as a finite-window descriptive model for these curves. At the same time, the fitted quantity should be interpreted as an effective exponent on the restricted range $n=7,\dots,14$, not as a claim about the ultimate asymptotic law.
+
+The comparison with the QFT benchmark is unambiguous. Even after matching the period window used in the numerical scan, the QFT reference fit remains much steeper, with $k_{\mathrm{QFT,win}}=1.067$ and $R^2=0.9966$. The empirical circuit families therefore grow substantially more slowly: their fitted exponents occupy only $34\%$--$41\%$ of the window-matched QFT slope, and only $26\%$--$32\%$ of the asymptotic QFT exponent $2\ln 2$. Among the plotted families, optimized 1ph has the largest point estimate $k=0.443$, although its confidence interval is widest because that dataset currently stops at $12$ qubits. Among the curves available through $14$ qubits, ph\_random has the largest fitted exponent, $k=0.406$.
+
+This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}(b). The HP-family circuits retain a clear exponential-in-$n$ growth trend in the minimum Fisher information over the sampled window, which is why the log-linear fit works well, but they do not reproduce the QFT growth rate. Their advantage in the present setting is therefore not that they match the full QFT benchmark asymptotically, but that they retain a nontrivial and practically usable fraction of that information while remaining much shallower.
 
 \section{Noise-robustness experiment details}
 \label{app:noise_robustness_details}
