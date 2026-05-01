@@ -1,3 +1,4 @@
+    
 \documentclass[reprint, aps, prl, superscriptaddress]{revtex4-2}
 \usepackage{graphicx, float}
 \graphicspath{{../../figs/}}
@@ -23,7 +24,7 @@
 
 
 \begin{document}
-\title{An alternative to the Quantum Fourier Transform}
+\title{An alternative to the Quantum Fourier Transform }
 \author{Kaiming Bian}
 \author{Zujin Wen}
 \author{Oscar Dahlsten}
@@ -37,7 +38,7 @@ The hidden subgroup problem (HSP) yielding exponential quantum speedup over the 
 
 
 \section{Introduction}
-The exponential quantum speedups demonstrated by landmark protocols—such as Shor's algorithms for prime factorization and discrete logarithms \cite{Shor1994, Shor1999}, as well as Simon's algorithm \cite{Simon1997}—can all be fundamentally abstracted into a single mathematical task: finding an unknown subgroup. This unifying framework is formally known as the hidden subgroup problem (HSP) \cite{Kitaev1995, Jozsa2001, Lomont2004}. Standard HSP algorithms require the quantum Fourier transform (QFT), whose $\mathcal{O}(n^{2})$ gate complexity remains a critical bottleneck. For a $100$-qubit system, the QFT demands thousands of circuit layers, which vastly exceeds current hardware capabilities. For instance, IBM's $127$-qubit Eagle processor is limited to a depth of $60$ even with extensive error mitigation \cite{kim2023evidence}, and Google's $105$-qubit Willow processor reaches its operational threshold at $40$ cycles \cite{google2025quantum}. Consequently, the complex, long-range controlled-phase interactions necessitated by the standard QFT present significant experimental challenges.
+The exponential quantum speedups demonstrated by landmark protocols—such as Shor's algorithms for prime factorization and discrete logarithms \cite{Shor1994, Shor1997}, as well as Simon's algorithm \cite{Simon1997}—can all be fundamentally abstracted into a single mathematical task: finding an unknown subgroup. This unifying framework is formally known as the hidden subgroup problem (HSP) \cite{Kitaev1995, Jozsa2001, Lomont2004}. Standard HSP algorithms require the quantum Fourier transform (QFT), whose $\mathcal{O}(n^{2})$ gate complexity remains a critical bottleneck. For a $100$-qubit system, the QFT demands thousands of circuit layers, which vastly exceeds current hardware capabilities. For instance, IBM's $127$-qubit Eagle processor is limited to a depth of $60$ even with extensive error mitigation \cite{kim2023evidence}, and Google's $105$-qubit Willow processor reaches its operational threshold at $40$ cycles \cite{google2025quantum}. Consequently, the complex, long-range controlled-phase interactions necessitated by the standard QFT present significant experimental challenges.
 
 % 检查一下这里的 cite 和正文内容是否能对上。
 To circumvent the $\mathcal{O}(n^2)$ complexity bottleneck inherent in the standard QFT, existing mitigation strategies have primarily focused on reducing the hardware execution costs while approximating the QFT. These efforts have successfully bounded gate complexity through techniques such as truncated controlled rotations \cite{nam2020approximate} and optimized CNOT routing tailored for restricted hardware topologies \cite{park2023reducing}. Furthermore, advanced methods like dynamic mid-circuit measurements \cite{baumer2024quantum} and quantum circuit cutting \cite{tang2021cutqc, bravyi2016trading} have been employed to trade coherent quantum depth for classical post-processing resources. While these optimizations have enabled record experimental QFT fidelities \cite{aumann2026demonstrating}, they remain fundamentally tethered to the structural replication of the QFT itself. Consequently, such approaches are ultimately limited by the inherent constraints of gate-level simplifications and the exponentially escalating overhead of classical reconstruction, which often becomes computationally prohibitive as the system size scales.
@@ -49,47 +50,43 @@ To circumvent the $\mathcal{O}(n^2)$ complexity bottleneck inherent in the stand
     \includegraphics[width=0.7\columnwidth]{illus/illus v0.2.2.pdf}
     \caption{\label{fig:illus} \textbf{Shallow shift-invariant alternative to the QFT.} (a) Shift invariance is a critical property of the QFT. We identify a circuit family, denoted as \myqc-k, that inherently preserves the property. Within this broader family, \myqc-1 specifically serves as shallow-depth gates that are friendly to experiment. (b) In the proposed HSP algorithmic routine, the deep QFT block (the left gray gate) is directly replaced by the \myqc circuit to extract subgroup information prior to measurement. A neural network then decodes the measurement outcomes, bypassing the standard continued fraction expansion (the right gray gate) typically used in classical post-processing.}
 \end{figure}
-\begin{figure*}[t]
-    \includegraphics[width=0.95\textwidth]{fi_fig/fi_fig v0.1.pdf}
-    \caption{\label{fig:fi_scaling} Numerical Fisher-information benchmarks for the candidate circuit families. (a) Minimum discrete Fisher information as a function of the number of qubits for the QFT reference and the HP-family circuits. The HP-family curves remain below the QFT benchmark, but all increase with system size. (b) Fisher-information distributions as a function of the number of layers, showing how additional layers increase the retained information. Appendix~\ref{app:fi_log_linear_growth} shows that, over the sampled qubit window, both the QFT reference and the HP-family curves are well described by the same log-linear model $\ln I_{\min}(n)=kn+b$, corresponding to exponential growth in $n$, with smaller effective exponents for the HP-family circuits.}
-\end{figure*}
+
 
 In this Letter, we propose a fundamental paradigm shift: seeking a functional alternative to the QFT rather than a mere structural approximation. Our fundamental motivation is directly illustrated in Fig.~\ref{fig:illus}(a). The standard QFT extracts hidden subgroup information primarily through shift invariance, which ensuring that measurement statistics remain independent of random coset representatives, but it inherently requires deep circuits that are prohibitive for near-term hardware. To circumvent this bottleneck, we abandon structural emulation and instead target the crucial intersection between the broader space of shift-invariant transformations and the space of shallow circuits. We construct a family of hardware-aware quantum circuits, designated as \myqc circuits, that natively preserves this shift invariance. Within this broader family, we highlight \myqc-1, which successfully occupies this exact intersection by serving as shallow-depth gates friendly to experiment. By combining this depth advantage with the retention of Fisher information, \myqc-1 serves as a robust functional substitute, offering a highly practical and experimentally feasible pathway for HSP implementation over finite abelian groups on near-term hardware.
 
-Structurally, these circuits interleave transversal Hadamard gates with parameterized phase blocks. This architecture is natively compatible with near-term hardware, as sequences of phase gates are significantly more easily achieved across multiple experimental platforms, including linear optics \cite{carolan2015universal}, neutral-atom systems \cite{saffman2010quantum, evered2023high, graham2022multi, mohan2025parametrized}, ion trap systems \cite{shapira2023fast, srinivas2021high}, and NMR quantum computing \cite{vandersypen2004nmr, o2022quantum}. Alongside shift invariance, the viability of our approach relies on the retention of Fisher information, which quantifies the extractable information regarding the hidden subgroup generator $r$. Numerical scaling analysis demonstrates that shallow \myqc circuits retain substantial Fisher information. Despite a smaller scaling exponent $k$ relative to the full QFT, they maintain an equivalent exponential growth trend $\fii_n \sim e^{kn}$, thereby enabling reliable subgroup reconstruction via efficient neural-network-based decoding.
+Structurally, these circuits interleave transversal Hadamard gates with parameterized phase blocks. This architecture is natively compatible with near-term hardware, as sequences of phase gates are significantly more easily achieved across multiple experimental platforms, including linear optics \cite{carolan2015universal}, neutral-atom systems \cite{saffman2010quantum, evered2023high, graham2022multi, mohan2025parametrized}, ion trap systems \cite{shapira2023fast, srinivas2021high}, and NMR quantum computing \cite{vandersypen2004nmr, o2022quantum}. Alongside shift invariance, the viability of our approach relies on the retention of Fisher information, which quantifies the extractable information regarding the hidden subgroup generator $r$. Numerical scaling analysis demonstrates that shallow \myqc circuits retain substantial Fisher information. Despite a smaller scaling exponent $k$ relative to the full QFT, they maintain an equivalent exponential growth trend of Fisher information $\fii_n \sim e^{kn}$, thereby enabling reliable subgroup reconstruction via efficient neural-network-based decoding. 
 
 The proposed quantum-classical protocol is illustrated in Fig.~\ref{fig:illus}(b). We directly replace the deep QFT block with the shallow \myqc circuit in the original protocol for solving HSP over finite abelian group. A neural network then decodes the measurement outcomes, substituting the standard continued fraction expansion typically used in classical post-processing. To theoretically guarantee the scalability of this approach, we validate the growth model of the Fisher information with the various of qubit number, confirming that the proposed circuit family systematically retains sufficient extractable information at scale. Furthermore, we numerically benchmark this hybrid scheme on Shor's algorithm; the results demonstrate that the new circuit, combined with neural post-processing, can successfully recover the period and achieve factorization. Finally, to ensure practical viability, we analyze the robustness of the proposed circuits under a global depolarizing noise model.
 
-
+\begin{figure*}[t]
+    \includegraphics[width=0.95\textwidth]{fi_fig/fi_fig v1.pdf}
+    \caption{\label{fig:fi_scaling} Numerical Fisher-information benchmarks for the candidate circuit families. (a) Minimum discrete Fisher information as a function of the number of qubits for the QFT reference and the HP-family circuits. The HP-family curves remain below the QFT benchmark, but all increase with system size. (b) Fisher-information distributions as a function of the number of layers, showing how additional layers increase the retained information. Appendix~\ref{app:fi_log_linear_growth} shows that, over the sampled qubit window, both the QFT reference and the HP-family curves are well described by the same log-linear model $\ln I_{\min}(n)=kn+b$, corresponding to exponential growth in $n$, with smaller effective exponents for the HP-family circuits.}
+\end{figure*}
 
 \section{HSP and Shift Invariance}
-The HSP provides a unifying mathematical framework for exponential quantum speedups, abstracting landmark protocols into a single task: identifying an unknown subgroup $H \le G$ using an oracle function that is constant on the cosets of $H$ and distinct on different cosets \cite{Shor1994, Shor1999, Simon1997}. For finite abelian groups, there is a standard quantum routine that solves this problem efficiently, where we put more details about HSP and its solver in Appendix \ref{append: hsp and fs}. The standard quantum routine is illustrated in Fig.~\ref{fig:illus}(b) with gray blocks.
+The HSP provides a unifying mathematical framework for exponential quantum speedups, abstracting landmark protocols into a single task: identifying an unknown subgroup $H \le G$ using an oracle function that is constant on the cosets of $H$ and distinct on different cosets \cite{Shor1994, Shor1997, Simon1997}. For finite abelian groups, there is a standard quantum routine that solves this problem efficiently, where we put more details about HSP and its solver in Appendix \ref{append: hsp and fs}. The standard quantum routine is illustrated in Fig.~\ref{fig:illus}(b) with gray blocks. In this Letter, we only consider a finite abelian group $G$. 
 
-Crucially, the QFT extracts the hidden subgroup information primarily through shift invariance which is a critical property ensuring that the output measurement statistics remain strictly independent of random coset representatives. We formulate the shift invariance as following:
+Crucially, the QFT extracts the hidden subgroup information primarily through shift invariance which is a critical property ensuring that the output measurement statistics remain strictly independent of random coset representatives. For a subgroup $H\le G$, we denote the superposition of $\ket{h}$ as
+\begin{equation}
+    \ket{H}=\frac{1}{\sqrt{|H|}}\sum_{h\in H}\ket{h}.
+\end{equation}
+% And we formulate the shift invariance as following:
+
 \begin{definition}[Shift invariance]
-    For $g\in G$, define the shift operator by $T_g\ket{h}=\ket{h+g}$.
-    For a subgroup $H\le G$, define the normalized subgroup state
-    \begin{equation}
-        \ket{H}=\frac{1}{\sqrt{|H|}}\sum_{h\in H}\ket{h}.
-    \end{equation}
-    A unitary $U$ on the group register is shift-invariant for HSP sampling if
+    Let $T_c\ket{h}=\ket{h+c}$ be the shift operator for $c\in G$. A unitary $U$ on the group register is shift-invariant for HSP sampling if
     \begin{equation}
         \left|\bra{x}U\ket{H}\right|^2
         =
-        \left|\bra{x}U T_g\ket{H}\right|^2,
-        \qquad
-        \forall x,g\in G,\ \forall H\le G.
+        \left|\bra{x}U T_c\ket{H}\right|^2,
+        \quad
+        \forall x,c\in G,\ \forall H\le G.
     \end{equation}
 \end{definition}
 
 
-This review makes clear that the key operational requirement is the coherent, information-preserving interference of different hidden-subgroup cosets. From this perspective, shift invariance is not merely a desirable feature, but a necessary condition for any circuit intended to realize a Fourier-type transformation for the HSP. This condition then serves to narrow the class of admissible circuit constructions.
+This definition formalizes the intuition that the unitary $U$ must yield identical sampling probabilities across all cosets, rendering the two states $U\ket{H}$ and $U T_c\ket{H}$ indistinguishable in the computational basis up to a relative phase. This coherent, information-preserving interference ensures that measurement statistics remain strictly independent of the random coset representative $c$. Therefore, shift invariance is not merely a desirable feature but a necessary requirement for extracting hidden subgroup. 
 
-Based on this, we then derive the necessary conditions that any candidate circuit must satisfy.
-
-
-
-
+To identify shift-invariant circuits beyond the QFT, we first establish a necessary condition for shift invariance.
 \begin{theorem}[Necessary condition of shift invariance]
 \label{thm:necessary_modulus_condition}
     Suppose $U$ is a unitary on the group register that satisfies the shift-invariance condition above. Then, for every $x,y\in G$,
@@ -102,45 +99,44 @@ Based on this, we then derive the necessary conditions that any candidate circui
     \end{equation}
 \end{theorem}
 
-The proof is provided in Appendix~\ref{app:necessary condition of sinv}.
-
-Building on this conceptual framework, we introduce a formal definition of a shift-invariant circuit, showing how this formulation captures the essential operational requirements of the HSP measurement stage, substantially narrows the space of viable alternatives to the quantum Fourier transform (QFT), and clarifies the structural properties required for successful circuit construction.
-
-
-
-
-
-% Building upon this conceptual framework, we then introduce a formal definition of a shift-invariant circuit, detailing how this mathematical formulation encapsulates the critical operational requirements of the HSP measurement stage. Based on this definition, we derive the strict necessary conditions that any prospective candidate circuit must fulfill. This derivation systematically narrows the search space for viable alternatives to the quantum Fourier transform (QFT), thereby illuminating the underlying structural properties requisite for successful circuit constructions.
+The proof is provided in Appendix~\ref{app:necessary condition of sinv}. This theorem serves a dual purpose. Analytically, it provides a diagnostic criterion for verifying whether a candidate circuit can potentially exhibit shift invariance. Constructively, it offers a direct architectural blueprint: the equal-magnitude condition $\frac{1}{|G|}$ is naturally satisfied by applying transversal Hadamard gates across all qubits, which inherently equalizes the magnitude of the unitary elements. Phase blocks can then be embedded to tune the relative phases $\theta_{xy}$ without violating the magnitude constraint. Guided by this structural insight, we conceptualize a family of quantum circuits composed by interleaving Hadamard gates and phase blocks, which we formally designate as the Hadamard-phase (HP) circuit. In the remainder of this Letter, we demonstrate that, encouragingly, the HP circuit exhibits key properties comparable to those of the QFT, which are sufficient to enable reliable subgroup reconstruction via efficient classical post-processing.
 
 
 
 \section{\myqc: A shift invariant family of circuits}
-(Old) To bridge the gap between the necessary conditions for shift invariance and explicit circuit construction, we introduce a parameterized family of quantum circuits, denoted as the \myqc-k circuits.
-
-(New) Guided by the necessary conditions for shift invariance, we construct a parameterized family of quantum circuits, denoted as the \myqc-k circuits, which explicitly realizes these requirements.
-
-The fundamental design principle of this architecture is to systematically interleave transversal layers of single-qubit Hadamard gates with parameterized controlled-phase operations. By doing so, the circuit hierarchically builds the precise phase relationships required for subgroup interference.
-
-Let $H_i$ denote the Hadamard gate applied to qubit $i$. We partition the circuit into $L$ sequential stages. For a given stage $l$, we define a subset of control qubits $\Lambda_l$ and a corresponding subset $\bar{\Lambda}_l$ consisting of the remaining qubits that have not yet been used as targets. These subsets are coupled via a controlled-phase block, denoted as $\cpgate{\Lambda_l}{\bar{\Lambda}_l}{\bm{\theta}_{\Lambda_l\bar{\Lambda}_l}}$, which applies pairwise operations $\mathrm{CP}_{jk}(\theta_{jk})$ between each qubit $j \in \bar{\Lambda}_l$ and $k \in \Lambda_l$. Building upon these notations, we formally define the circuit architecture:
-
-\begin{definition}[\myqc-k circuit]
-    A quantum circuit is classified as an \myqc-k circuit if it is constructed using the following architecture:
+As illustrated in the upper subfigre of Fig.~\ref{fig:fi_scaling} (c), the \myqc-$k$ circuit is structured as an alternating sequence of transversal Hadamard layers and phase blocks. We restrict that there is only one Hadamard gate on each qubit, and there is only one control phase gate on each qubits pair. Formally, let $H_i$ denote the Hadamard gate applied to qubit $i$. We use a partition $\Lambda_l$ of index set $\{1,2,\cdots, n\}$, to denote control qubits
+\begin{equation}
+    \bigcup_{l=1}^L \Lambda_l = \{1,2,\cdots, n\}, \quad
+    \Lambda_i \cap \Lambda_j = \emptyset.
+\end{equation}
+And the set $\bar{\Lambda}_l$ is consisting of the remaining qubits that have not yet been used as targets
+\begin{equation}
+    \bar{\Lambda}_l = \{1,2,\cdots, n\}\backslash \left(\bigcup_{k = 1}^l \Lambda_k\right).
+\end{equation}
+These subsets are coupled via a controlled-phase block, denoted as $\cpgate{\Lambda_l}{\bar{\Lambda}_l}{\bm{\theta}_{\Lambda_l\bar{\Lambda}_l}}$, which applies pairwise operations $\mathrm{CP}_{jk}(\theta_{jk})$ between each qubit $j \in \bar{\Lambda}_l$ and $k \in \Lambda_l$. The control phase gate $\mathrm{CP}_{jk}(\theta_{jk})$ takes $j$-th as the control qubit, $k$-th qubit as the target qubit, $\theta_{jk}$ as the rotated phase. Building upon these notations, we formally define the circuit architecture:
+\begin{definition}[\myqc-$k$ circuit]
+    A quantum circuit is classified as an \myqc-k circuit if it is constructed using the following architecture
     \begin{equation}
         \uqc{L}({\bm{\theta}}) = \bigotimes_{i \in \Lambda_L} H_{i}\prod_{l=L-1}^{1} \left( \cpgate{\Lambda_l}{\bar{\Lambda}_l}{\bm{\theta}_{\Lambda_l\bar{\Lambda}_l}} \bigotimes_{i \in \Lambda_l} H_{i} \right),
     \end{equation}
-    where the controlled-phase block is given by:
+    where the controlled-phase block is given by
     \begin{equation}
         \cpgate{\Lambda_l}{\bar{\Lambda}_l}{\bm{\theta}_{\Lambda_l\bar{\Lambda}_l}} = \prod_{j \in \bar{\Lambda}_l} \prod_{k \in \Lambda_l} \mathrm{CP}_{jk}(\theta_{jk}).
     \end{equation}
+    The parameter set $\bm{\theta}_{\Lambda_l\bar{\Lambda}_l}$ is the collection $\theta_{jk}$, $j\in \Lambda_l$, $k \in \bar{\Lambda}_l$. 
 \end{definition}
 
-By making this architecture explicit, we identify a concrete family of circuits that strictly satisfies the previously derived shift-invariance conditions, thereby providing a nontrivial alternative for the standard QFT circuit. Importantly, this proposed family encompasses a strictly broader set of transformations than those generated by conventional QFT constructions. This generalization demonstrates that shift invariance is not a unique feature of the QFT, but rather a robust property that can naturally arise within a significantly larger design space of practically useful quantum circuits.
+This proposed family encompasses a strictly broader set of transformations than those generated by conventional QFT, such as the tensor of QFT on different qubits. This generalization demonstrates that shift invariance is not a unique feature of the QFT, but rather a robust property that can naturally arise within a significantly larger design space of practically useful quantum circuits.
 
+At this stage, however, the circuit definition alone is not enough. The previous necessary-condition theorem only tells us what any shift-invariant transformation must look like; it does not yet show that a concrete and experimentally meaningful circuit family actually satisfies the full probability-level invariance required for HSP sampling. The key remaining question is therefore whether the layered Hadamard-plus-controlled-phase architecture of the \myqc family is sufficient to ensure that the random coset representative affects the output only through an overall phase, and hence disappears from the measurement probabilities.
+
+The following theorem provides exactly this missing sufficiency statement and therefore serves as the central validity result for the proposed construction.
 \begin{theorem}
-    \myqc-k circuits are shift invariant under group $\prod_i\mathbb{Z}_{2^{m_i}}$.
+    Every \myqc-$k$ circuit is shift invariant over $\mathbb{Z}_{2^{n}}$.
 \end{theorem}
+This theorem upgrades the \myqc family from a structurally motivated ansatz to a certified replacement class for the QFT measurement stage on $\mathbb{Z}_{2^{n}}$. In particular, it shows that although the family is much broader than standard QFT-style constructions, every circuit in the family still preserves the coset-sampling mechanism needed for HSP. The proof is given in Appendix~\ref{app:HPk are sinv}, where we show that the shift label contributes only a multiplicative phase factor to the amplitudes and therefore cancels after taking absolute squares.
 
-\textit{\myqc-0 for hidden subgroup on $\mathbb{Z}_{2^n}$.}---
+\section{\myqc-0 for hidden subgroup on $\mathbb{Z}_{2^n}$}
 We first consider the cyclic group $\mathbb{Z}_{2^n}$, which is naturally represented by an $n$-qubit computational basis and therefore provides a clean setting for isolating the effect of the circuit transformation. In this case, the subgroup structure is particularly simple: each subgroup is generated by a power of two, and the corresponding coset states have a regular binary structure. For example, if $H=\{q2^p:q=0,\ldots,2^{n-p}-1\}$, then, up to normalization and bit-ordering convention, applying a transversal Hadamard layer to a coset state gives
 \begin{equation}
     H^{\otimes n}\sum_{h\in H}\ket{c+h}
@@ -151,8 +147,13 @@ Thus the dependence on the coset representative $c$ appears only through phases,
 
 At the same time, the $\mathbb{Z}_{2^n}$ case should be regarded as an instructive but restricted regime. Its subgroup structure is highly constrained, and several such instances admit efficient classical treatment, so this setting alone does not capture the full algorithmic role played by the QFT. The more demanding regime arises when one uses a finite-dimensional register to approximate a problem over $\mathbb{Z}$ and to recover a subgroup such as $\mathbb{Z}_q$. In that situation, the sampled state need not be an exact subgroup state of the truncated register, and the robustness of the standard QFT becomes essential. This motivates the extension from \myqc-0 to deeper members of the \myqc family, which are designed to preserve shift-invariant sampling structure while allowing greater expressive power than a single Hadamard layer.
 
-\textit{Retention of Fisher information on hidden subgroup.}---
+\section{Simulation of HSP with \myqc-1 and efficient neural net post-processing}
+\begin{figure}[h]
+    \includegraphics[width=0.4\textwidth]{recover/recover v1.pdf}
+    \caption{\label{fig:recovery_pipeline} Classical post-processing pipeline for subgroup recovery from \myqc-1 measurement data. The measured bit strings produced after the shallow quantum circuit are passed through a shared feature map and then ranked by a beam-search decoder to infer the candidate period. The figure illustrates that the measurement outcomes still retain period-dependent structure after the HP transformation, which can be extracted by an efficient neural post-processing stage rather than by an explicit QFT inversion.}
+\end{figure}
 
+\section{Retention of Fisher information on hidden subgroup}
 To justify the post-processing approach more systematically, we ask whether the hidden subgroup generator can be estimated using only a polynomial number of measurement samples. In our setting, this generator plays the role of the parameter in the output distribution, so the relevant question is how sensitive the measured probabilities are to changes in that generator. Fisher information provides a natural metric for this purpose, since it quantifies the amount of recoverable information about the generator contained in the samples. As a benchmark, for the standard QFT we obtain
 \begin{align}
     I_{\mathrm{QFT}}(r)
@@ -173,11 +174,7 @@ which in the large-$r$ regime reduces to $I_{\mathrm{QFT}}(r)\approx \frac{4\pi^
 \section{\myqc-1 retains Fisher information with fewer layers than QFT.}
 We compute the Fisher information numerically as a function of both circuit depth and system size. The observed scaling offers strong evidence that the proposed circuit family preserves enough information for practical inference. Most notably, \myqc-1 retains a level of Fisher information comparable to that of the full QFT while remaining considerably shallower, thereby reducing the depth requirements of the transformation stage. The comparison is sharpened in Appendix~\ref{app:fi_log_linear_growth}: although the HP-family Fisher information is systematically smaller than the QFT benchmark, the numerical data are well fit by the same log-linear ansatz $\ln I_{\min}(n)=kn+b$, so over the sampled range both exhibit the same exponential-in-$n$ growth model, differing primarily in the fitted exponent.
 
-\section{Simulation of HSP with \myqc-1 and efficient neural net post-processing}
-\begin{figure}[h]
-    \includegraphics[width=0.4\textwidth]{recover/v0.2.pdf}
-    \caption{\label{fig:recovery_pipeline} Classical post-processing pipeline for subgroup recovery from \myqc-1 measurement data. The measured bit strings produced after the shallow quantum circuit are passed through a shared feature map and then ranked by a beam-search decoder to infer the candidate period. The figure illustrates that the measurement outcomes still retain period-dependent structure after the HP transformation, which can be extracted by an efficient neural post-processing stage rather than by an explicit QFT inversion.}
-\end{figure}
+
 We use a neural network as a learnable classical post-processing layer that takes measurement outcomes from the \myqc-1 circuit and predicts the hidden subgroup parameter. This experiment is intended to test the practical recoverability of subgroup information, rather than only reporting information-theoretic quantities in the abstract. The resulting performance shows that the measurement distributions produced by these shallow circuits still contain highly usable structure, and that an efficient classical decoder can successfully exploit it.
 
 \textit{Robustness under noise.}---

@@ -14,11 +14,11 @@
 In this section, we outline the standard method for solving the Hidden Subgroup Problem (HSP) over finite abelian groups \cite{Kitaev1995,Jozsa2001,Lomont2004}. Formally, the HSP is defined as follows:
 
 \begin{definition}[Hidden Subgroup Problem]
-    Given a function $f: G \to X$ defined on a group $G$, with the promise that there exists a hidden subgroup $H \leq G$ such that for all $g_1, g_2 \in G$
+    Given a function $f: G \to X$ defined on a group $G$, with the promise that there exists a hidden subgroup $V \leq G$ such that for all $g_1, g_2 \in G$
     \begin{equation}
-        f(g_1) = f(g_2) \Longleftrightarrow g_1 - g_2 \in H
+        f(g_1) = f(g_2) \Longleftrightarrow g_1 - g_2 \in V
     \end{equation}
-    The objective of this task is to identify the hidden subgroup $H$.
+    The objective of this task is to identify the hidden subgroup $V$.
 \end{definition}
 
 In the context of this paper, we restrict our attention to finite abelian groups. For such groups, the fundamental theorem of finite abelian groups allows us to express the group structure as a direct product of cyclic groups:
@@ -35,24 +35,24 @@ where $|G|$ is the element num of the group $G$. The first register holds the gr
     \ket{\psi} = \frac{1}{\sqrt{|G|}} \sum_{g \in G} \ket{g} \ket{f(g)}.
 \end{equation}
 
-Since the function $f$ is constant on the cosets of the hidden subgroup $H$ and distinct on different cosets, it is highly advantageous to group the terms in the superposition according to these cosets.
+Since the function $f$ is constant on the cosets of the hidden subgroup $V$ and distinct on different cosets, it is highly advantageous to group the terms in the superposition according to these cosets.
 
 Before proceeding, it is useful to formalize the state notation for a subset. For any subset $S \subseteq G$, we define its corresponding normalized quantum state $\ket{S}$ as the uniform superposition over all elements within the set:
 \begin{equation}
     \ket{S} = \frac{1}{\sqrt{|S|}} \sum_{s \in S} \ket{s}.
 \end{equation}
-Using this definition, the normalized state for a specific coset $c+H$ is directly given by
+Using this definition, the normalized state for a specific coset $c+V$ is directly given by
 \begin{equation}
-    \ket{c+H} = \frac{1}{\sqrt{|H|}} \sum_{h \in H} \ket{c+h}.
+    \ket{c+V} = \frac{1}{\sqrt{|V|}} \sum_{v \in V} \ket{c+v}.
 \end{equation}
 
 By applying this coset state definition, the post-oracle state can be elegantly rewritten as a superposition of these orthogonal coset states, each perfectly entangled with its unique function evaluation:
 \begin{equation}
-    \ket{\psi} = \sqrt{\frac{|H|}{|G|}} \sum_{c\in C} \ket{c+H} \ket{f(c)},
+    \ket{\psi} = \sqrt{\frac{|V|}{|G|}} \sum_{c\in C} \ket{c+V} \ket{f(c)},
 \end{equation}
-where $C$ is the set of all possible coset representatives. For simplicity, we assume that the second register is measured immediately after the oracle query. Measuring the second register yields a specific outcome $f(c)$ with a uniform probability of $|H|/|G|$. Consequently, the first register collapses into the corresponding pure coset state:
+where $C$ is the set of all possible coset representatives. For simplicity, we assume that the second register is measured immediately after the oracle query. Measuring the second register yields a specific outcome $f(c)$ with a uniform probability of $|V|/|G|$. Consequently, the first register collapses into the corresponding pure coset state:
 \begin{equation}
-    \ket{\psi_{\text{post}}} = \ket{c+H}.
+    \ket{\psi_{\text{post}}} = \ket{c+V}.
 \end{equation}
 From this point forward, our analysis will focus exclusively on the quantum state of this first register.
 
@@ -60,43 +60,43 @@ These two descriptions are different at the state level, but they induce the sam
 
 A direct measurement in the computational basis is uninformative. Indeed, using the definition of the coset state,
 \begin{equation}
-    \langle g|c+H\rangle
-    = \frac{1}{\sqrt{|H|}} \sum_{h \in H} \langle g|c+h\rangle
-    = \frac{1}{\sqrt{|H|}} \sum_{h \in H} \delta_{g,c+h}.
+    \langle g|c+V\rangle
+    = \frac{1}{\sqrt{|V|}} \sum_{v \in V} \langle g|c+v\rangle
+    = \frac{1}{\sqrt{|V|}} \sum_{v \in V} \delta_{g,c+v}.
 \end{equation}
-For fixed $c$, the map $h \mapsto c+h$ is a bijection from $H$ to the coset $c+H$. Therefore the sum $\sum_{h \in H} \delta_{g,c+h}$ equals $1$ when $g \in c+H$ and equals $0$ when $g \notin c+H$. Hence
+For fixed $c$, the map $v \mapsto c+v$ is a bijection from $V$ to the coset $c+V$. Therefore the sum $\sum_{v \in V} \delta_{g,c+v}$ equals $1$ when $g \in c+V$ and equals $0$ when $g \notin c+V$. Hence
 \begin{equation}
-    \Pr[g\,|\,c,H] = |\langle g|c+H\rangle|^2 =
+    \Pr[g\,|\,c,V] = |\langle g|c+V\rangle|^2 =
     \begin{cases}
-        1/|H|,& g\in c+H,\\
-        0,& g\notin c+H,
+        1/|V|,& g\in c+V,\\
+        0,& g\notin c+V,
     \end{cases}
 \end{equation}
 so the observed element is uniform on the unknown coset. Averaging over uniformly random cosets gives the marginal distribution
 \begin{equation}
     \Pr[g]=\frac{1}{|G|},
 \end{equation}
-which contains no direct information about the hidden subgroup $H$.
+which contains no direct information about the hidden subgroup $V$.
 
 To extract meaningful information, we must apply the quantum Fourier transform (QFT) over the group $G$ before measuring \cite{Kitaev1995,Jozsa2001}. Let $\chi_y(g)$ denote the group characters. The QFT maps a computational basis state $\ket{g}$ as follows:
 \begin{equation}
     \text{QFT} \ket{g} = \frac{1}{\sqrt{|G|}} \sum_{y \in G} \chi_y(g) \ket{y}.
 \end{equation}
-Applying this transformation to our pure coset state $\ket{c+H}$ yields:
+Applying this transformation to our pure coset state $\ket{c+V}$ yields:
 \begin{align}
-    \text{QFT} \ket{c+H} &= \frac{1}{\sqrt{|H|}} \sum_{h \in H} \text{QFT} \ket{c+h} \nonumber \\
-    &= \frac{1}{\sqrt{|H||G|}} \sum_{h \in H} \sum_{y \in G} \chi_y(c+h) \ket{y} \nonumber \\
-    &= \frac{1}{\sqrt{|H||G|}} \sum_{y \in G} \chi_y(c) \left( \sum_{h \in H} \chi_y(h) \right) \ket{y}.
+    \text{QFT} \ket{c+V} &= \frac{1}{\sqrt{|V|}} \sum_{v \in V} \text{QFT} \ket{c+v} \nonumber \\
+    &= \frac{1}{\sqrt{|V||G|}} \sum_{v \in V} \sum_{y \in G} \chi_y(c+v) \ket{y} \nonumber \\
+    &= \frac{1}{\sqrt{|V||G|}} \sum_{y \in G} \chi_y(c) \left( \sum_{v \in V} \chi_y(v) \right) \ket{y}.
 \end{align}
-By the orthogonality of group characters, the sum $\sum_{h \in H} \chi_y(h)$ evaluates to $|H|$ if the character $\chi_y$ is trivial on $H$ (i.e., $y$ belongs to the orthogonal subgroup $H^\perp$), and evaluates to $0$ otherwise. Thus, the state simplifies to a superposition over $H^\perp$:
+By the orthogonality of group characters, the sum $\sum_{v \in V} \chi_y(v)$ evaluates to $|V|$ if the character $\chi_y$ is trivial on $V$ (i.e., $y$ belongs to the orthogonal subgroup $V^\perp$), and evaluates to $0$ otherwise. Thus, the state simplifies to a superposition over $V^\perp$:
 \begin{equation}
-    \text{QFT} \ket{c+H} = \sqrt{\frac{|H|}{|G|}} \sum_{y \in H^\perp} \chi_y(c) \ket{y}.
+    \text{QFT} \ket{c+V} = \sqrt{\frac{|V|}{|G|}} \sum_{y \in V^\perp} \chi_y(c) \ket{y}.
 \end{equation}
-Measuring this state in the computational basis gives the probability of observing an outcome $y \in H^\perp$:
+Measuring this state in the computational basis gives the probability of observing an outcome $y \in V^\perp$:
 \begin{equation}
-    \Pr[y] = \left| \sqrt{\frac{|H|}{|G|}} \chi_y(c) \right|^2 = \frac{|H|}{|G|} |\chi_y(c)|^2 = \frac{|H|}{|G|}.
+    \Pr[y] = \left| \sqrt{\frac{|V|}{|G|}} \chi_y(c) \right|^2 = \frac{|V|}{|G|} |\chi_y(c)|^2 = \frac{|V|}{|G|}.
 \end{equation}
-Crucially, because $|\chi_y(c)|^2 = 1$ for all group characters, the resulting measurement distribution is uniformly distributed over $H^\perp$ and is strictly independent of the random coset representative $c$. This shift invariance is the fundamental property that allows the extraction of subgroup information by effectively removing the unknown shift at the probability level.
+Crucially, because $|\chi_y(c)|^2 = 1$ for all group characters, the resulting measurement distribution is uniformly distributed over $V^\perp$ and is strictly independent of the random coset representative $c$. This shift invariance is the fundamental property that allows the extraction of subgroup information by effectively removing the unknown shift at the probability level.
 
 The quantum Fourier transform over $G$ is defined using the character group $\hat{G}$ by
 \begin{equation}
@@ -104,41 +104,41 @@ F_G|g\rangle = \frac{1}{\sqrt{|G|}} \sum_{\chi\in\hat{G}} \chi(g)\,|\chi\rangle,
 \end{equation}
 where $\{|\chi\rangle:\chi\in\hat{G}\}$ is the Fourier basis and each character $\chi:G\to \mathbb{C}^\times$ is a group homomorphism. Here $\mathbb{C}^\times=\mathbb{C}\setminus\{0\}$ denotes the multiplicative group of nonzero complex numbers, so with additive notation on $G$ one has $\chi(g_1+g_2)=\chi(g_1)\chi(g_2)$. For finite abelian $G$, every character has unit modulus. Applying $F_G$ to a coset state gives
 \begin{align}
-F_G|c+H\rangle
-&= \frac{1}{\sqrt{|H|}} \sum_{h\in H} F_G|c+h\rangle \nonumber\\
-&= \frac{1}{\sqrt{|H||G|}} \sum_{\chi\in\hat{G}} \sum_{h\in H} \chi(c+h)\,|\chi\rangle \nonumber\\
-&= \frac{1}{\sqrt{|H||G|}} \sum_{\chi\in\hat{G}} \chi(c)\left(\sum_{h\in H}\chi(h)\right)|\chi\rangle.
+F_G|c+V\rangle
+&= \frac{1}{\sqrt{|V|}} \sum_{v\in V} F_G|c+v\rangle \nonumber\\
+&= \frac{1}{\sqrt{|V||G|}} \sum_{\chi\in\hat{G}} \sum_{v\in V} \chi(c+v)\,|\chi\rangle \nonumber\\
+&= \frac{1}{\sqrt{|V||G|}} \sum_{\chi\in\hat{G}} \chi(c)\left(\sum_{v\in V}\chi(v)\right)|\chi\rangle.
 \end{align}
-The character sum over $H$ satisfies
+The character sum over $V$ satisfies
 \begin{equation}
-\sum_{h\in H}\chi(h)=
+\sum_{v\in V}\chi(v)=
 \begin{cases}
-|H|,& \chi\in H^\perp,\\
-0,& \chi\notin H^\perp,
+|V|,& \chi\in V^\perp,\\
+0,& \chi\notin V^\perp,
 \end{cases}
 \qquad
-H^\perp=\{\chi\in\hat{G}:\chi(h)=1\ \text{for all }h\in H\}.
+V^\perp=\{\chi\in\hat{G}:\chi(v)=1\ \text{for all }v\in V\}.
 \end{equation}
 Hence
 \begin{equation}
-F_G|c+H\rangle
+F_G|c+V\rangle
 =
-\sqrt{\frac{|H|}{|G|}}
-\sum_{\chi\in H^\perp} \chi(c)\,|\chi\rangle.
+\sqrt{\frac{|V|}{|G|}}
+\sum_{\chi\in V^\perp} \chi(c)\,|\chi\rangle.
 \end{equation}
 The Fourier-basis measurement distribution is therefore
 \begin{equation}
-p(\chi\,|\,c,H)=
+p(\chi\,|\,c,V)=
 \begin{cases}
-|H|/|G|,& \chi\in H^\perp,\\
-0,& \chi\notin H^\perp,
+|V|/|G|,& \chi\in V^\perp,\\
+0,& \chi\notin V^\perp,
 \end{cases}
 \end{equation}
-which is independent of the coset representative $c$. The same formula holds for the mixed state $\rho_H$, since it is a convex combination of pure coset states with identical Fourier statistics.
+which is independent of the coset representative $c$. The same formula holds for the mixed state $\rho_V$, since it is a convex combination of pure coset states with identical Fourier statistics.
 
-Repeating the procedure therefore produces samples from $H^\perp$. In the finite abelian setting, classical post-processing reconstructs $H^\perp$ from the sample span and then recovers the hidden subgroup using the duality identity \cite{Kitaev1995,EttingerHoyerKnill2004,Lomont2004}
+Repeating the procedure therefore produces samples from $V^\perp$. In the finite abelian setting, classical post-processing reconstructs $V^\perp$ from the sample span and then recovers the hidden subgroup using the duality identity \cite{Kitaev1995,EttingerHoyerKnill2004,Lomont2004}
 \begin{equation}
-(H^\perp)^\perp = H.
+(V^\perp)^\perp = V.
 \end{equation}
 Fourier sampling thus converts hidden translational structure in the oracle into explicit linear constraints in the dual group.
 
@@ -150,24 +150,24 @@ For $g\in G$, define the shift operator
 \begin{equation}
     T_g\ket{h}=\ket{h+g}.
 \end{equation}
-For a subgroup $H\le G$, write the normalized subgroup state as
+For a subgroup $V\le G$, write the normalized subgroup state as
 \begin{equation}
-    \ket{H}=\frac{1}{\sqrt{|H|}}\sum_{h\in H}\ket{h}.
+    \ket{V}=\frac{1}{\sqrt{|V|}}\sum_{v\in V}\ket{v}.
 \end{equation}
 The shift-invariance requirement relevant to HSP sampling is that the measurement distribution after applying $U$ is independent of the coset representative:
 \begin{equation}
-    \left|\bra{x}U\ket{H}\right|^2
+    \left|\bra{x}U\ket{V}\right|^2
     =
-    \left|\bra{x}U T_g\ket{H}\right|^2,
+    \left|\bra{x}U T_g\ket{V}\right|^2,
     \qquad
-    \forall x,g\in G,\ \forall H\le G.
+    \forall x,g\in G,\ \forall V\le G.
     \label{eq:prob_shift_invariance}
 \end{equation}
-Thus $U\ket{H}$ and $U\ket{g+H}$ may differ by phases, but they must produce the same probabilities in the computational basis.
+Thus $U\ket{V}$ and $U\ket{g+V}$ may differ by phases, but they must produce the same probabilities in the computational basis.
 
 This is the operational notion of shift invariance relevant for HSP sampling. The random coset representative should disappear from the observed distribution after the transformation, even though it need not disappear from the output state itself. Any candidate replacement for the QFT must therefore satisfy Eq.~\eqref{eq:prob_shift_invariance} if it is to reproduce the same basic sampling mechanism.
 
-The next question is how restrictive Eq.~\eqref{eq:prob_shift_invariance} already is at the level of matrix elements. A useful simplification is that one can extract a necessary condition from the trivial subgroup $H=\{0\}$ alone. In that case the subgroup state is just a computational-basis state, so the shift-invariance requirement becomes a direct constraint on how the columns of $U$ are seen from each measurement outcome $x$.
+The next question is how restrictive Eq.~\eqref{eq:prob_shift_invariance} already is at the level of matrix elements. A useful simplification is that one can extract a necessary condition from the trivial subgroup $V=\{0\}$ alone. In that case the subgroup state is just a computational-basis state, so the shift-invariance requirement becomes a direct constraint on how the columns of $U$ are seen from each measurement outcome $x$.
 
 The idea is simple. If the output probabilities for $\ket{0}$ and $\ket{g}$ must agree for every shift $g$, then for each fixed $x$ all entries in the $x$-th row of $U$ must have the same modulus. Unitarity then forces that common modulus to be exactly $1/\sqrt{|G|}$. This is the content of Theorem~\ref{thm:necessary_modulus_condition}, which we restate here in the precise form used in this appendix.
 
@@ -183,8 +183,8 @@ The idea is simple. If the output probabilities for $\ket{0}$ and $\ket{g}$ must
 \end{restatedtheorem}
 
 \begin{proof}[Proof of Theorem~\ref{thm:necessary_modulus_condition}]
-    Take the trivial subgroup $H=\{0\}$.
-    Then $\ket{H}=\ket{0}$ and $T_g\ket{H}=\ket{g}$ for every $g\in G$.
+    Take the trivial subgroup $V=\{0\}$.
+    Then $\ket{V}=\ket{0}$ and $T_g\ket{V}=\ket{g}$ for every $g\in G$.
     Equation~\eqref{eq:prob_shift_invariance} therefore implies
     \begin{equation}
         \left|\bra{x}U\ket{0}\right|^2
@@ -210,6 +210,92 @@ The idea is simple. If the output probabilities for $\ket{0}$ and $\ket{g}$ must
         \qquad \theta_{xy}\in\mathbb{R}.
     \end{equation}
     This proves the claim.
+\end{proof}
+
+\section{\myqc-$k$ circuits are shift invariant over $\mathbb{Z}_{2^{n}}$}
+\label{app:HPk are sinv}
+ This appendix aims to rigorously prove that the \myqc-$k$ circuit family natively satisfies the shift invariant property. Establishing this theorem holds significant practical importance: it fundamentally guarantees that the output statistics obtained from this shallow circuit structure can be reliably used for the classical post-processing reconstruction of the hidden subgroup.
+
+\begin{restatedtheorem}
+The \myqc-$k$ circuit is shift-invariant over $\mathbb{Z}_{2^{n}}$.
+\end{restatedtheorem}
+
+The core strategy of the proof is as follows: First, we explicitly calculate the sequential effect of each layer of the \myqc-$k$ circuit on the initial basis state, deriving the analytical expression of the final quantum state. Next, we obtain the corresponding probability amplitudes by calculating the matrix elements of this output state in the computational basis. Finally, we compute the squared modulus of these amplitudes over the subgroup $V$ and its coset $c+V$ respectively, using algebraic simplification to factor out a pure phase factor related to the coset representative $c$. Because the modulus of this pure phase factor is strictly $1$, it naturally cancels out when calculating the measurement probabilities, thereby rigorously proving mathematically that the output probability distribution is completely independent of random shifts.
+
+
+\begin{proof}
+    The first step is to calculate the effect of the first layer, explicitly keeping the normalization factor $\frac{1}{\sqrt{2}}$ from the Hadamard gates:
+    \begin{align}
+        &\cpgate{\Lambda_1}{\bar{\Lambda}_1}{\bm{\theta}_{\Lambda_1\bar{\Lambda}_1}} \bigotimes_{i \in \Lambda_1} H_{i}\ket{b_1 b_2\cdots b_n}\notag\\
+        =& \cpgate{\Lambda_1}{\bar{\Lambda}_1}{\bm{\theta}_{\Lambda_1\bar{\Lambda}_1}} \bigotimes_{i \in \Lambda_1}\frac{1}{\sqrt{2}}(\ket{0} + e^{\pi \ii b_i} \ket{1}) \bigotimes_{k \in \bar \Lambda_1} \ket{b_k} \\
+        =& \bigotimes_{i \in \Lambda_1}\frac{1}{\sqrt{2}}\left(\ket{0} + \exp\left[\pi \ii b_i + \ii \sum_{j \in \bar{\Lambda}_1} \theta_{ij} b_j\right] \ket{1}\right) \bigotimes_{k \in \bar \Lambda_1} \ket{b_k}.
+    \end{align}
+    Note that since the qubits in $\bar{\Lambda}_1$ have not yet been acted upon by Hadamard gates, they remain in the computational basis. 
+    
+    Since the control subsets form a partition of the qubits:
+    \begin{equation}
+        \bigcup_{l=1}^L \Lambda_l = \{1,2,\cdots, n\}, \quad
+        \Lambda_i \cap \Lambda_j = \emptyset,
+    \end{equation}
+    and the target subsets are defined as the remaining unused qubits:
+    \begin{equation}
+        \bar{\Lambda}_l = \{1,2,\cdots, n\}\setminus \left(\bigcup_{k = 1}^l \Lambda_k\right),
+    \end{equation}
+    the sequential action of all $L$ layers ensures every qubit $i$ acts as a target exactly once. Let $l(i)$ denote the specific stage where $i \in \Lambda_{l(i)}$. The final state after the full circuit becomes:
+    \begin{equation}
+        \uqc{L}(\bm \theta) \ket{b_1 b_2\cdots b_n} = \bigotimes_{i=1}^n \frac{1}{\sqrt{2}} \left(\ket{0} + \exp\left[\pi \ii b_i + \ii \sum_{j \in \bar{\Lambda}_{l(i)}} \theta_{ij} b_j\right] \ket{1}\right).
+    \end{equation}
+    
+    To find the matrix element, we take the inner product with $\bra{b'_1 b'_2 \cdots b'_n}$. For each qubit $i$, the $\ket{1}$ component is selected if and only if $b'_i = 1$, which mathematically corresponds to multiplying the entire phase exponent by $b'_i$. Thus, we obtain:
+    \begin{align}
+        &\bra{b'_1 b'_2 \cdots b'_n} \uqc{L}(\bm \theta) \ket{b_1 b_2\cdots b_n}\notag\\
+        =& \frac{1}{\sqrt{2^n}} \prod_{i=1}^n \exp\left[ \pi \ii b_i b'_i + \ii \sum_{j \in \bar{\Lambda}_{l(i)}} \theta_{ij} b'_i b_j \right]\\
+        =& \frac{1}{\sqrt{2^n}} \exp\left[ \ii \pi \sum_{i=1}^n b_i b'_i + \ii \sum_{l=1}^{L-1} \sum_{i \in \Lambda_l} \sum_{j \in \bar{\Lambda}_l} \theta_{ij} b'_i b_j \right].
+    \end{align}
+    
+    To simplify the notation for the matrix elements while respecting the sequential asymmetry of the circuit (where each qubit pair interacts only once), we define a directed effective phase matrix $\tilde{\Theta}$ whose elements are given by:
+    \begin{equation}
+        \tilde{\theta}_{ij} = \begin{cases}
+            \theta_{ij}, & \text{if } i \in \Lambda_{l(i)}, j \in \bar{\Lambda}_{l(i)} \text{ (i.e., } l(i) < l(j)) \\
+            \pi, & \text{if } i = j \\
+            0, & \text{otherwise (i.e., } l(i) \ge l(j)).
+        \end{cases}
+    \end{equation}
+    Using this effective matrix, the exponent can be compactly written as a full summation over all $i, j$:
+    \begin{equation}
+        \bra{b'_1 b'_2 \cdots b'_n} \uqc{L}(\bm \theta) \ket{b_1 b_2\cdots b_n} = \frac{1}{\sqrt{2^n}}\exp\left[ \ii \sum_{i, j} \tilde{\theta}_{ij} b'_i b_j \right].
+    \end{equation}
+    
+    The shift invariance requires that the probability distribution over the subgroup $V$ is identical to its cosets. First, we compute the squared probability amplitude over $V$:
+    \begin{equation}
+        \left|\bra{x}\uqc{L}(\bm \theta)\ket{V}\right|^2
+        = \frac{1}{2^n |V|}\left|\sum_{y\in V}  \exp\left[ \ii \sum_{i, j} \tilde{\theta}_{ij} x_i y_j \right] \right|^2.
+    \end{equation}
+    
+    Since $V \leq \mathbb{Z}_{2^{n}}$, $V = \{q 2^s \mid q \in \mathbb{Z} \}$ for certain $s \leq n$. Assuming a standard binary encoding where the $s$ least significant bits correspond to the trailing qubits, $y\in V$ can be denoted as $y = y_1y_2\cdots y_{n-s} 0 \cdots 0$, with $y_i \in \{0,1\}$. Similarly, the coset $c + V = \{q 2^s  + c\mid 0 \le c < 2^s, q \in \mathbb{Z} \}$, and its elements $y\in c+V$ can be denoted by matching the trailing bits to the binary representation of $c$, yielding $y = y_1y_2\cdots y_{n-s} c_{n-s+1} \cdots c_n$, with $y_i, c_k \in \{0,1\}$.
+    
+    Therefore, we can expand the squared amplitude for the subgroup $V$:
+    \begin{align}
+        &\left|\bra{x}\uqc{L}(\bm \theta)\ket{V}\right|^2 \notag \\
+        =& \frac{1}{2^n |V|}\left|\sum_{y\in V}  \exp\left[ \ii \sum_{i=1}^n \sum_{j=1}^n \tilde{\theta}_{ij} x_i y_j \right] \right|^2 \\
+        =& \frac{1}{2^n 2^{n-s}}\left| \sum_{y_1, \dots, y_{n-s} \in \{0,1\}} \exp\left[ \ii \sum_{i=1}^n \sum_{j=1}^{n-s} \tilde{\theta}_{ij} x_i y_j \right] \right|^2.
+    \end{align}
+    
+    Evaluating the same expression for the coset $c+V$, we factor out the terms involving the constant bits $c_k$:
+    \begin{align}
+        &\left|\bra{x}\uqc{L}(\bm \theta)\ket{c+V}\right|^2 \notag \\
+        =& \frac{1}{2^n |c+V|}\left|\sum_{y\in c+V}  \exp\left[ \ii \sum_{i=1}^n \sum_{j=1}^n \tilde{\theta}_{ij} x_i y_j \right] \right|^2 \\
+        =& \frac{1}{2^n 2^{n-s}}\left| \exp\left[ \ii \sum_{i=1}^n \sum_{k=n-s+1}^n \tilde{\theta}_{ik} x_i c_k \right] \sum_{y_1, \dots, y_{n-s} \in \{0,1\}} \exp\left[ \ii \sum_{i=1}^n \sum_{j=1}^{n-s} \tilde{\theta}_{ij} x_i y_j \right] \right|^2 \\
+        =& \frac{1}{2^n 2^{n-s}}\left| \exp\left[ \ii \sum_{i=1}^n \sum_{k=n-s+1}^n \tilde{\theta}_{ik} x_i c_k \right] \right|^2 \left| \sum_{y_1, \dots, y_{n-s} \in \{0,1\}} \exp\left[ \ii \sum_{i=1}^n \sum_{j=1}^{n-s} \tilde{\theta}_{ij} x_i y_j \right] \right|^2.
+    \end{align}
+    
+    Because the modulus of the extracted pure phase factor strictly equals $1$, it completely cancels out, yielding:
+    \begin{align}
+        \left|\bra{x}\uqc{L}(\bm \theta)\ket{c+V}\right|^2
+        =& \frac{1}{2^n 2^{n-s}}\left| \sum_{y_1, \dots, y_{n-s} \in \{0,1\}} \exp\left[ \ii \sum_{i=1}^n \sum_{j=1}^{n-s} \tilde{\theta}_{ij} x_i y_j \right] \right|^2 \\
+        =&\left|\bra{x}\uqc{L}(\bm \theta)\ket{V}\right|^2.
+    \end{align}
+    This completes the proof.
 \end{proof}
 
 \section{Transversal Hadamard sampling and efficiency guarantee}
