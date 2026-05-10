@@ -1,89 +1,257 @@
+from __future__ import annotations
+
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any
+
 import numpy as np
-from typing import Callable
+import torch
+from numpy.typing import NDArray
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
+from torch import Tensor
 
-HsProb = Callable[[int, int], float]
+from altqft.nn.unitary_rows import (
+    apply_controlled_phase_rows,
+    apply_hadamard_rows,
+)
 
-def make_prob(circuit: QuantumCircuit, period: int) -> HsProb:
-    """
-    计算给定量子电路的矩阵在指定列上具有shift invariant的概率。
-    
-    Args:
-        circuit (QuantumCircuit): 要检查的量子电路。
-        period (int): 期望的周期长度。
-        
-    Returns:
-        Callable[[int, int], float]: 一个函数，接受列索引和shift值，返回矩阵在该列上具有shift invariant的概率。
-    """
-    U = np.asarray(Operator(circuit).data)
-    N = U.shape[0]
-    num_k = N // period
-    
+FloatArray = NDArray[np.float64]
+ProbFunc = Callable[[int, int], float]
+EPSILON = 1e-12
+SUPPORTED_TORCH_DEVICES = {"auto", "cpu", "cuda", "mps"}
+
+
+def _surrogate_support_indices(size: int, period: int, shift: int) -> NDArray[np.int64]:
+    support_count = size // period
+    return shift + np.arange(support_count, dtype=np.int64) * period
+
+
+def _exact_support_indices(size: int, period: int, shift: int) -> NDArray[np.int64]:
+    return np.arange(shift, size, period, dtype=np.int64)
+
+
+def _probability_vector_from_support(unitary: np.ndarray, support_indices: NDArray[np.int64]) -> FloatArray:
+    if support_indices.size < 1:
+        raise ValueError("support_indices must not be empty")
+    amplitudes = unitary[:, support_indices].sum(axis=1)
+    return np.asarray(np.abs(amplitudes) ** 2 / float(support_indices.size), dtype=np.float64)
+
+
+def _probability_vector(unitary: np.ndarray, period: int, shift: int) -> FloatArray:
+    support_indices = _surrogate_support_indices(unitary.shape[1], period, shift)
+    return _probability_vector_from_support(unitary, support_indices)
+
+
+def resolve_compute_device(device: str = "auto") -> str:
+    normalized = device.lower()
+    if normalized not in SUPPORTED_TORCH_DEVICES:
+        supported = ", ".join(sorted(SUPPORTED_TORCH_DEVICES))
+        raise ValueError(f"unsupported device '{device}', expected one of: {supported}")
+
+    if normalized == "auto":
+        if torch.cuda.is_available():
+            return "cuda"
+        mps_backend = getattr(torch.backends, "mps", None)
+        if mps_backend is not None and mps_backend.is_available():
+            return "mps"
+        return "cpu"
+
+    if normalized == "cuda" and not torch.cuda.is_available():
+        raise ValueError("cuda requested but no CUDA device is available")
+
+    if normalized == "mps":
+        mps_backend = getattr(torch.backends, "mps", None)
+        if mps_backend is None or not mps_backend.is_available():
+            raise ValueError("mps requested but no MPS device is available")
+
+    return normalized
+
+
+def available_cuda_device_count() -> int:
+    if not torch.cuda.is_available():
+        return 0
+    return int(torch.cuda.device_count())
+
+
+def _torch_surrogate_support_indices(
+    size: int,
+    period: int,
+    shift: int,
+    *,
+    device: torch.device,
+) -> Tensor:
+    support_count = size // period
+    return shift + torch.arange(
+        support_count,
+        device=device,
+        dtype=torch.long,
+    ) * period
+
+
+def _torch_exact_support_indices(
+    size: int,
+    period: int,
+    shift: int,
+    *,
+    device: torch.device,
+) -> Tensor:
+    return torch.arange(shift, size, period, device=device, dtype=torch.long)
+
+
+def _torch_probability_vector_from_support(unitary: Tensor, support_indices: Tensor) -> Tensor:
+    if support_indices.numel() < 1:
+        raise ValueError("support_indices must not be empty")
+    amplitudes = unitary.index_select(1, support_indices).sum(dim=1)
+    return amplitudes.abs().pow(2) / float(support_indices.numel())
+
+
+def _torch_probability_vector(unitary: Tensor, period: int, shift: int) -> Tensor:
+    support_indices = _torch_surrogate_support_indices(
+        unitary.shape[1],
+        period,
+        shift,
+        device=unitary.device,
+    )
+    return _torch_probability_vector_from_support(unitary, support_indices)
+
+
+def _torch_fi(prob1: Tensor, prob2: Tensor) -> Tensor:
+    denominator = prob1.clamp_min(EPSILON)
+    return ((prob1 - prob2).pow(2) / denominator).sum()
+
+
+def _qubit_index(circuit: QuantumCircuit, qubit: Any) -> int:
+    return int(circuit.find_bit(qubit).index)
+
+
+def _fallback_torch_unitary(circuit: QuantumCircuit, device: torch.device) -> Tensor:
+    return torch.tensor(
+        np.asarray(Operator(circuit).data),
+        dtype=torch.complex64,
+        device=device,
+    )
+
+
+def _torch_unitary(circuit: QuantumCircuit, device_name: str) -> Tensor:
+    device = torch.device(device_name)
+    size = 1 << circuit.num_qubits
+    unitary = torch.eye(size, dtype=torch.complex64, device=device)
+
+    for instruction in circuit.data:
+        operation = instruction.operation
+        op_name = operation.name.lower()
+
+        if op_name == "h":
+            qubit = _qubit_index(circuit, instruction.qubits[0])
+            unitary = apply_hadamard_rows(unitary, qubit)
+            continue
+
+        if op_name == "cp":
+            control = _qubit_index(circuit, instruction.qubits[0])
+            target = _qubit_index(circuit, instruction.qubits[1])
+            theta = float(operation.params[0])
+            unitary = apply_controlled_phase_rows(unitary, control, target, theta)
+            continue
+
+        return _fallback_torch_unitary(circuit, device)
+
+    return unitary
+
+
+def _fisher_for_period_torch(circuit: QuantumCircuit, period: int, device_name: str) -> float:
+    unitary = _torch_unitary(circuit, device_name)
+    first = _torch_probability_vector(unitary, period, 0)
+    second = _torch_probability_vector(unitary, period + 1, 0)
+    return float(_torch_fi(first, second).item())
+
+
+def _min_fi_torch(circuit: QuantumCircuit, period_range: Iterable[int], device_name: str) -> float:
+    periods = tuple(period_range)
+    if not periods:
+        raise ValueError("period_range must not be empty")
+
+    unitary = _torch_unitary(circuit, device_name)
+    fi_values = [
+        _torch_fi(
+            _torch_probability_vector(unitary, period, 0),
+            _torch_probability_vector(unitary, period + 1, 0),
+        )
+        for period in periods
+    ]
+    return float(torch.stack(fi_values).amin().item())
+
+
+def probability_distribution(probability: ProbFunc, size: int, shift: int = 0) -> FloatArray:
+    return np.fromiter(
+        (probability(column, shift) for column in range(size)),
+        dtype=float,
+        count=size,
+    )
+
+
+def _fisher_for_period(circuit: QuantumCircuit, period: int, size: int) -> float:
+    return fi(
+        probability_distribution(make_prob(circuit, period), size),
+        probability_distribution(make_prob(circuit, period + 1), size),
+    )
+
+
+def make_prob(
+    circuit: QuantumCircuit,
+    period: int,
+    *,
+    exact_support: bool = False,
+) -> ProbFunc:
+    unitary = np.asarray(Operator(circuit).data)
+    cache: dict[int, FloatArray] = {}
+
     def prob(col: int, shift: int) -> float:
-        effect_elements = np.array([U[shift + k * period, col] for k in range(num_k)])
-        
-        sum_val = sum(effect_elements)
-        return (np.abs(sum_val) ** 2) / num_k
-        
+        values = cache.setdefault(
+            shift,
+            (
+                _probability_vector_from_support(
+                    unitary,
+                    _exact_support_indices(unitary.shape[1], period, shift),
+                )
+                if exact_support
+                else _probability_vector(unitary, period, shift)
+            ),
+        )
+        return float(values[col])
+
     return prob
 
-def _get_N(prob: Callable) -> int:
-    col = 0
-    while True:
-        try:
-            prob(col, 0)
-            col += 1
-        except IndexError:
-            return col
 
-def discrete_fisher_info(prob: HsProb, period: int) -> float:
-    """
-    计算给定概率分布关于离散参数 shift 的离散 Fisher Information (平均值)。
-    参数 theta = shift, 观测值 x = col。
-    """
-    N = _get_N(prob)
-    total_fisher = 0.0
-    
-    # Since the circuit is shift invariance. we can use shift=0 t0 calculate
-    shift = 0 
-    next_shift = (shift + 1) % period  
-    
-    fisher_shift = 0.0
-    for col in range(N):
-        p_theta = prob(col, shift)
-        p_theta_next = prob(col, next_shift)
-        
-        if p_theta > 1e-12:  
-            diff = p_theta_next - p_theta
-            fisher_shift += p_theta * (diff / p_theta) ** 2
-            
-    total_fisher += fisher_shift
-
-    return total_fisher / period
+def circuit_probability_distribution(
+    circuit: QuantumCircuit,
+    period: int,
+    shift: int = 0,
+    *,
+    exact_support: bool = False,
+) -> FloatArray:
+    size = 1 << circuit.num_qubits
+    return probability_distribution(
+        make_prob(circuit, period, exact_support=exact_support),
+        size,
+        shift=shift,
+    )
 
 
-def cross_entropy(prob: Callable[[int, int], float], period: int) -> float:
-    """
-    计算给定概率分布在相邻离散参数 shift 之间的交叉熵 (平均值)。
-    参数 theta = shift, 观测值 x = col。
-    """
-    N = _get_N(prob)
-    total_ce = 0.0
-    epsilon = 1e-15  # 防止 log(0)
-    
-    # Since the circuit is shift invariance. we can use shift=0 t0 calculate
-    shift = 0 
-    next_shift = (shift + 1) % period
-    
-    ce_shift = 0.0
-    for col in range(N):
-        p_theta = prob(col, shift)
-        p_theta_next = prob(col, next_shift)
-        
-        if p_theta > 1e-12:
-            ce_shift -= p_theta * np.log(p_theta_next + epsilon)
-            
-    total_ce += ce_shift
+def fi(prob1: Sequence[float] | FloatArray, prob2: Sequence[float] | FloatArray) -> float:
+    first = np.asarray(prob1, dtype=float)
+    second = np.asarray(prob2, dtype=float)
+    mask = first > EPSILON
+    return float(np.sum(((first[mask] - second[mask]) ** 2) / first[mask]))
 
-    return total_ce / period
+
+def min_fi(
+    circuit: QuantumCircuit,
+    period_range: Iterable[int],
+    device: str | None = None,
+) -> float:
+    if device is not None:
+        resolved_device = resolve_compute_device(device)
+        return _min_fi_torch(circuit, period_range, resolved_device)
+
+    size = 1 << circuit.num_qubits
+    return min(_fisher_for_period(circuit, period, size) for period in period_range)

@@ -10,6 +10,9 @@ wheels/
 # Virtual environments
 .venv
 
-# Large files
+# Large experiment artifacts
 data/
 model/
+outputs/
+
+# paper
