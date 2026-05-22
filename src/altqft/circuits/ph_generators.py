@@ -66,6 +66,60 @@ def ph_1_parametrized(
     return ph_qc(hlayout, phase_array)
 
 
+def _hp1_shared_distance(control: int, target: int, nqubit: int) -> int:
+    return min(abs(control - target), control - target + nqubit - 1)
+
+
+def _hp1_shared_phase_distances(nqubit: int) -> tuple[int, ...]:
+    controls = tuple(index for index in range(nqubit) if index % 2 == 0)
+    targets = tuple(index for index in range(nqubit) if index % 2 == 1)
+
+    return tuple(
+        sorted(
+            {
+                _hp1_shared_distance(control, target, nqubit)
+                for control in controls
+                for target in targets
+                if _hp1_shared_distance(control, target, nqubit) < nqubit / 3
+            }
+        )
+    )
+
+
+def HP1_shared_parameter(
+    nqubit: int,
+    phases: Sequence[float] | np.ndarray,
+) -> QuantumCircuit:
+    controls = tuple(index for index in range(nqubit) if index % 2 == 0)
+    targets = tuple(index for index in range(nqubit) if index % 2 == 1)
+    phase_distances = _hp1_shared_phase_distances(nqubit)
+    distance_to_phase_index = {
+        distance: index for index, distance in enumerate(phase_distances)
+    }
+    phase_array = np.asarray(phases, dtype=float)
+    expected_phase_count = len(phase_distances)
+
+    if phase_array.shape != (expected_phase_count,):
+        raise ValueError(
+            f"HP1_shared_parameter expects {expected_phase_count} phases, "
+            f"got {phase_array.size}"
+        )
+
+    qc = QuantumCircuit(nqubit)
+
+    for control in controls:
+        qc.h(control)
+        for target in targets:
+            distance = _hp1_shared_distance(control, target, nqubit)
+            if distance < nqubit / 3:
+                qc.cp(phase_array[distance_to_phase_index[distance]], control, target)
+
+    for target in targets:
+        qc.h(target)
+
+    return qc
+
+
 def ph_random(nqubit: int, nlayer: int) -> QuantumCircuit:
     return ph_phase(_random_layout(nqubit, nlayer))
 
