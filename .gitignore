@@ -12,7 +12,8 @@ wheels/
 
 # Large experiment artifacts
 data/
-model/
+model/*
+!model/README.md
 outputs/
 
 # paper

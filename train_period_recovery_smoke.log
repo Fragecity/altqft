@@ -1,2 +1,0 @@
-2026-03-30 18:34:57,893 | INFO | phase_path=model/ph1_min_fi_10q_phases.json train_dataset=data/period_recovery/period_recovery_10q_m102400_train16_val8_seed7_train.pt val_dataset=data/period_recovery/period_recovery_10q_m102400_train16_val8_seed7_val.pt
-2026-03-30 18:34:57,893 | INFO | top1=0.1250 top3=0.2500 model_path=model/period_recovery_10q.pt history_path=outputs/period_recovery_10q_history.json

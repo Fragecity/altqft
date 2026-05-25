@@ -10,7 +10,7 @@ import torch
 from qiskit.quantum_info import Statevector
 
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, ensure_optimized_ph1
-from altqft.nn.period_recovery import DeepSetPeriodPredictor
+from altqft.nn.period_decoder import DeepSetPeriodPredictor
 from altqft.nn.periods import build_period_range, period_range_artifact_suffix
 
 

@@ -24,6 +24,7 @@ def test_choose_coprime_order_finding_a_prefers_in_range_period() -> None:
         2021,
         (43, 47),
         candidate_periods=tuple(range(11, 121)),
+        default_a=None,
     )
 
     assert selection is not None
@@ -35,25 +36,38 @@ def test_choose_coprime_order_finding_a_prefers_in_range_period() -> None:
 def test_order_finding_semiprimes_reports_uncovered_cases() -> None:
     module = load_script_module()
 
-    cases, uncovered_cases = module.order_finding_semiprimes(
+    cases, uncovered_cases, default_a_cases = module.order_finding_semiprimes(
         15,
         15,
         candidate_periods=tuple(range(11, 121)),
+        default_a=None,
     )
 
     assert cases == []
     assert uncovered_cases == [15]
+    assert default_a_cases == []
 
 
 def test_main_clips_stop_to_nqubit_state_space(monkeypatch, capsys) -> None:
     module = load_script_module()
     seen: dict[str, object] = {}
 
-    def fake_order_finding_semiprimes(start: int, stop: int, *, candidate_periods):
+    def fake_order_finding_semiprimes(
+        start: int,
+        stop: int,
+        *,
+        candidate_periods,
+        default_a,
+    ):
         seen["start"] = start
         seen["stop"] = stop
         seen["candidate_periods"] = tuple(candidate_periods)
-        return [module.SemiprimeCase(N=2047, prime_factors=(23, 89), a=3, order=94)], []
+        seen["default_a"] = default_a
+        return (
+            [module.SemiprimeCase(N=2047, prime_factors=(23, 89), a=3, order=94)],
+            [],
+            [],
+        )
 
     def fake_run_shor_with_ph1(config):
         seen["config_N"] = config.N
@@ -75,9 +89,10 @@ def test_main_clips_stop_to_nqubit_state_space(monkeypatch, capsys) -> None:
     assert seen["start"] == 2045
     assert seen["stop"] == 2048
     assert seen["candidate_periods"] == tuple(range(11, 121))
+    assert seen["default_a"] == 13
     assert seen["config_N"] == 2047
     assert "requested_stop=2055" in output
     assert "effective_stop=2048" in output
     assert "state_space_limit=2048" in output
     assert "requested_N_range=2049..2055" in output
-    assert "covered_cases=1" in output
+    assert "summary cases=1" in output

@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
+from typing import cast
 
 import pytest
 import torch
 
 import altqft.nn.train as train
-from altqft.nn.model import shift_ce_mean_loss_from_distributions
+from altqft.nn.model import (
+    PH1MinFIModel,
+    shift_ce_mean_loss_from_distributions,
+    shift_ce_sum_loss_from_distributions,
+)
 
 
 class DummyModel(torch.nn.Module):
@@ -103,7 +109,7 @@ def test_run_training_tracks_best_checkpoint(monkeypatch: pytest.MonkeyPatch) ->
     optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
 
     history, best_checkpoint = train.run_training(
-        model,
+        cast(PH1MinFIModel, model),
         optimizer,
         config,
         logging.getLogger("altqft.nn.train.test"),
@@ -113,6 +119,71 @@ def test_run_training_tracks_best_checkpoint(monkeypatch: pytest.MonkeyPatch) ->
     assert best_checkpoint.epoch == 2
     assert best_checkpoint.min_fi == pytest.approx(0.35)
     assert best_checkpoint.phases == pytest.approx([0.35, -0.35])
+
+
+def test_run_training_counts_patience_after_min_epochs(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_train_step(
+        model: DummyModel,
+        optimizer: torch.optim.Optimizer,
+        config: train.TrainConfig,
+    ) -> tuple[float, float | None, float | None]:
+        del model, optimizer, config
+        return 1.0, None, None
+
+    monkeypatch.setattr(train, "train_step", fake_train_step)
+
+    config = train.TrainConfig(
+        nqubit=4,
+        period_range=[2, 3],
+        epochs=10,
+        log_interval=10,
+        train_device="cpu",
+        min_epochs=3,
+        early_stopping_patience=2,
+    )
+    model = DummyModel(config.nqubit)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+
+    history, best_checkpoint = train.run_training(
+        cast(PH1MinFIModel, model),
+        optimizer,
+        config,
+        logging.getLogger("altqft.nn.train.test"),
+    )
+
+    assert train.training_progress_total(config) == 5
+    assert len(history) == 5
+    assert best_checkpoint.epoch == 1
+
+
+def test_save_model_artifacts_updates_model_registry(tmp_path: Path) -> None:
+    config = train.TrainConfig(
+        nqubit=4,
+        period_range=[2, 3],
+        model_dir=tmp_path / "model",
+        data_dir=tmp_path / "data",
+        output_dir=tmp_path / "outputs",
+        model_stem="unit_hp1",
+        train_device="cpu",
+    )
+    train.prepare_output_dirs(config)
+    checkpoint = train.ModelCheckpoint(
+        epoch=4,
+        loss=-1.25,
+        min_fi=2.5,
+        mean_shift_l1=None,
+        state_dict={"phases": torch.tensor([0.1, 0.2])},
+        phases=[0.1, 0.2],
+    )
+
+    train.save_model_artifacts(config, checkpoint)
+
+    registry = (config.model_dir / "README.md").read_text(encoding="utf-8")
+    assert config.model_path.exists()
+    assert config.phase_path.exists()
+    assert "| unit_hp1_4q_p2-3_phases.json | unit_hp1_4q_p2-3.pt |" in registry
+    assert "| Parameter file | Checkpoint | Model | Objective |" in registry
+    assert "2.5" in registry
 
 
 def test_shift_ce_mean_loss_penalizes_mismatched_shift_distributions() -> None:
@@ -134,6 +205,23 @@ def test_shift_ce_mean_loss_penalizes_mismatched_shift_distributions() -> None:
     identical_loss, identical_l1 = shift_ce_mean_loss_from_distributions(identical)
     mismatched_loss, mismatched_l1 = shift_ce_mean_loss_from_distributions(mismatched)
 
+    assert identical_loss == pytest.approx(0.0)
     assert mismatched_loss > identical_loss
     assert identical_l1 == pytest.approx(0.0)
     assert mismatched_l1 > 0.0
+
+
+def test_shift_ce_sum_loss_is_zero_for_identical_shift_distributions() -> None:
+    identical = torch.tensor(
+        [
+            [0.25, 0.75],
+            [0.25, 0.75],
+            [0.25, 0.75],
+        ],
+        dtype=torch.float32,
+    )
+
+    loss, mean_l1 = shift_ce_sum_loss_from_distributions(identical)
+
+    assert loss == pytest.approx(0.0)
+    assert mean_l1 == pytest.approx(0.0)

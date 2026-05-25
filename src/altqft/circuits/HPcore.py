@@ -37,7 +37,7 @@ def _apply_layer(
     return phase_index
 
 
-def ph_qc(hlayout: Sequence[int], phase: PhaseInput) -> QuantumCircuit:
+def HPqc(hlayout: Sequence[int], phase: PhaseInput) -> QuantumCircuit:
     qc = QuantumCircuit(len(hlayout))
     phase_index = 0
 
@@ -56,7 +56,7 @@ def ph_qc(hlayout: Sequence[int], phase: PhaseInput) -> QuantumCircuit:
     return qc
 
 
-def ph_phase(hlayout: Sequence[int]) -> QuantumCircuit:
+def HPphase(hlayout: Sequence[int]) -> QuantumCircuit:
     phases = np.fromiter(
         (
             np.pi / (2 ** abs(target - control))
@@ -67,4 +67,4 @@ def ph_phase(hlayout: Sequence[int]) -> QuantumCircuit:
         dtype=float,
         count=count_required_phases(hlayout),
     )
-    return ph_qc(hlayout, phases)
+    return HPqc(hlayout, phases)

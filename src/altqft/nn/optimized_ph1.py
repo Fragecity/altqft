@@ -7,7 +7,7 @@ from typing import Any
 
 from qiskit import QuantumCircuit
 
-from altqft.circuits.ph_generators import ph_1_parametrized
+from altqft.circuits.HPgenerators import HP1_parametrized, HP1_shared_parameter
 from altqft.nn.periods import build_default_period_range
 from altqft.nn.train import TrainConfig, train_model
 
@@ -47,6 +47,7 @@ def phase_artifact_is_current(
     objective: str,
     exact_support: bool,
     variant_tag: str | None,
+    ansatz: str = "HP1",
 ) -> bool:
     if payload is None:
         return False
@@ -61,11 +62,15 @@ def phase_artifact_is_current(
         and payload.get("objective", "min_fi") == objective
         and bool(payload.get("exact_support", False)) == exact_support
         and payload.get("variant_tag") == variant_tag
+        and payload.get("ansatz", "HP1") == ansatz
     )
 
 
-def _default_model_stem(objective: str) -> str:
-    return "ph1_min_fi" if objective == "min_fi" else f"ph1_{objective}"
+def _default_model_stem(objective: str, ansatz: str) -> str:
+    prefix = "hp1_shared" if ansatz == "HP1_shared" else "ph1"
+    if objective == "min_fi" and prefix == "ph1":
+        return "ph1_min_fi"
+    return f"{prefix}_{objective}"
 
 
 def build_fi_train_config(
@@ -84,6 +89,11 @@ def build_fi_train_config(
     variant_tag: str | None = None,
     model_stem: str | None = None,
     train_device: str = "auto",
+    ansatz: str = "HP1",
+    min_fi_weight: float = 1.0,
+    shift_inv_weight: float | None = None,
+    shift_inv_period_samples: int = 4,
+    shift_inv_shift_samples: int = 4,
 ) -> TrainConfig:
     return TrainConfig(
         nqubit=nqubit,
@@ -98,9 +108,20 @@ def build_fi_train_config(
         objective=objective,
         exact_support=exact_support,
         variant_tag=variant_tag,
-        model_stem=model_stem or _default_model_stem(objective),
+        model_stem=model_stem or _default_model_stem(objective, ansatz),
         train_device=train_device,
+        ansatz=ansatz,
+        min_fi_weight=min_fi_weight,
+        shift_inv_weight=shift_inv_weight,
+        shift_inv_period_samples=shift_inv_period_samples,
+        shift_inv_shift_samples=shift_inv_shift_samples,
     )
+
+
+def _circuit_from_config(config: TrainConfig, phase_values: list[float]) -> QuantumCircuit:
+    if config.ansatz == "HP1_shared":
+        return HP1_shared_parameter(config.nqubit, phase_values)
+    return HP1_parametrized(config.nqubit, phase_values)
 
 
 def _artifact_from_payload(
@@ -121,7 +142,7 @@ def _artifact_from_payload(
         nqubit=config.nqubit,
         period_range=list(config.period_range),
         phases=phase_values,
-        circuit=ph_1_parametrized(config.nqubit, phase_values),
+        circuit=_circuit_from_config(config, phase_values),
         objective=str(payload.get("objective", config.objective)),
         exact_support=bool(payload.get("exact_support", config.exact_support)),
         variant_tag=payload.get("variant_tag"),
@@ -154,6 +175,11 @@ def ensure_optimized_ph1(
     variant_tag: str | None = None,
     model_stem: str | None = None,
     train_device: str = "auto",
+    ansatz: str = "HP1",
+    min_fi_weight: float = 1.0,
+    shift_inv_weight: float | None = None,
+    shift_inv_period_samples: int = 4,
+    shift_inv_shift_samples: int = 4,
 ) -> OptimizedPH1Artifact:
     config = build_fi_train_config(
         nqubit,
@@ -170,6 +196,11 @@ def ensure_optimized_ph1(
         variant_tag=variant_tag,
         model_stem=model_stem,
         train_device=train_device,
+        ansatz=ansatz,
+        min_fi_weight=min_fi_weight,
+        shift_inv_weight=shift_inv_weight,
+        shift_inv_period_samples=shift_inv_period_samples,
+        shift_inv_shift_samples=shift_inv_shift_samples,
     )
     payload = load_phase_payload(config.phase_path)
 
@@ -180,6 +211,7 @@ def ensure_optimized_ph1(
         objective=config.objective,
         exact_support=config.exact_support,
         variant_tag=config.variant_tag,
+        ansatz=config.ansatz,
     ):
         assert payload is not None
         return _artifact_from_payload(

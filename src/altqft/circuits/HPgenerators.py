@@ -6,7 +6,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 
 from altqft.circuits.layouts import alternating_layout, count_required_phases
-from altqft.circuits.ph_core import ph_phase, ph_qc
+from altqft.circuits.HPcore import HPphase, HPqc
 
 
 def _uniform_phases(size: int) -> np.ndarray:
@@ -37,33 +37,33 @@ def _layout_with_all_layers(nqubit: int, nlayer: int) -> list[int]:
     return [int(value) for value in hlayout]
 
 
-def ph_1_hlayout(nqubit: int) -> list[int]:
+def HP1_hlayout(nqubit: int) -> list[int]:
     return alternating_layout(nqubit)
 
 
 def qft(nqubit: int) -> QuantumCircuit:
-    return ph_qc(list(range(nqubit)), _qft_phases(nqubit))
+    return HPqc(list(range(nqubit)), _qft_phases(nqubit))
 
 
-def ph_1(nqubit: int) -> QuantumCircuit:
-    return ph_phase(ph_1_hlayout(nqubit))
+def HP1(nqubit: int) -> QuantumCircuit:
+    return HPphase(HP1_hlayout(nqubit))
 
 
-def ph_1_parametrized(
+def HP1_parametrized(
     nqubit: int,
     phases: Sequence[float] | np.ndarray,
 ) -> QuantumCircuit:
-    hlayout = ph_1_hlayout(nqubit)
+    hlayout = HP1_hlayout(nqubit)
     phase_array = np.asarray(phases, dtype=float)
     expected_phase_count = count_required_phases(hlayout)
 
     if phase_array.shape != (expected_phase_count,):
         raise ValueError(
-            f"ph_1_parametrized expects {expected_phase_count} phases, "
+            f"HP1_parametrized expects {expected_phase_count} phases, "
             f"got {phase_array.size}"
         )
 
-    return ph_qc(hlayout, phase_array)
+    return HPqc(hlayout, phase_array)
 
 
 def _hp1_shared_distance(control: int, target: int, nqubit: int) -> int:
@@ -84,6 +84,14 @@ def _hp1_shared_phase_distances(nqubit: int) -> tuple[int, ...]:
             }
         )
     )
+
+
+def HP1_shared_phase_distances(nqubit: int) -> tuple[int, ...]:
+    return _hp1_shared_phase_distances(nqubit)
+
+
+def HP1_shared_phase_count(nqubit: int) -> int:
+    return len(HP1_shared_phase_distances(nqubit))
 
 
 def HP1_shared_parameter(
@@ -120,18 +128,18 @@ def HP1_shared_parameter(
     return qc
 
 
-def ph_random(nqubit: int, nlayer: int) -> QuantumCircuit:
-    return ph_phase(_random_layout(nqubit, nlayer))
+def HPrandom(nqubit: int, nlayer: int) -> QuantumCircuit:
+    return HPphase(_random_layout(nqubit, nlayer))
 
 
-def ph_1_random(nqubit: int) -> QuantumCircuit:
-    hlayout = ph_1_hlayout(nqubit)
-    return ph_qc(hlayout, _uniform_phases(count_required_phases(hlayout)))
+def HP1_random(nqubit: int) -> QuantumCircuit:
+    hlayout = HP1_hlayout(nqubit)
+    return HPqc(hlayout, _uniform_phases(count_required_phases(hlayout)))
 
 
-def ph_random_phase(nqubit: int, nlayer: int) -> QuantumCircuit:
+def HPrandom_phase(nqubit: int, nlayer: int) -> QuantumCircuit:
     if nlayer >= nqubit:
         raise ValueError("nlayer must be smaller than nqubit")
 
     hlayout = _layout_with_all_layers(nqubit, nlayer)
-    return ph_qc(hlayout, _uniform_phases(count_required_phases(hlayout)))
+    return HPqc(hlayout, _uniform_phases(count_required_phases(hlayout)))

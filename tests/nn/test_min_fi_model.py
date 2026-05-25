@@ -4,7 +4,7 @@ import pytest
 import torch
 from qiskit.quantum_info import Operator
 
-from altqft.circuits.ph_generators import ph_1_parametrized
+from altqft.circuits.HPgenerators import HP1_parametrized
 from altqft.nn.model import PH1MinFIModel
 from altqft.nn.periods import build_default_period_range
 from altqft.nn.process_qc import min_fi
@@ -15,7 +15,7 @@ def test_ph1_min_fi_model_matches_qiskit_circuit() -> None:
     model = PH1MinFIModel(nqubit=4, init_phases=phases)
 
     torch_operator = model.build_unitary().detach().cpu().numpy()
-    qiskit_operator = Operator(ph_1_parametrized(4, phases)).data
+    qiskit_operator = Operator(HP1_parametrized(4, phases)).data
 
     assert torch_operator.shape == qiskit_operator.shape
     assert torch.allclose(
@@ -38,7 +38,7 @@ def test_ph1_min_fi_model_matches_process_qc_min_fi() -> None:
     period_range = build_default_period_range(4)
     model = PH1MinFIModel(nqubit=4, init_phases=phases)
 
-    expected = min_fi(ph_1_parametrized(4, phases), period_range, device="cpu")
+    expected = min_fi(HP1_parametrized(4, phases), period_range, device="cpu")
     actual = float(model(period_range).detach().cpu().item())
 
     assert actual == pytest.approx(expected, rel=1e-6, abs=1e-6)

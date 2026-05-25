@@ -82,3 +82,85 @@ def apply_controlled_phase_rows(
         active_values * _phase_factor(theta, unitary.device),
     )
     return updated
+
+
+def apply_hadamard_state(state: Tensor, qubit: int) -> Tensor:
+    lower_rows, upper_rows = paired_row_indices(
+        state.shape[0],
+        qubit,
+        state.device,
+    )
+    lower_values = state.index_select(0, lower_rows)
+    upper_values = state.index_select(0, upper_rows)
+    scale = 1.0 / math.sqrt(2.0)
+
+    updated = state.clone()
+    updated.index_copy_(0, lower_rows, (lower_values + upper_values) * scale)
+    updated.index_copy_(0, upper_rows, (lower_values - upper_values) * scale)
+    return updated
+
+
+def apply_controlled_phase_state(
+    state: Tensor,
+    control: int,
+    target: int,
+    theta: PhaseAngle,
+) -> Tensor:
+    active_rows = phase_row_indices(
+        state.shape[0],
+        control,
+        target,
+        state.device,
+    )
+    if active_rows.numel() == 0:
+        return state
+
+    updated = state.clone()
+    active_values = state.index_select(0, active_rows)
+    updated.index_copy_(
+        0,
+        active_rows,
+        active_values * _phase_factor(theta, state.device),
+    )
+    return updated
+
+
+def apply_hadamard_state_batch(states: Tensor, qubit: int) -> Tensor:
+    lower_rows, upper_rows = paired_row_indices(
+        states.shape[1],
+        qubit,
+        states.device,
+    )
+    lower_values = states.index_select(1, lower_rows)
+    upper_values = states.index_select(1, upper_rows)
+    scale = 1.0 / math.sqrt(2.0)
+
+    updated = states.clone()
+    updated.index_copy_(1, lower_rows, (lower_values + upper_values) * scale)
+    updated.index_copy_(1, upper_rows, (lower_values - upper_values) * scale)
+    return updated
+
+
+def apply_controlled_phase_state_batch(
+    states: Tensor,
+    control: int,
+    target: int,
+    theta: PhaseAngle,
+) -> Tensor:
+    active_rows = phase_row_indices(
+        states.shape[1],
+        control,
+        target,
+        states.device,
+    )
+    if active_rows.numel() == 0:
+        return states
+
+    updated = states.clone()
+    active_values = states.index_select(1, active_rows)
+    updated.index_copy_(
+        1,
+        active_rows,
+        active_values * _phase_factor(theta, states.device),
+    )
+    return updated

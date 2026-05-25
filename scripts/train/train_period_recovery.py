@@ -345,7 +345,7 @@ def main() -> None:
     )
     if args.dataset_only:
         print(
-            f"ph_status={'reused' if optimized_ph1.reused_existing else 'trained'} "
+            f"HPstatus={'reused' if optimized_ph1.reused_existing else 'trained'} "
             f"phase_path={optimized_ph1.phase_path}"
         )
         print(f"period_range={dataset_config.candidate_periods}")
@@ -360,7 +360,7 @@ def main() -> None:
     artifacts = train_period_recovery(train_config, dataset_artifacts, optimized_ph1)
 
     print(
-        f"ph_status={'reused' if optimized_ph1.reused_existing else 'trained'} "
+        f"HPstatus={'reused' if optimized_ph1.reused_existing else 'trained'} "
         f"phase_path={optimized_ph1.phase_path}"
     )
     print(f"period_range={dataset_config.candidate_periods}")

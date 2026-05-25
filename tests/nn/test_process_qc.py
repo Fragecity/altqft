@@ -15,7 +15,7 @@ from altqft.algorithms.shor_ph1 import (
     _collapsed_periodic_state,
     _modular_exponentiation_outputs,
 )
-from altqft.circuits.ph_generators import qft
+from altqft.circuits.HPgenerators import qft
 from altqft.nn.process_qc import (
     _exact_support_indices,
     _surrogate_support_indices,

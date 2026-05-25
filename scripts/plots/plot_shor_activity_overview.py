@@ -400,7 +400,6 @@ def draw_activity_overview(
     columns = math.ceil(len(cells) / rows)
     width = columns * CELL_STEP
     height = rows * CELL_STEP
-    max_k = max((cell.minimal_k or 0) for cell in cells if cell.status == "solved")
     total_semiprimes, covered_cases, uncovered_cases, top1_successes, topk_successes = build_summary(dataset, cells)
     top1_rate = 100.0 * top1_successes / covered_cases if covered_cases else 0.0
     topk_rate = 100.0 * topk_successes / covered_cases if covered_cases else 0.0

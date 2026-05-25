@@ -5,20 +5,22 @@ from pathlib import Path
 
 import torch
 
-from altqft.circuits.ph_generators import ph_1_parametrized
+from altqft.circuits.HPgenerators import HP1_parametrized
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, phase_artifact_is_current
-from altqft.nn.period_recovery import (
+from altqft.nn.period_decoder import (
     DeepSetPeriodPredictor,
+    compact_label_bit_width,
+    decode_topk_periods,
+    period_bit_loss,
+    period_class_loss,
+)
+from altqft.nn.period_recovery import (
     PoolBackedPeriodDataset,
     PeriodRecoveryDatasetConfig,
     PeriodRecoveryTrainConfig,
-    compact_label_bit_width,
-    decode_topk_periods,
     generate_period_recovery_dataset,
     load_cached_dataset,
     load_shift_pool_manifest,
-    period_class_loss,
-    period_bit_loss,
     summarize_bitmatrix_dataset,
     topk_accuracy,
     train_period_recovery,
@@ -40,7 +42,7 @@ def build_optimized_artifact(
         nqubit=nqubit,
         period_range=resolved_period_range,
         phases=phases,
-        circuit=ph_1_parametrized(nqubit, phases),
+        circuit=HP1_parametrized(nqubit, phases),
         objective="min_fi",
         exact_support=exact_support,
         variant_tag=variant_tag,

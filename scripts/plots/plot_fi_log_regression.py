@@ -10,7 +10,7 @@ from typing import Any
 
 INPUT_SVG = Path("figs/fi_fig/fi_vs_nqubits.svg")
 OUTPUT_PLOT = Path("figs/fi_fig/fi_log_regression_plot.pdf")
-OUTPUT_SUMMARY = Path("doc/paper/fi_log_regression_summary.json")
+OUTPUT_SUMMARY = Path("figs/fi_fig/fi_log_regression_summary.json")
 ASYMPTOTIC_QFT_SLOPE = 2.0 * math.log(2.0)
 MATPLOTLIB_MARKERS = {
     "*": "o",
@@ -48,15 +48,15 @@ SERIES_STYLE = {
     "#0081a7": ("ph1", "*"),
     "#1d3557": ("optimized 1ph", "square*"),
     "#00afb9": ("ph1_random", "triangle*"),
-    "#fed9b7": ("ph_random", "diamond*"),
-    "#f07167": ("ph_random_phase", "pentagon*"),
+    "#fed9b7": ("HPrandom", "diamond*"),
+    "#f07167": ("HPrandom_phase", "pentagon*"),
 }
 SERIES_ORDER = [
     "ph1",
     "optimized 1ph",
     "ph1_random",
-    "ph_random",
-    "ph_random_phase",
+    "HPrandom",
+    "HPrandom_phase",
 ]
 
 XTICK_PATTERN = re.compile(
