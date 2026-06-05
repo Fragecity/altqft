@@ -12,6 +12,7 @@ from qiskit.quantum_info import Statevector
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, ensure_optimized_ph1
 from altqft.nn.period_decoder import DeepSetPeriodPredictor
 from altqft.nn.periods import build_period_range, period_range_artifact_suffix
+from altqft.nn.process_qc import _apply_circuit_state
 
 
 @dataclass(slots=True)
@@ -31,6 +32,8 @@ class PH1ShorConfig:
     allow_phase_retraining: bool = True
     variant_tag: str | None = None
     ph1_objective: str = "min_fi"
+    ph1_ansatz: str = "HP1"
+    ph1_model_stem: str | None = None
     exact_support: bool = False
 
     def __post_init__(self) -> None:
@@ -91,11 +94,43 @@ def _period_model_path(config: PH1ShorConfig) -> Path:
     preferred = preferred_root / f"{_period_recovery_run_name(config)}.pt"
     if preferred.exists():
         return preferred
+    distribution_best = (
+        preferred_root / f"period_recovery_distribution_{config.nqubit}q"
+        f"{period_range_artifact_suffix(config.nqubit, config.candidate_periods)}"
+    )
+    if config.variant_tag:
+        distribution_best = Path(f"{distribution_best}_{config.variant_tag}")
+    distribution_best = distribution_best / "best.pt"
+    if distribution_best.exists():
+        return distribution_best
+    distribution_prefix = (
+        f"period_recovery_distribution_{config.nqubit}q"
+        f"{period_range_artifact_suffix(config.nqubit, config.candidate_periods)}_"
+    )
+    matching_distribution_best = sorted(
+        preferred_root.glob(f"{distribution_prefix}*/best.pt")
+    )
+    if matching_distribution_best:
+        return matching_distribution_best[-1]
     fallback_roots = [config.model_dir, config.model_dir / "smoke"]
     for root in fallback_roots:
         candidate = root / f"{_period_recovery_run_name(config)}.pt"
         if candidate.exists():
             return candidate
+        distribution_candidate = (
+            root / f"period_recovery_distribution_{config.nqubit}q"
+            f"{period_range_artifact_suffix(config.nqubit, config.candidate_periods)}"
+        )
+        if config.variant_tag:
+            distribution_candidate = Path(f"{distribution_candidate}_{config.variant_tag}")
+        distribution_candidate = distribution_candidate / "best.pt"
+        if distribution_candidate.exists():
+            return distribution_candidate
+        matching_distribution_candidate = sorted(
+            root.glob(f"{distribution_prefix}*/best.pt")
+        )
+        if matching_distribution_candidate:
+            return matching_distribution_candidate[-1]
     raise FileNotFoundError(
         f"no period recovery checkpoint found for {config.nqubit} qubits and period_range={list(config.candidate_periods)}"
     )
@@ -105,15 +140,28 @@ def _load_period_recovery_model(
     config: PH1ShorConfig,
 ) -> tuple[DeepSetPeriodPredictor, tuple[int, ...], Path]:
     checkpoint_path = _period_model_path(config)
-    payload = torch.load(checkpoint_path, map_location="cpu")
+    payload = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     candidate_periods = payload.get("candidate_periods")
     state_dict = payload.get("state_dict")
-    if not isinstance(candidate_periods, list) or not all(isinstance(value, int) for value in candidate_periods):
+    if not isinstance(candidate_periods, list) or not all(
+        isinstance(value, int) for value in candidate_periods
+    ):
         raise ValueError(f"invalid candidate_periods in {checkpoint_path}")
     if not isinstance(state_dict, dict):
         raise ValueError(f"invalid state_dict in {checkpoint_path}")
 
-    model = DeepSetPeriodPredictor(config.nqubit, len(candidate_periods))
+    model_architecture = payload.get("model_architecture")
+    if model_architecture not in {"legacy", "weighted"}:
+        model_architecture = (
+            "weighted"
+            if any(str(key).startswith("bit_value_embedding") for key in state_dict)
+            else "legacy"
+        )
+    model = DeepSetPeriodPredictor(
+        config.nqubit,
+        len(candidate_periods),
+        architecture=cast(str, model_architecture),
+    )
     model.load_state_dict(cast(dict[str, torch.Tensor], state_dict))
     model.eval()
     return model, tuple(candidate_periods), checkpoint_path
@@ -151,7 +199,9 @@ def _collapsed_periodic_state(
 ) -> tuple[Statevector, tuple[int, ...]]:
     support = tuple(int(index) for index in np.flatnonzero(outputs == work_value))
     if not support:
-        raise ValueError(f"work value {work_value} is not in the modular exponentiation image")
+        raise ValueError(
+            f"work value {work_value} is not in the modular exponentiation image"
+        )
 
     amplitudes = np.zeros(1 << config.nqubit, dtype=np.complex128)
     amplitudes[list(support)] = 1.0 / math.sqrt(len(support))
@@ -163,14 +213,30 @@ def _sample_ph1_bitmatrix(
     state: Statevector,
     optimized_ph1: OptimizedPH1Artifact,
 ) -> np.ndarray:
-    ph1_state = state.evolve(optimized_ph1.circuit)
-    probabilities = np.asarray(ph1_state.probabilities(), dtype=np.float64)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    state_tensor = torch.from_numpy(
+        np.asarray(state.data, dtype=np.complex64)
+    ).to(device=device)
+    try:
+        ph1_state_tensor = _apply_circuit_state(optimized_ph1.circuit, state_tensor)
+        probabilities = ph1_state_tensor.abs().pow(2).cpu().numpy().astype(np.float64)
+    except Exception:
+        ph1_state = state.evolve(optimized_ph1.circuit)
+        probabilities = np.asarray(ph1_state.probabilities(), dtype=np.float64)
     probabilities = probabilities / probabilities.sum()
 
     rng = np.random.default_rng(config.seed + 1)
-    columns = rng.choice(1 << config.nqubit, size=config.measurement_count, p=probabilities)
+    columns = rng.choice(
+        1 << config.nqubit, size=config.measurement_count, p=probabilities
+    )
     bit_positions = np.arange(config.nqubit - 1, -1, -1, dtype=np.int64)
     return ((columns[:, None] >> bit_positions) & 1).astype(np.int8)
+
+
+def _compress_bitmatrix_counts(bitmatrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    patterns, counts = np.unique(bitmatrix, axis=0, return_counts=True)
+    weights = counts.astype(np.float32)
+    return patterns.astype(np.int8, copy=False), weights
 
 
 def _recover_factors_from_period(
@@ -224,6 +290,8 @@ def run_shor_with_ph1(config: PH1ShorConfig) -> PH1ShorResult:
         objective=config.ph1_objective,
         exact_support=config.exact_support,
         variant_tag=config.variant_tag,
+        model_stem=config.ph1_model_stem,
+        ansatz=config.ph1_ansatz,
     )
     model, candidate_periods, checkpoint_path = _load_period_recovery_model(config)
     if candidate_periods != expected_candidate_periods:
@@ -231,7 +299,9 @@ def run_shor_with_ph1(config: PH1ShorConfig) -> PH1ShorResult:
             f"period model candidate_periods={candidate_periods} do not match expected {expected_candidate_periods}"
         )
     if tuple(optimized_ph1.period_range) != candidate_periods:
-        raise ValueError("optimized PH1 period range does not match period recovery checkpoint")
+        raise ValueError(
+            "optimized PH1 period range does not match period recovery checkpoint"
+        )
 
     outputs = _modular_exponentiation_outputs(config)
     measured_work_value = _sample_work_register_value(outputs, seed=config.seed)
@@ -242,12 +312,25 @@ def run_shor_with_ph1(config: PH1ShorConfig) -> PH1ShorResult:
     )
     bitmatrix = _sample_ph1_bitmatrix(config, collapsed_state, optimized_ph1)
 
-    inputs = torch.from_numpy(bitmatrix).unsqueeze(0)
-    top_periods_tensor, _, top_scores_tensor = model.predict_topk_periods(
-        inputs,
-        candidate_periods,
-        config.top_k,
-    )
+    compressed_bits, sample_weights = _compress_bitmatrix_counts(bitmatrix)
+    inputs = torch.from_numpy(compressed_bits).unsqueeze(0)
+    weights = torch.from_numpy(sample_weights).unsqueeze(0)
+    with torch.inference_mode():
+        try:
+            top_periods_tensor, _, top_scores_tensor = model.predict_topk_periods(
+                inputs,
+                candidate_periods,
+                config.top_k,
+                sample_weights=weights,
+            )
+        except TypeError as exc:
+            if "sample_weights" not in str(exc):
+                raise
+            top_periods_tensor, _, top_scores_tensor = model.predict_topk_periods(
+                inputs,
+                candidate_periods,
+                config.top_k,
+            )
     top_periods = tuple(int(value) for value in top_periods_tensor[0].tolist())
     top_scores = tuple(float(value) for value in top_scores_tensor[0].tolist())
 

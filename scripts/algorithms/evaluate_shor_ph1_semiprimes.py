@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -75,6 +76,18 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--data-dir", type=Path, default=Path("data"), help="Data directory.")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs"), help="Output directory.")
     parser.add_argument(
+        "--case-file",
+        type=Path,
+        default=None,
+        help="Optional JSON file with preselected semiprime cases and bases a.",
+    )
+    parser.add_argument(
+        "--results-json",
+        type=Path,
+        default=None,
+        help="Optional path where per-case PH1+NN Shor results are written as JSON.",
+    )
+    parser.add_argument(
         "--variant-tag",
         type=str,
         default=None,
@@ -82,9 +95,21 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--ph1-objective",
-        choices=("min_fi", "shift_ce_mean"),
+        choices=("min_fi", "shift_ce_mean", "hp1_shared_fi_shift"),
         default="min_fi",
         help="Expected PH1 objective for the optimized phase artifact.",
+    )
+    parser.add_argument(
+        "--ph1-ansatz",
+        choices=("HP1", "HP1_shared"),
+        default="HP1",
+        help="Expected PH1 ansatz for the optimized phase artifact.",
+    )
+    parser.add_argument(
+        "--ph1-model-stem",
+        type=str,
+        default=None,
+        help="Optional PH1 model stem for historical artifact names.",
     )
     parser.add_argument(
         "--exact-support",
@@ -210,6 +235,48 @@ def order_finding_semiprimes(
     return cases, uncovered_cases, default_a_cases
 
 
+def load_semiprime_cases(path: Path) -> tuple[list[SemiprimeCase], list[int], list[int]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"case file must contain a JSON object: {path}")
+    raw_cases = payload.get("cases")
+    if not isinstance(raw_cases, list):
+        raise ValueError(f"case file missing cases list: {path}")
+
+    cases: list[SemiprimeCase] = []
+    for item in raw_cases:
+        if not isinstance(item, dict):
+            raise ValueError(f"invalid case entry in {path}: {item!r}")
+        factors = item.get("prime_factors")
+        if (
+            not isinstance(factors, list)
+            or len(factors) != 2
+            or not all(isinstance(value, int) for value in factors)
+        ):
+            raise ValueError(f"invalid prime_factors in {path}: {item!r}")
+        order = item.get("order")
+        cases.append(
+            SemiprimeCase(
+                N=int(item["N"]),
+                prime_factors=tuple(sorted((int(factors[0]), int(factors[1])))),
+                a=int(item["a"]),
+                order=int(order) if order is not None else None,
+                used_default_a=bool(item.get("used_default_a", False)),
+            )
+        )
+    uncovered = payload.get("uncovered_case_ids", [])
+    if not isinstance(uncovered, list) or not all(
+        isinstance(value, int) for value in uncovered
+    ):
+        raise ValueError(f"invalid uncovered_case_ids in {path}")
+    default_a_cases = payload.get("default_a_case_ids", [])
+    if not isinstance(default_a_cases, list) or not all(
+        isinstance(value, int) for value in default_a_cases
+    ):
+        raise ValueError(f"invalid default_a_case_ids in {path}")
+    return cases, uncovered, default_a_cases
+
+
 def max_supported_modulus(nqubit: int) -> int:
     return 1 << nqubit
 
@@ -236,12 +303,30 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_period=resolved_period_max,
         )
     )
-    cases, uncovered_cases, default_a_cases = order_finding_semiprimes(
-        requested_start,
-        effective_stop,
-        candidate_periods=candidate_periods,
-        default_a=int(args.default_a) if args.default_a is not None else None,
-    )
+    if args.case_file is not None:
+        cases, uncovered_cases, default_a_cases = load_semiprime_cases(Path(args.case_file))
+        cases = [
+            case for case in cases if requested_start <= case.N <= effective_stop
+        ]
+        uncovered_cases = [
+            case_id
+            for case_id in uncovered_cases
+            if requested_start <= case_id <= effective_stop
+        ]
+        default_a_cases = [
+            case_id
+            for case_id in default_a_cases
+            if requested_start <= case_id <= effective_stop
+        ]
+        selection_source = str(args.case_file)
+    else:
+        cases, uncovered_cases, default_a_cases = order_finding_semiprimes(
+            requested_start,
+            effective_stop,
+            candidate_periods=candidate_periods,
+            default_a=int(args.default_a) if args.default_a is not None else None,
+        )
+        selection_source = "computed"
 
     print(
         "config "
@@ -259,8 +344,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"default_a={args.default_a} "
         f"variant_tag={args.variant_tag} "
         f"ph1_objective={args.ph1_objective} "
+        f"ph1_ansatz={args.ph1_ansatz} "
+        f"ph1_model_stem={args.ph1_model_stem} "
         f"exact_support={args.exact_support} "
         f"allow_phase_retraining={args.allow_phase_retraining} "
+        f"selection_source={selection_source} "
         f"select_only={args.select_only}"
     )
     skipped_start = max(requested_start, state_space_limit + 1)
@@ -297,6 +385,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     topk_successes = 0
     successful_cases: list[int] = []
     failed_cases: list[int] = []
+    result_rows: list[dict[str, object]] = []
     for case in cases:
         result = run_shor_with_ph1(
             PH1ShorConfig(
@@ -314,6 +403,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 allow_phase_retraining=bool(args.allow_phase_retraining),
                 variant_tag=args.variant_tag,
                 ph1_objective=str(args.ph1_objective),
+                ph1_ansatz=str(args.ph1_ansatz),
+                ph1_model_stem=args.ph1_model_stem,
                 exact_support=bool(args.exact_support),
             )
         )
@@ -346,6 +437,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"found={result.factors} "
             f"top_periods={list(result.top_periods)}"
         )
+        result_rows.append(
+            {
+                "N": case.N,
+                "expected_factors": list(case.prime_factors),
+                "a": case.a,
+                "used_default_a": case.used_default_a,
+                "true_period": case.order,
+                "top1_period": result.top1_period,
+                "selected_period": result.predicted_period,
+                "found_k": found_k,
+                "top1_success": top1_correct,
+                "topk_success": topk_correct,
+                "found_factors": list(result.factors) if result.factors else None,
+                "top_periods": list(result.top_periods),
+                "top_scores": list(getattr(result, "top_scores", ())),
+            }
+        )
 
     print(
         "summary "
@@ -356,6 +464,39 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     print(f"successful_cases={successful_cases}")
     print(f"failed_cases={failed_cases}")
+    if args.results_json is not None:
+        results_path = Path(args.results_json)
+        results_path.parent.mkdir(parents=True, exist_ok=True)
+        results_path.write_text(
+            json.dumps(
+                {
+                    "config": {
+                        "start": requested_start,
+                        "requested_stop": requested_stop,
+                        "effective_stop": effective_stop,
+                        "nqubit": int(args.nqubit),
+                        "period_min": resolved_period_min,
+                        "period_max": resolved_period_max,
+                        "measurement_count": int(args.measurement_count),
+                        "top_k": int(args.top_k),
+                        "seed": int(args.seed),
+                        "selection_source": selection_source,
+                    },
+                    "summary": {
+                        "cases": len(cases),
+                        "default_a_cases": len(default_a_cases),
+                        "top1_successes": top1_successes,
+                        "topk_successes": topk_successes,
+                        "successful_cases": successful_cases,
+                        "failed_cases": failed_cases,
+                    },
+                    "cases": result_rows,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        print(f"results_json={results_path}")
     return 0
 
 
