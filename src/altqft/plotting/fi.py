@@ -9,15 +9,21 @@ from pathlib import Path
 from typing import DefaultDict, cast
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 
-plt.rcParams["font.family"] = "Arial"
+plt.rcParams["font.family"] = "DejaVu Sans"
 
 INPUT_FILE = Path("data/shared/fi_results.pkl")
 OPTIMIZED_PH1_SUMMARY_FILE = Path("data/shared/ph1_min_fi_summary.json")
 HP1_SHARED_SUMMARY_FILE = Path("data/shared/hp1_shared_fi_shift_summary.json")
 OUTPUT_DIR = Path("figs/fi_fig")
-LABEL_MAP = {"ph1_optimized": "optimized 1ph", "HP1_random": "ph1_random"}
+LABEL_MAP = {
+    "ph1_optimized": "optimized 1ph",
+    "HP1_random": "ph1_random",
+    "HPrandom": "ph_random",
+    "HPrandom_phase": "ph_random_phase",
+}
 VARIANCE_BAND_CIRCUITS = {"HPrandom", "HPrandom_phase"}
 DATA_EXCLUDED_CIRCUITS = {"HP1_random"}
 PLOT_EXCLUDED_CIRCUITS = {"qft"}
@@ -30,6 +36,22 @@ CIRCUIT_COLORS = {
     "HPrandom_phase": "#f07167",
     "HP1_shared": "#9b5de5",
 }
+CIRCUIT_MARKERS = {
+    "ph1": "o",
+    "ph1_optimized": "s",
+    "HP1_random": "^",
+    "HPrandom": "D",
+    "HPrandom_phase": "p",
+    "HP1_shared": "s",
+}
+LEGEND_ORDER = (
+    "ph1",
+    "ph1_optimized",
+    "HP1_random",
+    "HP1_shared",
+    "HPrandom",
+    "HPrandom_phase",
+)
 TOP_LAYER_CIRCUITS = {"qft", "ph1"}
 BOTTOM_LAYER_CIRCUITS = {"HPrandom_phase"}
 FIT_LINEWIDTH = 1.0
@@ -169,6 +191,7 @@ def _plot_mean_points(
     y_values: list[float],
     *,
     color: str,
+    marker: str,
     label: str,
     zorder: int,
 ) -> None:
@@ -176,6 +199,7 @@ def _plot_mean_points(
         x_values,
         y_values,
         color=color,
+        marker=marker,
         s=MARKER_SIZE,
         label=label,
         zorder=zorder,
@@ -185,6 +209,7 @@ def _plot_mean_points(
 def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
     plt.figure()
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+    legend_handles: dict[str, Line2D] = {}
     positive_values = [
         value
         for circuit_type, x_y_dict in data_dict.items()
@@ -199,6 +224,7 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
             continue
         color = CIRCUIT_COLORS.get(circuit_type, colors[index % len(colors)])
         label = LABEL_MAP.get(circuit_type, circuit_type)
+        marker = CIRCUIT_MARKERS.get(circuit_type, "o")
         if circuit_type in TOP_LAYER_CIRCUITS:
             line_zorder = 5
         elif circuit_type in BOTTOM_LAYER_CIRCUITS:
@@ -227,10 +253,21 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
                 x_mean,
                 y_mean,
                 color=color,
-                label=_label_with_fit(label, fit),
+                marker=marker,
+                label="_nolegend_",
                 zorder=line_zorder,
             )
             _plot_fit_line(fit, color=color, zorder=line_zorder + 1)
+            legend_handles[circuit_type] = Line2D(
+                [0],
+                [0],
+                color=color,
+                marker=marker,
+                linestyle=FIT_LINESTYLE,
+                linewidth=1.2,
+                markersize=4.8,
+                label=label,
+            )
             continue
 
         x_mean, y_mean = _mean_points(filtered_x_y_dict)
@@ -239,19 +276,41 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
             x_mean,
             y_mean,
             color=color,
-            label=_label_with_fit(label, fit),
+            marker=marker,
+            label="_nolegend_",
             zorder=line_zorder,
         )
         _plot_fit_line(fit, color=color, zorder=line_zorder + 1)
+        legend_handles[circuit_type] = Line2D(
+            [0],
+            [0],
+            color=color,
+            marker=marker,
+            linestyle=FIT_LINESTYLE,
+            linewidth=1.2,
+            markersize=4.8,
+            label=label,
+        )
 
     if positive_values:
         y_max = max(positive_values)
         plt.ylim(LOG_Y_MIN, max(LOG_Y_MIN * 1.25, y_max * 1.25))
     plt.yscale("log")
-    plt.xlabel("n qubits")
-    plt.ylabel("min FI")
+    plt.xlabel("Number of qubits n", fontsize=11, color="#1a1a1a")
+    plt.ylabel("min FI", fontsize=11, color="#1a1a1a")
     plt.grid(True, which="both", axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
+    ordered_legend_handles = [
+        legend_handles[circuit_type]
+        for circuit_type in LEGEND_ORDER
+        if circuit_type in legend_handles
+    ]
+    ordered_legend_handles.extend(
+        handle
+        for circuit_type, handle in legend_handles.items()
+        if circuit_type not in LEGEND_ORDER
+    )
     plt.legend(
+        handles=ordered_legend_handles,
         loc="upper left",
         frameon=False,
         fontsize=10,
