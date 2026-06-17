@@ -313,8 +313,8 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
         FixedLocator([10**exponent for exponent in NQUBITS_LOG_Y_TICKS])
     )
     axis.yaxis.set_major_formatter(FuncFormatter(_format_log_y_tick))
-    plt.xlabel("Qubit Number", fontsize=11, color="#1a1a1a")
-    plt.ylabel("Discrete Fisher Information", fontsize=11, color="#1a1a1a")
+    plt.xlabel("Qubit Number", fontsize=13, color="#1a1a1a")
+    plt.ylabel("Discrete Fisher Information", fontsize=13, color="#1a1a1a")
     plt.grid(True, which="both", axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
     ordered_legend_handles = [
         legend_handles[circuit_type]
