@@ -7,11 +7,11 @@ from typing import Any, Sequence
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-DEFAULT_HISTORY_DIR = Path("outputs")
+DEFAULT_HISTORY_DIR = Path("data")
 DEFAULT_FIGURE_DIR = Path("figs/recover")
 DEFAULT_OUTPUT_SUFFIX = ".svg"
 DEFAULT_COMBINED_NQUBITS = (9, 10, 11)
-DEFAULT_MAX_EPOCH = 100
+DEFAULT_MAX_EPOCH = 0
 TITLE_FONT_SIZE = 24
 LABEL_FONT_SIZE = 21
 LEGEND_FONT_SIZE = 21
@@ -31,6 +31,11 @@ GROUP_COLORS: dict[int, dict[str, str]] = {
         "loss": "#6d28d9",
         "top1": "#8b5cf6",
         "topk": "#c4b5fd",
+    },
+    18: {
+        "loss": "#1d4ed8",
+        "top1": "#3b82f6",
+        "topk": "#93c5fd",
     },
 }
 FALLBACK_METRIC_COLORS = {
@@ -122,7 +127,7 @@ def build_metric_series(
 
     loss_key = f"{split}_loss"
     top1_key = f"{split}_top1"
-    topk_key = f"{split}_topk"
+    topk_key_candidates = (f"{split}_top{top_k}", f"{split}_topk")
 
     for item in history:
         if not isinstance(item, dict):
@@ -130,6 +135,10 @@ def build_metric_series(
         epoch = item.get("epoch")
         loss = item.get(loss_key)
         top1 = item.get(top1_key)
+        topk_key = next(
+            (candidate for candidate in topk_key_candidates if candidate in item),
+            topk_key_candidates[0],
+        )
         topk = item.get(topk_key)
         if not isinstance(epoch, int):
             raise ValueError("Epoch must be an integer")
