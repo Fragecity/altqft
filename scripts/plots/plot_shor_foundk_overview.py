@@ -12,10 +12,10 @@ from matplotlib.patches import Patch, Rectangle
 
 
 DEFAULT_INPUT_PATH = Path(
-    "data/shor_ph1_18q_p18-511_semiprimes_200000-262144_foundk_with_noa_42rows.json"
+    "data/shor_ph1_18q_p18-511_foundk_paper.json"
 )
 DEFAULT_OUTPUT_STEM = Path(
-    "figs/recover/shor_ph1_18q_p18-511_semiprimes_200000-262144_foundk_with_noa_42rows"
+    "figs/recover/shor_ph1_18q_p18-511_foundk_paper"
 )
 DEFAULT_FORMATS = ("svg", "pdf")
 BACKGROUND = "#ffffff"
@@ -125,8 +125,8 @@ def draw_overview(
 
     cells = payload.cells
     columns = math.ceil(len(cells) / rows)
-    fig_width = 18.0
-    fig_height = 3.35
+    fig_width = float(payload.metadata.get("figure_width", 7.2))
+    fig_height = float(payload.metadata.get("figure_height", 3.2))
     fig, ax = plt.subplots(figsize=(fig_width, fig_height), constrained_layout=False)
     fig.patch.set_facecolor(BACKGROUND)
     ax.set_facecolor(BACKGROUND)
@@ -166,7 +166,7 @@ def draw_overview(
         rows + 1.35,
         " | ".join(header_parts),
         color=LABEL_COLOR,
-        fontsize=11,
+        fontsize=float(payload.metadata.get("header_font_size", 8.4)),
         ha="left",
         va="bottom",
     )
@@ -176,7 +176,7 @@ def draw_overview(
     ax.set_xticks([column + 0.5 for column in tick_columns])
     ax.set_xticklabels(
         [str(cells[min(column * rows, len(cells) - 1)].n_value) for column in tick_columns],
-        fontsize=8,
+        fontsize=float(payload.metadata.get("tick_font_size", 6.8)),
         color="#333333",
     )
     ax.tick_params(axis="x", length=0, pad=2)
@@ -200,10 +200,10 @@ def draw_overview(
     ax.legend(
         handles=legend_items,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.28),
+        bbox_to_anchor=(0.5, float(payload.metadata.get("legend_anchor_y", -0.16))),
         ncol=len(legend_items),
         frameon=False,
-        fontsize=9,
+        fontsize=float(payload.metadata.get("legend_font_size", 7.4)),
         handlelength=1.4,
         columnspacing=2.6,
     )
