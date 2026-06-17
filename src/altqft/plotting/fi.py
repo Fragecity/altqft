@@ -61,9 +61,9 @@ FIT_LINEWIDTH = 1.25
 FIT_ALPHA = 0.7
 FIT_LINESTYLE = "-"
 MARKER_SIZE = 28
-NQUBITS_Y_MIN = 1.5
-NQUBITS_Y_MAX = 350.0
-NQUBITS_Y_TICKS = (1.5, 2.0, 3.0, 5.0, 10.0, 20.0, 30.0, 50.0, 100.0, 200.0, 300.0)
+NQUBITS_LOG_Y_MIN = 0.2
+NQUBITS_LOG_Y_MAX = 2.55
+NQUBITS_LOG_Y_TICKS = (0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5)
 NQUBITS_DPI = 200
 
 
@@ -78,8 +78,10 @@ class FiResultRecord:
 PlotData = DefaultDict[str, DefaultDict[int, list[float]]]
 
 
-def _format_y_tick(value: float, _position: int | None) -> str:
-    return f"{value:g}"
+def _format_log_y_tick(value: float, _position: int | None) -> str:
+    exponent = round(float(np.log10(value)), 2)
+    exponent_text = f"{exponent:g}"
+    return rf"$10^{{{exponent_text}}}$"
 
 
 def resolve_nqubit_filter(start: int | None, end: int | None) -> set[int] | None:
@@ -305,10 +307,12 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
 
     plt.yscale("log")
     if positive_values:
-        plt.ylim(NQUBITS_Y_MIN, NQUBITS_Y_MAX)
+        plt.ylim(10**NQUBITS_LOG_Y_MIN, 10**NQUBITS_LOG_Y_MAX)
     axis = plt.gca()
-    axis.yaxis.set_major_locator(FixedLocator(NQUBITS_Y_TICKS))
-    axis.yaxis.set_major_formatter(FuncFormatter(_format_y_tick))
+    axis.yaxis.set_major_locator(
+        FixedLocator([10**exponent for exponent in NQUBITS_LOG_Y_TICKS])
+    )
+    axis.yaxis.set_major_formatter(FuncFormatter(_format_log_y_tick))
     plt.xlabel("Qubit Number", fontsize=11, color="#1a1a1a")
     plt.ylabel("Discrete Fisher Information", fontsize=11, color="#1a1a1a")
     plt.grid(True, which="both", axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
