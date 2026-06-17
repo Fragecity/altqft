@@ -184,7 +184,7 @@ def draw_overview(
     ax.set_yticks([])
 
     legend_items = [
-        Patch(facecolor=FOUND_K_COLORS[k], edgecolor=FOUND_K_COLORS[k], label=f"found at k={k} ({found_k_counts[k]})")
+        Patch(facecolor=FOUND_K_COLORS[k], edgecolor=FOUND_K_COLORS[k], label=f"k={k} ({found_k_counts[k]})")
         for k in sorted(found_k_counts)
     ]
     legend_items.append(
