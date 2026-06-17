@@ -328,9 +328,9 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
     )
     plt.legend(
         handles=ordered_legend_handles,
-        loc="upper left",
+        loc="lower right",
         frameon=False,
-        fontsize=10,
+        fontsize=11,
         handlelength=1.5,
         labelspacing=0.3,
     )
