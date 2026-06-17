@@ -10,6 +10,7 @@ from typing import DefaultDict, cast
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.ticker import FixedLocator, FuncFormatter
 import numpy as np
 
 plt.rcParams["font.family"] = "DejaVu Sans"
@@ -19,10 +20,12 @@ OPTIMIZED_PH1_SUMMARY_FILE = Path("data/shared/ph1_min_fi_summary.json")
 HP1_SHARED_SUMMARY_FILE = Path("data/shared/hp1_shared_fi_shift_summary.json")
 OUTPUT_DIR = Path("figs/fi_fig")
 LABEL_MAP = {
-    "ph1_optimized": "optimized 1ph",
-    "HP1_random": "ph1_random",
-    "HPrandom": "ph_random",
-    "HPrandom_phase": "ph_random_phase",
+    "ph1": "HP-1, fixed phase",
+    "ph1_optimized": "HP-1, optimized phase",
+    "HP1_random": "HP-1, random phase",
+    "HP1_shared": "HP-1, shared optimized phase",
+    "HPrandom": "HP-random, random",
+    "HPrandom_phase": "HP-random, random and phase",
 }
 VARIANCE_BAND_CIRCUITS = {"HPrandom", "HPrandom_phase"}
 DATA_EXCLUDED_CIRCUITS = {"HP1_random"}
@@ -32,9 +35,9 @@ CIRCUIT_COLORS = {
     "ph1": "#0081a7",
     "ph1_optimized": "#1d3557",
     "HP1_random": "#00afb9",
-    "HPrandom": "#fed9b7",
+    "HPrandom": "#f4a261",
     "HPrandom_phase": "#f07167",
-    "HP1_shared": "#9b5de5",
+    "HP1_shared": "#1d3557",
 }
 CIRCUIT_MARKERS = {
     "ph1": "o",
@@ -54,11 +57,13 @@ LEGEND_ORDER = (
 )
 TOP_LAYER_CIRCUITS = {"qft", "ph1"}
 BOTTOM_LAYER_CIRCUITS = {"HPrandom_phase"}
-FIT_LINEWIDTH = 1.0
+FIT_LINEWIDTH = 1.25
 FIT_ALPHA = 0.7
 FIT_LINESTYLE = "-"
-MARKER_SIZE = 18
-LOG_Y_MIN = 1.0
+MARKER_SIZE = 28
+NQUBITS_Y_MIN = 1.5
+NQUBITS_Y_MAX = 350.0
+NQUBITS_Y_TICKS = (1.5, 2.0, 3.0, 5.0, 10.0, 20.0, 30.0, 50.0, 100.0, 200.0, 300.0)
 NQUBITS_DPI = 200
 
 
@@ -71,6 +76,10 @@ class FiResultRecord:
 
 
 PlotData = DefaultDict[str, DefaultDict[int, list[float]]]
+
+
+def _format_y_tick(value: float, _position: int | None) -> str:
+    return f"{value:g}"
 
 
 def resolve_nqubit_filter(start: int | None, end: int | None) -> set[int] | None:
@@ -159,7 +168,9 @@ def _log_linear_fit(
     return fit_x.astype(int).tolist(), fit_y.tolist(), float(slope)
 
 
-def _label_with_fit(label: str, fit: tuple[list[int], list[float], float] | None) -> str:
+def _label_with_fit(
+    label: str, fit: tuple[list[int], list[float], float] | None
+) -> str:
     if fit is None:
         return label
     return f"{label} (slope={fit[2]:.2f})"
@@ -264,8 +275,8 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
                 color=color,
                 marker=marker,
                 linestyle=FIT_LINESTYLE,
-                linewidth=1.2,
-                markersize=4.8,
+                linewidth=1.4,
+                markersize=5.6,
                 label=label,
             )
             continue
@@ -287,17 +298,19 @@ def plot_fi_vs_nqubits(data_dict: PlotData, output_path: Path) -> None:
             color=color,
             marker=marker,
             linestyle=FIT_LINESTYLE,
-            linewidth=1.2,
-            markersize=4.8,
+            linewidth=1.4,
+            markersize=5.6,
             label=label,
         )
 
-    if positive_values:
-        y_max = max(positive_values)
-        plt.ylim(LOG_Y_MIN, max(LOG_Y_MIN * 1.25, y_max * 1.25))
     plt.yscale("log")
-    plt.xlabel("Number of qubits n", fontsize=11, color="#1a1a1a")
-    plt.ylabel("min FI", fontsize=11, color="#1a1a1a")
+    if positive_values:
+        plt.ylim(NQUBITS_Y_MIN, NQUBITS_Y_MAX)
+    axis = plt.gca()
+    axis.yaxis.set_major_locator(FixedLocator(NQUBITS_Y_TICKS))
+    axis.yaxis.set_major_formatter(FuncFormatter(_format_y_tick))
+    plt.xlabel("Qubit Number", fontsize=11, color="#1a1a1a")
+    plt.ylabel("Discrete Fisher Information", fontsize=11, color="#1a1a1a")
     plt.grid(True, which="both", axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
     ordered_legend_handles = [
         legend_handles[circuit_type]
