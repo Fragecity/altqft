@@ -13,7 +13,9 @@
     "legend_font_size": 7.4,
     "source_results": "data/shor_ph1_18q_p18-511_semiprimes_100000-280000_results_grouped.json",
     "source_selection": "data/shor_ph1_18q_p18-511_semiprimes_100000-280000_a.json",
-    "legend_anchor_y": -0.16
+    "legend_anchor_y": -0.095,
+    "show_header": false,
+    "top_margin": 0.28
   },
   "summary": {
     "total_cells": 6405,

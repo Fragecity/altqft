@@ -150,26 +150,27 @@ def draw_overview(
     }
     no_suitable_a = int(payload.summary.get("no_suitable_a", 0))
     failed = int(payload.summary.get("failed", 0))
-    nqubit = int(payload.metadata.get("nqubit", 18))
-    n_start = int(payload.metadata.get("N_start", cells[0].n_value))
-    n_stop = int(payload.metadata.get("N_stop", cells[-1].n_value))
-
-    header_parts = [
-        f"{nqubit}q semiprimes N={n_start}..{n_stop}",
-        *[f"k={k}: {found_k_counts[k]}" for k in sorted(found_k_counts)],
-        f"no a: {no_suitable_a}",
-        f"failed: {failed}",
-        f"rows {rows}",
-    ]
-    ax.text(
-        0,
-        rows + 1.35,
-        " | ".join(header_parts),
-        color=LABEL_COLOR,
-        fontsize=float(payload.metadata.get("header_font_size", 8.4)),
-        ha="left",
-        va="bottom",
-    )
+    show_header = bool(payload.metadata.get("show_header", True))
+    if show_header:
+        nqubit = int(payload.metadata.get("nqubit", 18))
+        n_start = int(payload.metadata.get("N_start", cells[0].n_value))
+        n_stop = int(payload.metadata.get("N_stop", cells[-1].n_value))
+        header_parts = [
+            f"{nqubit}q semiprimes N={n_start}..{n_stop}",
+            *[f"k={k}: {found_k_counts[k]}" for k in sorted(found_k_counts)],
+            f"no a: {no_suitable_a}",
+            f"failed: {failed}",
+            f"rows {rows}",
+        ]
+        ax.text(
+            0,
+            rows + 1.35,
+            " | ".join(header_parts),
+            color=LABEL_COLOR,
+            fontsize=float(payload.metadata.get("header_font_size", 8.4)),
+            ha="left",
+            va="bottom",
+        )
 
     tick_columns = [0, columns // 5, 2 * columns // 5, 3 * columns // 5, 4 * columns // 5, columns - 1]
     tick_columns = sorted(set(tick_columns))
@@ -209,7 +210,8 @@ def draw_overview(
     )
 
     ax.set_xlim(0, columns)
-    ax.set_ylim(0, rows + 2.7)
+    y_margin = 2.7 if show_header else float(payload.metadata.get("top_margin", 0.45))
+    ax.set_ylim(0, rows + y_margin)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
