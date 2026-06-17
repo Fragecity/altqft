@@ -245,7 +245,6 @@ def plot_history(
     ax_loss.grid(True, alpha=0.25)
     ax_loss.tick_params(axis="both", labelsize=TICK_FONT_SIZE)
     ax_acc.tick_params(axis="both", labelsize=TICK_FONT_SIZE)
-    ax_loss.set_title("Recover Period", fontsize=TITLE_FONT_SIZE, pad=10)
 
     labels = [str(line.get_label()) for line in legend_lines]
     ax_loss.legend(
