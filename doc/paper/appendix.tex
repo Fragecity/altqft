@@ -642,7 +642,7 @@ dependent interference terms.
 
 For readability, write the local phase sum seen by output bit $j$ as
 \begin{equation}
-    \phi_j(x)
+    \varphi_j(x)
     :=
     \sum_{i\ne j}\tilde{\theta}_{ij}x_i,
     \qquad j=1,\ldots,n.
@@ -661,9 +661,9 @@ Walsh coefficient associated with $\Delta$ is
     B_{\Delta}(x)
     =
     \prod_{j=1}^{n}
-    \exp\left(\frac{\ii}{2}\phi_j(x)\right)
-    \left[\cos\left(\frac{\phi_j(x)}{2}\right)\right]^{1-\Delta_j}
-    \left[-\ii\sin\left(\frac{\phi_j(x)}{2}\right)\right]^{\Delta_j}.
+    \exp\left(\frac{\ii}{2}\varphi_j(x)\right)
+    \left[\cos\left(\frac{\varphi_j(x)}{2}\right)\right]^{1-\Delta_j}
+    \left[-\ii\sin\left(\frac{\varphi_j(x)}{2}\right)\right]^{\Delta_j}.
 \end{equation}
 The low-weight symbols used below are therefore
 \begin{align}
@@ -724,7 +724,7 @@ $W_r(k)$ is a Walsh character sum over the sampled periodic support.
         \frac{(-1)^{\sum_{j=1}^{n}x_jy_j}}{\sqrt{2^n}}
         \prod_{j=1}^{n}
         \exp\left(
-            \ii y_j\phi_j(x)
+            \ii y_j\varphi_j(x)
         \right).
     \end{equation}
     For each Boolean input bit $y_j\in\{0,1\}$,
@@ -733,17 +733,17 @@ $W_r(k)$ is a Walsh character sum over the sampled periodic support.
     \end{equation}
     Therefore
     \begin{equation}
-        \exp(\ii y_j\phi_j(x))
+        \exp(\ii y_j\varphi_j(x))
         =
-        \exp\left(\frac{\ii}{2}\phi_j(x)\right)
+        \exp\left(\frac{\ii}{2}\varphi_j(x)\right)
         \left[
-            \cos\left(\frac{\phi_j(x)}{2}\right)
-            -\ii(-1)^{y_j}\sin\left(\frac{\phi_j(x)}{2}\right)
+            \cos\left(\frac{\varphi_j(x)}{2}\right)
+            -\ii(-1)^{y_j}\sin\left(\frac{\varphi_j(x)}{2}\right)
         \right].
     \end{equation}
     Multiplying over $j$ and collecting terms by the mask $\Delta$ gives
     \begin{equation}
-        \exp\left(\ii\sum_{j=1}^{n}y_j\phi_j(x)\right)
+        \exp\left(\ii\sum_{j=1}^{n}y_j\varphi_j(x)\right)
         =
         \sum_{\Delta\in\{0,1\}^n}
         B_{\Delta}(x)(-1)^{\sum_{j=1}^{n}\Delta_jy_j}.
@@ -773,160 +773,294 @@ The Walsh expansion above gives a useful way to interpret the numerical DFI
 growth, but it does not by itself prove a universal asymptotic law for all HP
 phase choices. In particular, the higher-weight Walsh terms in
 Lemma~\ref{lem:hp_walsh_probability} need not be uniformly negligible for an
-arbitrary circuit. The following result should therefore be read as a
-conditional scaling model: it states what follows when the observed numerical
-regime is dominated by the coherent low-weight component.
+arbitrary circuit. We therefore separate the general Fisher-information
+stability statement from the fixed-phase \myqc-1 attenuation formula.
 
-\begin{theorem}[Conditional HP Fisher-information scaling model]
-\label{thm:hp_low_weight_walsh}
-    We use the following notation in the assumptions:
-    \begin{align}
-        \Delta_r\Pr(x\mid r)&:=\Pr(x\mid r+1)-\Pr(x\mid r),\\
-        A_n&:=\exp[-\gamma n+o(n)].
-    \end{align}
-    Here $\Delta_r$ denotes the finite difference in the period generator $r$;
-    $\Pr\nolimits_{\mathrm{bg}}(x\mid r)$ denotes the residual HP probability
-    from Walsh masks with $|\Delta|\ge 1$; $\gamma$ denotes the typical
-    large-$n$ limit of $\gamma_n(x)$; and $A_n$ is the coherent attenuation
-    factor from $|B_0(x)|^2$.
-    Suppose that, on the output region contributing dominantly to the DFI sum,
-    the following conditions hold:
-    (i) the coherent zero-flip Walsh weight has a typical exponential rate
-    $|B_0(x)|^2=\exp[-\gamma n+o(n)]$;
-    (ii) the higher-weight Walsh terms can be collected into a background
-    $\Pr\nolimits_{\mathrm{bg}}$ whose finite difference in $r$ is negligible in that
-    region; and
-    (iii) the coherent contribution is peak-dominant in the sense that
-    $A_n\Pr\nolimits_{\mathrm{QFT}}\gg \Pr\nolimits_{\mathrm{bg}}$, with
-    $A_n=\exp[-\gamma n+o(n)]$. Under these assumptions, the HP Fisher
-    information obeys the scaling model
+For any probability family $\Pr(x\mid r)$, write
+\begin{equation}
+    \Delta_r\Pr(x\mid r):=\Pr(x\mid r+1)-\Pr(x\mid r),
+\end{equation}
+and
+\begin{equation}
+    \fii_{\Pr}(r,n)
+    :=
+    \sum_{x=0}^{2^n-1}
+    \frac{\bigl(\Delta_r\Pr(x\mid r)\bigr)^2}{\Pr(x\mid r)}.
+\end{equation}
+The denominator is always evaluated on the support where the corresponding term
+is positive. To handle coherent components that vanish at some outputs, we use
+the following convention. Given a nonnegative component $s_n(x\mid r)$ and a
+signed remainder $b_n(x\mid r)$, set $p_n=s_n+b_n$. We say that $b_n$ is
+Fisher-small relative to $s_n$ if there exist sets $S_{n,r}$ such that
+$s_n(x\mid r)>0$ on $S_{n,r}$,
+\begin{equation}
+    \varepsilon_n
+    :=
+    \max\left\{
+    \left\|\frac{b_n}{s_n}\right\|_{\infty,S_{n,r}},
+    \frac{\|\Delta_r b_n\|_{s_n,S_{n,r}}}
+    {\|\Delta_r s_n\|_{s_n,S_{n,r}}}
+    \right\}
+    \longrightarrow 0,
+\end{equation}
+where
+\begin{equation}
+    \|f\|_{s_n,S_{n,r}}^2
+    :=
+    \sum_{x\in S_{n,r}}\frac{f(x)^2}{s_n(x\mid r)},
+\end{equation}
+and the contribution of $S_{n,r}^{c}$ to the relevant Fisher sums satisfies
+\begin{equation}
+    \sum_{\substack{x\notin S_{n,r}\\ p_n(x\mid r)>0}}
+    \frac{\bigl(\Delta_r p_n(x\mid r)\bigr)^2}{p_n(x\mid r)}
+    +
+    \sum_{\substack{x\notin S_{n,r}\\ s_n(x\mid r)>0}}
+    \frac{\bigl(\Delta_r s_n(x\mid r)\bigr)^2}{s_n(x\mid r)}
+    =
+    o\left(
+    \sum_{x\in S_{n,r}}
+    \frac{\bigl(\Delta_r s_n(x\mid r)\bigr)^2}{s_n(x\mid r)}
+    \right).
+\end{equation}
+
+\begin{lemma}[DFI transfer under a Fisher-small remainder]
+\label{lem:dfi_stability_remainder}
+    Let
     \begin{equation}
-        \fii_{\mathrm{HP}}(n)
-        \approx
-        \exp\left[(2\ln 2-\gamma)n+o(n)\right].
+        \Pr(x\mid r)
+        =
+        a_n(x)\Pr\nolimits_{\mathrm{ref}}(x\mid r)
+        +
+        \Pr\nolimits_{\mathrm{bg}}(x\mid r),
     \end{equation}
-    Equivalently, the leading exponent is $k=2\ln 2-\gamma$.
+    where $a_n(x)\geq0$ is independent of $r$, and
+    $\Pr\nolimits_{\mathrm{bg}}$ is a signed remainder. If
+    $\Pr\nolimits_{\mathrm{bg}}$ is Fisher-small relative to
+    $a_n\Pr\nolimits_{\mathrm{ref}}$, then
+    \begin{equation}
+        \fii_{\Pr}(r,n)
+        =
+        \bigl(1+o(1)\bigr)A_n(r)\fii_{\mathrm{ref}}(r,n),
+    \end{equation}
+    where
+    \begin{align}
+        \fii_{\mathrm{ref}}(r,n)
+        &:=
+        \fii_{\Pr_{\mathrm{ref}}}(r,n),\\
+        A_n(r)
+        &:=
+        \frac{
+        \displaystyle
+        \sum_x a_n(x)
+        \frac{
+        \bigl(\Delta_r\Pr\nolimits_{\mathrm{ref}}(x\mid r)\bigr)^2
+        }{
+        \Pr\nolimits_{\mathrm{ref}}(x\mid r)
+        }
+        }{
+        \displaystyle
+        \fii_{\mathrm{ref}}(r,n)
+        }.
+    \end{align}
+    Consequently, if
+    \begin{equation}
+        \fii_{\mathrm{ref}}(r,n)=\exp[k_{\mathrm{ref}}n+o(n)],
+        \qquad
+        A_n(r)=\exp[-\gamma n+o(n)],
+    \end{equation}
+    then
+    \begin{equation}
+        \fii_{\Pr}(r,n)=\exp[(k_{\mathrm{ref}}-\gamma)n+o(n)].
+    \end{equation}
+\end{lemma}
+
+\begin{proof}
+    Set
+    \begin{equation}
+        \Pr_0(x\mid r):=a_n(x)\Pr\nolimits_{\mathrm{ref}}(x\mid r).
+    \end{equation}
+    On $S_{n,r}$, Fisher-smallness gives
+    \begin{equation}
+        (1-\varepsilon_n)\Pr_0(x\mid r)
+        \leq
+        \Pr(x\mid r)
+        \leq
+        (1+\varepsilon_n)\Pr_0(x\mid r),
+    \end{equation}
+    and
+    \begin{equation}
+        (1-\varepsilon_n)\|\Delta_r\Pr_0\|_{\Pr_0,S_{n,r}}
+        \leq
+        \|\Delta_r\Pr\|_{\Pr_0,S_{n,r}}
+        \leq
+        (1+\varepsilon_n)\|\Delta_r\Pr_0\|_{\Pr_0,S_{n,r}}.
+    \end{equation}
+    Therefore the Fisher sums on $S_{n,r}$ obey
+    \begin{equation}
+        \frac{(1-\varepsilon_n)^2}{1+\varepsilon_n}\fii_0(S_{n,r})
+        \leq
+        \fii_{\Pr}(S_{n,r})
+        \leq
+        \frac{(1+\varepsilon_n)^2}{1-\varepsilon_n}\fii_0(S_{n,r}),
+    \end{equation}
+    where $\fii_{\Pr}(S_{n,r})$ and $\fii_0(S_{n,r})$ denote the corresponding
+    Fisher sums restricted to $S_{n,r}$, and
+    \begin{equation}
+        \fii_0(S_{n,r})
+        :=
+        \sum_{x\in S_{n,r}}
+        \frac{\bigl(\Delta_r\Pr_0(x\mid r)\bigr)^2}{\Pr_0(x\mid r)}.
+    \end{equation}
+    The negligible-tail assumption extends this equivalence to the full Fisher
+    sums. Since $a_n$ is independent of $r$,
+    \begin{equation}
+        \sum_x
+        \frac{\bigl(\Delta_r\Pr_0(x\mid r)\bigr)^2}{\Pr_0(x\mid r)}
+        =
+        \sum_x a_n(x)
+        \frac{
+        \bigl(\Delta_r\Pr\nolimits_{\mathrm{ref}}(x\mid r)\bigr)^2
+        }{
+        \Pr\nolimits_{\mathrm{ref}}(x\mid r)
+        }
+        =
+        A_n(r)\fii_{\mathrm{ref}}(r,n).
+    \end{equation}
+    This proves the transfer formula, and the exponent statement follows by
+    substitution.
+\end{proof}
+
+\begin{theorem}[Fixed-phase \myqc-1 attenuation and conditional DFI scaling]
+\label{thm:hp_low_weight_walsh}
+\label{thm:fixed_phase_hp1_fisher_scaling}
+    Consider the fixed-phase \myqc-1 circuit with
+    \begin{equation}
+        \Lambda_1=\{1,3,5,\ldots\},
+        \qquad
+        \Lambda_2=\{2,4,6,\ldots\},
+    \end{equation}
+    and
+    \begin{equation}
+        \theta_{ij}=\frac{2\pi}{2^{|i-j|}},
+        \qquad
+        i\in\Lambda_1,\quad j\in\Lambda_2.
+    \end{equation}
+
+    \textup{(a)} Its zero-flip Walsh weight is
+    \begin{equation}
+        |B_0(x)|^2
+        =
+        \prod_{j\in\Lambda_2}
+        \cos^2\left(
+        \pi\sum_{i\in\Lambda_1}\frac{x_i}{2^{|i-j|}}
+        \right).
+    \end{equation}
+
+    \textup{(b)} Let
+    \begin{equation}
+        \Pr\nolimits_W(x\mid r)
+        :=
+        \frac{|W_r(x)|^2}{R2^n},
+    \end{equation}
+    and define the signed remainder
+    \begin{equation}
+        \Pr\nolimits_{\mathrm{bg}}(x\mid r)
+        :=
+        \Pr\nolimits_{\mathrm{HP}}(x\mid r)
+        -
+        |B_0(x)|^2\Pr\nolimits_W(x\mid r).
+    \end{equation}
+    If $\Pr\nolimits_{\mathrm{bg}}$ is Fisher-small relative to
+    $|B_0|^2\Pr\nolimits_W$, then
+    \begin{equation}
+        \fii_{\mathrm{HP}}(r,n)
+        =
+        \bigl(1+o(1)\bigr)A_n^{\mathrm{fp}}(r)\fii_W(r,n),
+    \end{equation}
+    where
+    \begin{align}
+        \fii_W(r,n)
+        &:=
+        \fii_{\Pr_W}(r,n),\\
+        A_n^{\mathrm{fp}}(r)
+        &:=
+        \frac{
+        \displaystyle
+        \sum_x |B_0(x)|^2
+        \frac{
+        \bigl(\Delta_r\Pr\nolimits_W(x\mid r)\bigr)^2
+        }{
+        \Pr\nolimits_W(x\mid r)
+        }
+        }{
+        \displaystyle
+        \fii_W(r,n)
+        }.
+    \end{align}
+    Consequently, if
+    \begin{equation}
+        \fii_W(r,n)=\exp[k_W n+o(n)],
+        \qquad
+        A_n^{\mathrm{fp}}(r)=\exp[-\gamma_{\mathrm{fp}} n+o(n)],
+    \end{equation}
+    then
+    \begin{equation}
+        \fii_{\mathrm{HP}}(r,n)
+        =
+        \exp[(k_W-\gamma_{\mathrm{fp}})n+o(n)].
+    \end{equation}
+    Here $\gamma_{\mathrm{fp}}$ is the DFI-weighted effective attenuation
+    exponent of $A_n^{\mathrm{fp}}(r)$, not the pointwise attenuation rate of a
+    single output string.
 \end{theorem}
 
 \begin{proof}
-    The Walsh probability formula can be organized by the Hamming weight of
-    $\Delta$. The first two weight classes are
+    For the fixed-phase \myqc-1 skeleton, the local phase sum in
+    Lemma~\ref{lem:hp_walsh_probability} becomes
     \begin{equation}
-        \begin{aligned}
-            |\Delta|=0&:\quad B_0(x)W_r(x)
-            &&\text{zero-flip coherent Walsh term},\\
-            |\Delta|=1&:\quad B_{e_m}(x)W_r(x\oplus e_m),\quad m=1,\ldots,n
-            &&\text{single-flip shifted Walsh term}.
-        \end{aligned}
-    \end{equation}
-    For real phases, and assuming the relevant cosine factors in
-    $B_0(x)$ are nonzero when tangent ratios are used,
-    \begin{equation}
-        B_{0}(x)
+        \varphi_j(x)
         =
-        \prod_{j=1}^{n}
-        \exp\left(\frac{\ii}{2}\phi_j(x)\right)
-        \cos\left(\frac{\phi_j(x)}{2}\right).
+        \begin{cases}
+            0,
+            & j\in\Lambda_1,\\[1mm]
+            \displaystyle
+            2\pi\sum_{i\in\Lambda_1}\frac{x_i}{2^{|i-j|}},
+            & j\in\Lambda_2.
+        \end{cases}
     \end{equation}
-    \begin{align}
-        B_{e_m}(x)
-        &=
-        \exp\left(\frac{\ii}{2}\sum_{j=1}^{n}\phi_j(x)\right)
-        \left[-\ii\sin\left(\frac{\phi_m(x)}{2}\right)\right]
-        \prod_{j\ne m}
-        \cos\left(\frac{\phi_j(x)}{2}\right) \\
-        &=
-        B_0(x)\left[-\ii\tan\left(\frac{\phi_m(x)}{2}\right)\right]. \nonumber
-    \end{align}
-    For compactness, define the single-flip tangent ratio
-    \begin{equation}
-        T_m(x):=
-        \tan\left(\frac{\phi_m(x)}{2}\right),
-        \qquad
-        T_m(x)=\text{relative amplitude factor for a flip at bit }m.
-    \end{equation}
-    Then $B_{e_m}(x)=-\ii B_0(x)T_m(x)$.
-    Factoring out $B_0(x)$, the exact HP probability can be written as the zero-flip and single-flip contribution plus a higher-weight remainder,
-    \begin{equation}
-        \Pr\nolimits_{\mathrm{HP}}(x\mid r)
-        =
-        \frac{|B_0(x)|^2}{R2^n}
-        \left|
-        W_r(x)
-        -\ii\sum_{m=1}^{n}T_m(x)W_r(x\oplus e_m)
-        +\mathcal{R}_{>1}(x,r)
-        \right|^2.
-    \end{equation}
-    Here the normalized higher-weight remainder is
-    \begin{equation}
-        \mathcal{R}_{>1}(x,r)
-        :=
-        B_0(x)^{-1}
-        \sum_{\substack{\Delta\in\{0,1\}^n\\ |\Delta|>1}}
-        B_{\Delta}(x)W_r(x\oplus\Delta).
-    \end{equation}
-    Because $W_r(k)$ and the explicit phase sums are real, the displayed zero-flip term and
-    single-flip correction have zero linear interference:
-    \begin{equation}
-        2\operatorname{Re}\left[
-        W_r(x)^*(-\ii)
-        \sum_{m=1}^{n}
-        T_m(x)W_r(x\oplus e_m)
-        \right]=0.
-    \end{equation}
-    The coherent zero-flip weight is therefore
+    Therefore
     \begin{equation}
         |B_0(x)|^2
         =
         \prod_{j=1}^{n}
-        \cos^2\left(\frac{\phi_j(x)}{2}\right).
+        \cos^2\left(\frac{\varphi_j(x)}{2}\right)
+        =
+        \prod_{j\in\Lambda_2}
+        \cos^2\left(
+        \pi\sum_{i\in\Lambda_1}\frac{x_i}{2^{|i-j|}}
+        \right).
     \end{equation}
-    This factor is the analogue of a Debye--Waller factor, the standard
-    coherent-scattering attenuation factor associated with fluctuations~\cite{Lipkin2004DebyeWaller}:
-    it is the multiplicative attenuation of the coherent peak caused by the phase-sum fluctuations. Here the coherent peak is the zero-flip Walsh component, and
-    its attenuation factor is exactly $|B_0(x)|^2$. We therefore define the
-    Debye--Waller rate as the negative logarithm of this attenuation per qubit,
+    This proves part (a). Equivalently, the pointwise attenuation rate is
     \begin{equation}
-        \gamma_n(x):=-\frac{1}{n}\ln|B_0(x)|^2
-        =-\frac{1}{n}
-        \sum_{j=1}^{n}\ln\cos^2\left(\frac{\phi_j(x)}{2}\right),
+        \gamma_n(x)
+        :=
+        -\frac{1}{n}\ln|B_0(x)|^2
+        =
+        -\frac{1}{n}
+        \sum_{j\in\Lambda_2}
+        \ln\cos^2\left(
+        \pi\sum_{i\in\Lambda_1}\frac{x_i}{2^{|i-j|}}
+        \right),
+    \end{equation}
+    so $|B_0(x)|^2=\exp[-n\gamma_n(x)]$ exactly. For part (b), apply
+    Lemma~\ref{lem:dfi_stability_remainder} with
+    \begin{equation}
+        a_n(x)=|B_0(x)|^2,
         \qquad
-        \gamma_n(x)=\text{finite-size coherent-loss rate per qubit}.
+        \Pr\nolimits_{\mathrm{ref}}=\Pr\nolimits_W.
     \end{equation}
-    Equivalently, $|B_0(x)|^2=\exp[-n\gamma_n(x)]$, so $\gamma_n(x)$ measures
-    the exponential loss rate of coherent Walsh peak weight. For small values of these phase sums,
-    $\gamma_n(x)=\frac{1}{4n}\sum_{j=1}^{n}\phi_j(x)^2
-    +O\!\left(n^{-1}\sum_{j=1}^{n}|\phi_j(x)|^4\right)$.
-
-    The zero-flip Walsh term is not identical to the QFT Dirichlet kernel.
-    Instead, it is used here as the coherent periodic interference component in
-    a phenomenological model for the observed HP data. When $\gamma_n(x)$
-    converges to a typical value $\gamma$ on the DFI-dominant output region, the
-    coherent peak has weight $A_n=\exp[-\gamma n+o(n)]$. In that same region the
-    conditional peak-dominance model is
-    \begin{equation}
-        \Pr\nolimits_{\mathrm{HP}}(x\mid r)
-        \approx
-        A_n\Pr\nolimits_{\mathrm{QFT}}(x\mid r)+\Pr\nolimits_{\mathrm{bg}}(x\mid r),
-        \qquad
-        A_n=\exp[-\gamma n+o(n)],
-    \end{equation}
-    where $\Pr\nolimits_{\mathrm{bg}}$ absorbs the single-flip squared terms,
-    the higher-weight Walsh remainder, and their residual interference terms.
-    The theorem assumes that this background is subdominant for the DFI exponent.
-    Without those assumptions, the exact Walsh formula remains valid, but the
-    exponential rate stated here is not implied.
-
-    In the DFI-dominant region, these assumptions imply
-    $\Delta_r\Pr\nolimits_{\mathrm{HP}}\approx A_n\Delta_r\Pr\nolimits_{\mathrm{QFT}}$ and
-    $\Pr\nolimits_{\mathrm{HP}}\approx A_n\Pr\nolimits_{\mathrm{QFT}}$. Substituting these
-    relations into
-    \begin{equation}
-        \fii(r)=\sum_x\frac{(\Delta_r\Pr(x\mid r))^2}{\Pr(x\mid r)}
-    \end{equation}
-    gives $\fii_{\mathrm{HP}}\approx A_n\fii_{\mathrm{QFT}}$. Since
-    $A_n=\exp[-\gamma n+o(n)]$ and $\fii_{\mathrm{QFT}}\approx\exp[2\ln 2\,n+o(n)]$,
-    the stated scaling follows.
+    The result is the displayed conditional DFI scaling, and the exponent
+    formula follows from the exponent-transfer part of the lemma.
 \end{proof}
 
 \section{Log-linear growth fit for the numerical Fisher-information scan}
