@@ -1,0 +1,261 @@
+\documentclass[aps,reprint,showpacs,tightenlines, twocolumn]{revtex4-2}
+
+% \usepackage{epstopdf}
+\usepackage{float}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{physics}
+\usepackage{mathrsfs}
+\usepackage{extarrows}
+\usepackage{pifont}
+\usepackage{diagbox}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=black}
+\allowdisplaybreaks
+\usepackage{adjustbox}
+\usepackage{braket}
+\usepackage{pgfplots}
+\usepackage{bbold}  % for \mathbb{1}
+
+\usepackage{tikz}
+\usepackage[ruled,linesnumbered]{algorithm2e}
+
+
+\usepackage{caption, ragged2e}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\captionsetup{justification=RaggedRight,singlelinecheck=false}
+\graphicspath{{fig/}}
+
+
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{problem}{Problem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{claim}{Claim}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{definition}{Definition}
+\newtheorem{fact}{Fact}
+\newtheorem{construction}{Construction}
+\newtheorem{assumption}{Assumption}
+
+\newcommand{\todo}[1]{\textcolor{purple}{[#1]}}
+
+\newcommand{\ii}{\mathsf{i}}
+% \newcommand{\dd}{\mathsf{d}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\qft}{\text{QFT}}
+
+
+\begin{document}
+
+\title{Hidden subgroup algorithm via simpler alternative QFT gate}
+
+\author{Kaiming Bian}
+\affiliation{Shenzhen Institute for Quantum Science and Engineering,
+Southern University of Science and Technology, Shenzhen 518055, China}
+
+\author{Oscar Dahlsten\thanks{\href{mailto:oscar.dahlsten@cityu.edu.hk}{oscar.dahlsten@cityu.edu.hk}}}
+\affiliation{Department of Physics, City University of Hong Kong, Tat Chee Avenue, Kowloon, Hong Kong SAR, China}
+\affiliation{Institute of Nanoscience and Applications, Southern University of Science and Technology, Nanshan District, Shenzhen 518055, China}
+
+\begin{abstract}
+    The hidden subgroup problem (HSP) provides a framework for many algorithms with quantum advantage. However, its standard solution relies on the quantum Fourier transform (QFT), which remains experimentally demanding implementation. This paper investigates whether a simpler, more feasible set of gates can capture the essential properties of the QFT needed to solve the HSP. We identify shift invariance as a critical property that allows the QFT to eliminate the randomness irrelevant to hidden subgroup. We demonstrate that a simple layer of Hadamard gates is also shift invariant and can effectively replace the QFT in the Fourier sampling algorithm for the groups of the form $\prod_i \ZZ_{2^{m_i}}$. Our algorithm reveals the subgroup structure through fixed bit patterns in the measurement outcomes. We show this approach is efficient, requiring only a logarithmic number of samples ($m \ge \log_2(n / \epsilon)$) to succeed with high probability. Finally, we validate the algorithm by successfully factoring 15, demonstrating its viability as an experiment-friendly alternative to the standard HSP algorithm.
+
+\end{abstract}
+\maketitle
+
+\section{Introduction}
+
+The search for valuable quantum algorithms that can be implemented on real hardware has become a central theme in the field of quantum computing. Yet quantum algorithms such as the Shor and Grover algorithms~\cite{shor1999polynomial, grover1996fast, nielsen2010quantum} show the advantage of quantum computing, while these algorithms remain impractical for current quantum hardware. Although variational quantum algorithms provide a practical framework for near-term applications, there is a fundamental drive to discover structured circuits that are not only implementable but also offer deeper theoretical insights and guarantees.
+
+Among the problems that can demonstrate quantum advantage is a central class known as the hidden subgroup problem (HSP) \cite{hallgren2003hidden, lomont2004hidden}, which involves finding a hidden subgroup $V$ using a function that outputs a constant on the cosets of $V$. For the quantum algorithms that solve HSP, the quantum Fourier transform (QFT) is a fundamental building block. However, the implementation of QFT is experimentally demanding, since it presents a substantial challenge to the connectivity of devices~\cite{jin2024optimizing}, and it is sensitive to the noise~\cite{wang2025accelerating}.
+
+Rather than using techniques like circuit cutting~\cite{tang2021cutqc, ayral2021quantum} or parity label tracking~\cite{klaver2024swap} to make the QFT experimental feasible, we approach the feasible problem from another perspective:
+\begin{center}
+    \emph{Can a set of experimentally feasible gates capture the key property of the QFT needed to solve the HSP?}
+\end{center}
+This question is motivated by the significant practical barriers to implementing the full QFT. Instead of attempting to build the experiment demanding QFT, we investigate whether a simpler, more feasible circuit could isolate and reproduce the specific property of the QFT that is essential for the HSP's success.
+
+We consider a core property that makes QFT effective for the HSP, the shift invariance. The principle is crucial because it guarantees that the probability of a measurement outcome depends only on the hidden subgroup $V$, not on the specific coset $c V$ in the register.
+% which allows the hidden subgroup $V$ to be reliably extracted from the measurements.
+Such a guarantee results in the search for the hidden subgroup robust against the randomness of the cosets.
+
+
+% For the group $\prod_i \ZZ_{2^{m_i}}$ we then propose a quantum algorithm for the HSP that uses Hadamard gates in place of the QFT, offering efficiency comparable to the standard approach.
+we propose a quantum algorithm for the HSP that uses a single layer of transversal Hadamard gates $H^{\otimes n}$ in place of the QFT, offering efficiency comparable to the standard approach for the group with $\prod_i \ZZ_{2^{m_i}}$. 
+The well-known QFT circuit in Ref~\cite{nielsen2010quantum} is a specific QFT over group $\ZZ_{2^n}$. People interest in group $\ZZ_{2^n}$ because it can be naturely encoded by qubits with computational basis. The Hadamard gates $H^{\otimes n}$ solve the HSP for $\prod_i \ZZ_{2^{m_i}}$ means that the Hadamard gates are enough for the groups that can be easily encoded by qubits.
+% In HSP, different group $G$ requires different QFT. 
+
+
+% \begin{equation}
+%     \ket{j} \to \sum_{\rho} \rho(j) \ket{k}
+% \end{equation}
+% where $\rho$ are group representations of $G$, and the summation is go through all irreducible representations $\rho$. The typical QFT quantum circuit in Ref.~\cite{nielsen2010quantum} is a specific QFT over $ $
+% The typical QFT circuit 
+% Group theory reveals that any finite abelian group $G$ is isometric to a production of cyclic group $G\cong \prod \mathbb{Z}_{p_i}$
+% we confirmed its success with an example factoring 15.
+
+The paper is constructed as follows: We begin in Sec.~\ref{sec: hidden_subgroup_problem} by reviewing the hidden subgroup problem and the standard Fourier sampling approach. In Sec.~\ref{sec:shift_invariance}, we formally define and discuss shift invariance, the key property that enables the QFT to solve the HSP. Sec.~\ref{sec:hsp_with_spongebob} introduces our main result: an algorithm that uses Hadamard gates in place of the QFT. We detail the complete procedure, analyze its sampling efficiency, and validate it by factoring 15. 
+
+
+\section{hidden subgroup problem}
+
+The HSP provides an unified framework for many significant quantum algorithms, including Shor algorithm and Simon algorithm. HSP aims to identify a hidden subgroup $H$ within a larger group $G$.
+\begin{definition}[hidden subgroup problem]
+    Let $V$ be an unknown subgroup of $G$. Consider a function $f: G \to X$ that maps elements of $G$ to set $X$. The function $f$ satisfies that for any elements $x,y\in G$, the condition $f(x)=f(y)$ is true if and only if $x, y \in cV$, where $c\in G$. The HSP is the task of finding the unknown subgroup $V$.
+\end{definition}
+
+A prominent example of the HSP is the period-finding problem whose goal is to determine the period $r$ of a function $f$. This function is periodic, meaning $f(x) = f(y)$ if and only if $y = x + kr$ for some integer $k$. It is equivalent to identifying the hidden subgroup $V = \{ kr \mid k \in \ZZ \}$.
+
+Solving the HSP for general, non-abelian groups remains an open question. However, there is a quantum algorithm that solves the HSP for abelian groups $G$ called Fourier sampling~\cite{hallgren2003hidden, lomont2004hidden}. The details of Fourier sampling are showed in Appendix~\ref{app:fourier_sampling}, while we describe the core procedure here. The procedure begins by preparing a quantum state that is a superposition of the group elements with its mapped value, $\sum_{g \in G}\ket{g, f(g)}$. Measuring the second register yields a random element $f(c) = y^\ast$, and the first register yields
+\begin{equation}
+	\ket{cV} = \sum_{h \in cV}\ket{h},
+	\label{eq:first_register_in_fourier_sampling}
+\end{equation}
+where $H$ is the hidden subgroup of $G$.
+Then, the QFT is applied to $\ket{cV}$ to remove the effect of the coset symbol $c$. After applying QFT, we measure the state and perform classical post-processing. The period $r$ can be extracted from the measurement result.
+
+\section{Shift invariance}
+\label{sec:shift_invariance}
+% In Fourier sampling, the QFT plays a crucial role in removing the extra information of the coset symbol $c$.
+In Fourier sampling, one crucial step is to remove the effect of the coset symbol $c$.
+The necessity of this step can be shown by considering what happens if we measure the state $\ket{cV}$ in Eq.~\ref{eq:first_register_in_fourier_sampling} without applying the QFT. The measurement would result in a random element from the coset $cV$. Since the coset itself was chosen randomly, this entire process is equivalent to simply picking a random element from the whole group $G$. Such a measurement provides no information about the hidden subgroup $V$. By removing the effect of the random label $c$, the QFT makes the underlying structure of hidden subgroup $V$ accessible through measurement. This principle, which ensures that the coset label
+$c$ does not affect the extraction of the $V$, is known as shift invariance.
+
+Shift invariance is a key property of QFT in Fourier sampling. To depict how QFT removes the effect of $c$, we can consider the following example. Suppose we have a group $G = \ZZ_{2^n}$ and a hidden subgroup $V = \{p 2^m \mod 2^n \mid 0\leq m<n,p \in \ZZ \}$. Apply QFT to $\ket{cV}$ yields
+\begin{align}
+	\qft\ket{cV} =& \qft\sum_{p =0}^{2^{n-m}-1}\ket{c+ p 2^m} \\
+	=& e^{\frac{2\pi \ii c}{2^n}  } \sum_{s =0}^{2^m-1} \ket{s 2^{n-m}}.
+\end{align}
+When we sample the state $\qft \ket{cV}$, we get the $\ket{s 2^{n-m}}$ and then we can easily find the $m$. QFT is shift invariant unitary because it erases the $c$ when we sampling the state $\qft \ket{cV}$.
+
+We now formally define shift invariance, which captures the core idea that the coset label $c$ must not affect the identification of the hidden subgroup $V$.
+\begin{definition}[shift invariance]
+	A unitary operator $U$ is said to be shift invariant if it satisfies the following conditions:
+	\begin{equation}
+	    | \bra{g} U \ket{V} |^2 = | \bra{g} U \ket{cV} |^2, \forall g , c \in G, \forall V < G.
+	\end{equation}
+\end{definition}
+We found a equivalent definition of shift invariance. This definition is less understandable than the original definition, but it is easier to verify if a unitary operator $U$ is shift invariant.
+\begin{lemma}[shift invariance]
+\label{lemma: shift-invariance}
+	A unitary operator $U$ is shift invariant if and only if it satisfies the following conditions:
+	\begin{equation}
+	    U = \frac{1}{ |G| }
+		\begin{pmatrix}
+			e^{\ii \theta_{1,1}} & e^{\ii \theta_{1,2}} & \cdots & e^{\ii \theta_{1,|G|}} \\
+			e^{\ii \theta_{2,1}} & e^{\ii \theta_{2,2}} & \cdots & e^{\ii \theta_{2,|G|}} \\
+			\vdots & \vdots & \ddots & \vdots \\
+			e^{\ii \theta_{|G|,1}} & e^{\ii \theta_{|G|,2}} & \cdots & e^{\ii \theta_{ |G|,|G|}} \\
+		\end{pmatrix}.
+	\end{equation}
+\end{lemma}
+the proof of equivalence is shown in Appendix \ref{app:equivalence}.
+% \todo{maybe need some words else}
+Lemma~\ref{lemma: shift-invariance} shows that the Hadamard gates are shift invariant.
+% \section{SpongeBob is both shift invariant and experiment friendly}
+% \todo{find a family of operators that are both shift invariant and experiment friendly}
+
+% \todo{SpongeBob is shift invariant}
+
+% \todo{SpongeBob is experiment friendly}
+
+
+\section{Fourier sampling with Hadamard gates}
+\label{sec:hsp_with_spongebob}
+\subsection{Whole process}
+The Hadamard gates obtain a key property that makes it suitable for the HSP: it is shift invariant. Meanwhile, the Hadamard gates are also experiment friendly. As it obtains the two significant properties, we are curious that if the Hadamard gates can solve the HSP.
+
+In this section, we demonstrate how the standard Fourier sampling algorithm can be adapted to solve the HSP for groups of the form $G \cong \prod_i \ZZ_{2^{m_i}}$. Our approach replaces the experimentally demanding QFT with a specific, feasible set of Hadamard gates. We will show that this substitution is sufficient to identify the hidden subgroup $V$.
+
+
+We can write any element $h \in V$ in its binary representation $h = h_1 h_2 \dots h_{n-p} 0 \dots 0$, where the last $p$ bits are fixed to zero. Applying the Hadamard-Ising gates to the coset state yields
+\begin{equation}
+\label{eq: spongebob hsp}
+H^{\otimes n} \sum_{h \in V} \ket{c+h} = \sum_k e^{\ii \sum_{i,j} k_i k_j \theta_{ij}} (-1)^{\mathbf{k}\cdot \mathbf{c}} \ket{0}^{\otimes (n-p)}\ket{k}.
+\end{equation}
+From Eq.~\eqref{eq: spongebob hsp}, we can see that a measurement of the state will always result in a bit string where the first $n-p$ bits are zero. This directly reveals the structure of the hidden subgroup $V$.
+
+The core of the algorithm remains similar to the standard Fourier sampling procedure described in Appendix~\ref{app:fourier_sampling}, which modifies the standard Fourier sampling approach by replacing the quantum Fourier transform with Hadamard gates. As shown in Algorithm~\ref{alg: FS with Hadamard}, the algorithm proceeds as follows: First, we initialize the quantum state as a uniform superposition over all group elements coupled with their oracle values, $\sum_g \ket{g, f(g)}$. After measuring the second register, the first register collapses to a superposition over a random coset of the hidden subgroup $V$, yielding $\ket{c+V}$. We then apply Hadamard gates $H^{\otimes n}$ to this state, followed by measurement to obtain a collection of bit strings $\{\mathbf{b}^{(i)}\}$.
+
+The key insight is that the Hadamard transformation reveals the subgroup structure by causing certain bit positions to be fixed to zero in all measurements. The algorithm employs two crucial functions: $\verb|GetFixedBits|$ identifies which bit positions are consistently zero across all measurements $\{\mathbf{b}^{(i)}\}$, indicating membership in the subgroup structure, while $\verb|RecoverV|$ reconstructs the complete hidden subgroup $V$ from these identified fixed bits.
+According to Eq.~\eqref{eq: spongebob hsp}, $(n-p)$ consecutive zeros show that the generator of the subgroup is $2^p$. Concisely, after measuring the first register multiple times, we obtain bit strings $\mathbf{b}$ with format
+\begin{equation}
+	00\cdots 0 * * * \cdots *,
+\end{equation}
+each star ``$*$" means the bit can be either $0$ or $1$. We count the number of stars (say $p$) to determine the generator of the hidden subgroup $V$ (say $2^p$). This approach leverages the shift-invariance property of Hadamard gates while maintaining experimental feasibility.
+\begin{algorithm}
+\caption{Fourier Sampling with Hadamard Gates}
+\label{alg: FS with Hadamard}
+\KwIn{Group $G \cong (\ZZ_2)^n$, oracle $f: G \rightarrow X$ constant on cosets of hidden subgroup $V$}
+\KwOut{Hidden subgroup $V$}
+
+\SetKwFunction{GetFixedBits}{GetFixedBits}
+\SetKwFunction{RecoverV}{RecoverV}
+\BlankLine
+    Initialize: $\ket{\psi} \gets \sum_g \ket{g, f(g)}$ \\
+    Measure the second register: $\ket{c + H} \gets \sum_{h \in H} \ket{c+h}$ \\
+    Apply Hadamard gates: $H^{\otimes n}\ket{c + H}$\\
+    Measure $H^{\otimes n}\ket{c + H}$: $\{\mathbf{b}^{(i)}  \}$\\
+    Identify if any bit is fixed to $0$:
+    $\{j\}\gets\GetFixedBits(\{\mathbf{b}^{(i)}\})$\\
+    Recover the hidden subgroup: $V \gets \RecoverV(\{\mathbf{b}^{(i)}\})$
+    \Return{$V$}
+\end{algorithm}
+\subsection{Efficiency}
+We now discuss the efficiency of this modified algorithm. The primary task after the quantum measurement is to correctly identify which bits of the resulting strings are always zero and which are random. For each bit position $j$, we perform $m$ measurements and record the outcomes $\{b_j^{(i)}\}_{i=1}^m$. If a bit position is part of the structure that defines the subgroup, its outcome will always be 0. If it is not, its outcome will be 0 or 1 with equal probability.
+
+The probability of making an error for a single random bit position (i.e., concluding it is always 0 when it is in fact random) is $(1/2)^m$. To ensure that we correctly identify all $n$ bit positions with a total success probability of at least $1-\epsilon$, we require a number of measurements $m$ that satisfies $m \ge \log_2(n / \epsilon)$. The proof is shown in Appendix~\ref{app:efficiency_guarantee}. This shows that the number of measurements required scales efficiently, growing only logarithmically with the number of qubits $n$.
+
+
+
+\subsection{Example: factor $15$}
+
+We now demonstrate our Hadamard-based Fourier sampling algorithm by factoring $N = 15$. This problem reduces to finding the order $r$ of a randomly chosen number $x = 7$ modulo $15$, where $7^r \equiv 1 \pmod{15}$.
+
+To begin the algorithm, we prepare the quantum state $\frac{1}{\sqrt{2^t}}\sum_{k=0}^{2^t-1} \ket{k}\ket{0}$ with $t = 11$ qubits. We then apply the modular exponentiation oracle to compute $x^k \mod N$, producing the state
+\begin{equation}
+\frac{1}{\sqrt{2^t}}\sum_{k=0}^{2^t-1} \ket{k}\ket{7^k \mod 15}.
+\end{equation}
+
+After preparing this state, we measure the second register, which collapses the first register to a superposition over a coset of the hidden subgroup. For instance, if we measure $4$ in the second register, the first register becomes
+\begin{equation}
+\ket{\psi} = \frac{1}{\sqrt{2^{t-2}}}\left[\ket{2} + \ket{6} + \ket{10} + \ket{14} + \cdots\right].
+\end{equation}
+
+% At this critical step, instead of applying the quantum Fourier transform as in the standard approach, we apply Hadamard gates $H^{\otimes t}$ to the first register. The Hadamard transformation reveals the subgroup structure through characteristic bit patterns in the measurement outcomes. From these patterns, we determine that the order $r = 4$.
+
+% Finally, we complete the factorization by computing $\gcd(7^{4/2} - 1, 15) = 3$ and $\gcd(7^{4/2} + 1, 15) = 5$, obtaining the factors of $15$. This example shows that Hadamard gates provide a viable alternative to the quantum Fourier transform for solving the hidden subgroup problem in factoring applications.
+
+% We now demonstrate our Hadamard-based Fourier sampling algorithm by factoring $N = 15$. This problem reduces to finding the order $r$ of a randomly chosen number $x = 7$ modulo $15$, where $7^r \equiv 1 \pmod{15}$.
+
+% The algorithm begins by preparing the quantum state $\frac{1}{\sqrt{2^t}}\sum_{k=0}^{2^t-1} \ket{k}\ket{0}$ with $t = 11$ qubits. We then apply the modular exponentiation oracle to compute $x^k \mod N$, producing the state:
+% \begin{equation}
+% \frac{1}{\sqrt{2^t}}\sum_{k=0}^{2^t-1} \ket{k}\ket{7^k \mod 15}.
+% \end{equation}
+
+% Measuring the second register collapses the first register to a superposition over a coset of the hidden subgroup. For instance, if we measure $4$ in the second register, the first register becomes:
+% \begin{equation}
+% \ket{\psi} = \frac{1}{\sqrt{2^{t-2}}}\left[\ket{2} + \ket{6} + \ket{10} + \ket{14} + \cdots\right].
+% \end{equation}
+
+At this point, instead of applying the QFT as in the standard approach, we apply Hadamard gates $H^{\otimes t}$ to the first register and obtain
+\begin{equation}
+H^{\otimes t}\ket{\psi} = \sum_{b_1, b_2 \in \{0, 1\}}  \ket{0}^{\otimes 9} \ket{b_2b_1}.
+\end{equation}
+After measurement, the results will leave two free bits $b_1$ and $b_2$, which means $p=2$ and $r=2^2 = 4$.
+According to the procedure of reduction of factoring to order-finding~\cite{nielsen2010quantum}, the factors of $N$ can be obtained by computing $\gcd(7^{r/2} \pm 1, N)$, which gives us $3$ and $5$.
+
+
+
+\bibliographystyle{unsrt}
+\bibliography{ref.bib}
+
+\input{appendix.tex}
+
+
+
+\end{document}

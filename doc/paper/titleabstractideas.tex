@@ -1,0 +1,24 @@
+Title: An alternative to the Quantum Fourier Transform 
+
+Title: More shallow alternative to Quantum Fourier Transform 
+
+Title: Alternative to Quantum Fourier Transform with lower gate complexity
+
+Abstract: The hidden subgroup problem (HSP) yielding exponential quantum speedup over the best known classical algorithms, uses the Quantum Fourier Transform (QFT). Standard HSP algorithms require the full quantum Fourier transform (QFT), whose circuit depth and long-range gates remain challenging for near-term hardware. We propose a departure from conventional QFT approximations: instead of mimicking its gate structure, we identify two functional properties that are exploited by the QFT to enable HSP. Firstly the shift invariance property of the QFT allows for the removal of a random overall shift. Secondly, the information about the hidden subgroup needs to be available in the computational basis and we quantify that via the Fisher information. We construct a family of shallow circuits that preserve shift invariance. Numerical analysis shows these circuits retain Fisher information.  We demonstrate successful reconstruction using a neural network and analyze performance under noise, outlining a potential path to practical HSP implementations.
+
+
+Structure
+-Introduction
+-Necessary condition for shift invariance
+-ph:A shift invariant family of circuits
+-ph-0 for hidden subgroup on $Z_{2^n}$ (include comment on why need to go beyond ph-0)
+-Retention of Fisher information on hidden subgroup (mention QFT results, point to appendix)
+-ph-1 retains Fisher information with fewer layers than QFT
+-Simulation of HSP with ph-1 and efficient neural net post-processing
+-roubust under noise
+-Summary and outlook
+
+
+
+
+

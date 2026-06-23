@@ -1,0 +1,50 @@
+\documentclass[11pt]{letter}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{setspace, url}
+\setstretch{1.08}
+\pagestyle{empty}
+\usepackage{amsthm, amssymb}
+
+\newcommand{\ManuscriptTitle}{\(\mathcal{O}(n)\) alternative to Quantum Fourier Transform with efficient neural net classical post-processing}
+\newcommand{\ArticleType}{Article} % e.g. Article, Review
+\newcommand{\Journal}{\textit{Physical Review Letters}}
+
+\begin{document}
+
+\begin{letter}{}
+
+\opening{Dear Editor,}
+
+We are delighted to present our manuscript titled ``\ManuscriptTitle'' for your consideration for publication in the esteemed \Journal.
+
+\textbf{Background.}
+On near-term devices, the standard QFT presents experimental challenges due to its \(\mathcal{O}(n^{2})\) circuit depth. Although strategies like truncated controlled rotations and optimized CNOT routing have successfully reduced the depth to \(\mathcal{O}(n \log n)\), they introduce errors when approximating the QFT. Circuit cutting protocols obtain \(\mathcal{O}(n)\), but the number of samples required increases exponentially in the cutting number, and often that cutting number is chosen to be similar to \(n\). 
+
+\textbf{Main results.}
+We propose a circuit family using Hadamard and phase gates (HP-\(1\) circuit), that has \(\mathcal{O}(n)\) depth and can replace the QFT in hidden subgroup problem (HSP) algorithms like Shor's. Apart from the shallow depth, the circuit is friendly to current hardware in that the controlled phase gates are grouped together, allowing the merging of phase gates into single continuous pulses.
+
+We introduce a complete quantum circuit and classical post-processing framework using the quantum HP-\(1\) circuit we design, together with a polynomially-scaling Deep Sets neural network. Our method relies on three key ingredients: (i) proving that the HP-L circuit family satisfies the shift-invariance for \(\mathbb{Z}_{2^{n}}\), which ensures that the measurement outcomes are independent from random coset shifts, (ii) retaining an exponentially growing discrete Fisher information (DFI) about the hidden subgroup generator, which ensures that the measurement outcomes contain enough information and is scalable, and (iii) processing the measurement outcomes via Deep Sets net. These components allow our protocol to successfully recover hidden subgroups without the exponential classical overheads of circuit-cutting methods.
+
+We validate this framework numerically on Shor's algorithm, demonstrating successful factoring of numbers \(\leq 395\) with a depth-7 circuit with only 11 Hadamards and up to 30 controlled phase gates on \(11\) qubits. This result demonstrates that our framework offers a practical solution for executing HSP algorithms on near-term quantum devices.
+
+Given the broad interest in the rapidly evolving field of quantum computation, we believe that this work will be of broad interest to the readership of \Journal.
+
+\textbf{We suggest seeking reviewers with expertise in the overlap of quantum circuit design with experiment, such as:}
+\begin{itemize}
+    \item Hao Tang, Shanghai Jiao Tong University, \url{htang2015@sjtu.edu.cn}, expert on scaling of experimental (photonic) quantum computing. \url{https://www.physics.sjtu.edu.cn/en/jsml/tanghao.html}.
+    \item Andreas Wallraff, ETH Zurich, \url{andreas.wallraff@phys.ethz.ch}, expert on microwave regime superconducting/quantum dot quantum computing. 
+    \item Loïc Henriet, Pasqal Computing, \url{loic@pasqal.com}, expert on neutral-atom quantum computing, programmable quantum circuits, and hybrid quantum-classical machine learning.
+    \item Elisa Bäumer Marty, IBM Research Zurich, \url{baumer@zurich.ibm.com}, expert on dynamic circuits, QFT depth reduction, and quantum-classical resource tradeoffs.
+\end{itemize}
+
+Thank you for your consideration.
+
+%\closing{Yours sincerely,\\ }
+\noindent Yours sincerely,\\
+The authors
+
+\end{letter}
+\end{document}
