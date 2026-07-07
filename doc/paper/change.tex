@@ -150,7 +150,7 @@ The shift-invariance proof is most transparent when separated into a general alg
 
 For the main circuit used in the numerical sections, we take the fixed-phase \myqc-1 skeleton
 \(\Lambda_1=\{1,3,5,\ldots\}\) and \(\Lambda_2=\{2,4,6,\ldots\}\), with
-\(\theta_{ij}=2\pi/2^{|i-j|}\) on each controlled-phase gate between \(i\in\Lambda_1\) and \(j\in\Lambda_2\).
+\(\theta_{ij}=\pi/2^{|i-j|}\) on each controlled-phase gate between \(i\in\Lambda_1\) and \(j\in\Lambda_2\).
 
 \begin{theorem}[Shift invariance of fixed-phase \myqc-1]
 \label{thm:fixed_phase_hp1_sinv}
@@ -207,13 +207,13 @@ Eq.~\eqref{eq:qft dfi} indicates that the generator $r$ becomes easier to recove
 
 For \myqc{} circuits, the DFI is evaluated numerically. Specifically, for a fixed $r$, the circuit maps the periodic input components $\{\ket{qr}\}_q$ to a computational-basis distribution over outcomes $\ket{b}$, with the exact probabilities given by $\Pr(\ket{b}) = \left|\sum_q \langle b|U|qr\rangle\right|^2$.
 To evaluate the worst-case parameter sensitivity as the system scales, we consider the 
-worst-case DFI: $\fii_{\min}(n):\min_{2 \leq r \leq n^2} \fii(r,n)$.
-Fig.~\ref{fig:fi_scaling} illustrates the minimum DFI against the qubit number $n$. (We bound the period by $r=\mathcal{O}(n^2)$ to satisfy the condition $r \ll 2^n$.)
+worst-case DFI: $\fii_{\min}(n):\min_{1 \leq r \leq \lfloor 2^{n/2} \rfloor} \fii(r,n)$.
+Fig.~\ref{fig:fi_scaling} illustrates the minimum DFI against the qubit number $n$. (We bound the period to $1 \leq r \leq \lfloor 2^{n/2} \rfloor$ to satisfy the condition $r \ll 2^n$.)
 
-Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit configurations, where solid curves and shaded bands represent the mean and standard deviation of $\fii_{\min}(n)$. The fixed-phase \myqc-1 circuit utilizes the skeleton, $\Lambda_1 = \{1,3,5, \cdots\}$ and $\Lambda_2 = \{2,4,6, \cdots\}$, with controlled-phase gates with phase $\frac{2\pi}{2^{|i-j|}}$ between qubits $i$ and $j$. The optimized \myqc-1 circuit adopts the same skeleton but treats the gate phases as variational parameters, trained to maximize the $\fii_{\min}$. The deeper \myqc{}-$L$ circuits are constructed by generating valid random skeletons $\Lambda$. 
+Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit configurations, where solid curves and shaded bands represent the mean and standard deviation of $\fii_{\min}(n)$. The fixed-phase \myqc-1 circuit utilizes the skeleton, $\Lambda_1 = \{1,3,5, \cdots\}$ and $\Lambda_2 = \{2,4,6, \cdots\}$, with controlled-phase gates with phase $\frac{\pi}{2^{|i-j|}}$ between qubits $i$ and $j$. The optimized \myqc-1 circuit adopts the same skeleton but treats the gate phases as variational parameters, trained to maximize the $\fii_{\min}$. The deeper \myqc{}-$L$ circuits are constructed by generating valid random skeletons $\Lambda$. 
 
 
-The proposed \myqc~circuit family preserves an exponential growth trend of DFI over this polynomial period window. Appendix~\ref{app:fi_log_linear_growth} reports the corresponding log-linear regression coefficients.
+The proposed \myqc~circuit family preserves an exponential growth trend of DFI over this square-root period window. Appendix~\ref{app:fi_log_linear_growth} reports the corresponding log-linear regression coefficients.
 
 
 

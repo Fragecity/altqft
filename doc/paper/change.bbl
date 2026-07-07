@@ -6,7 +6,7 @@
 %Control: page (0) single
 %Control: year (1) truncated
 %Control: production of eprint (0) enabled
-\begin{thebibliography}{41}%
+\begin{thebibliography}{37}%
 \makeatletter
 \providecommand \@ifxundefined [1]{%
  \@ifx{#1\undefined}
@@ -482,43 +482,4 @@
   {https://doi.org/10.1016/j.ipl.2004.03.008} {\bibfield  {journal} {\bibinfo
   {journal} {Information Processing Letters}\ }\textbf {\bibinfo {volume}
   {91}},\ \bibinfo {pages} {43} (\bibinfo {year} {2004})}\BibitemShut {NoStop}%
-\bibitem [{\citenamefont {Walsh}(1923)}]{Walsh1923}%
-  \BibitemOpen
-  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.~L.}\ \bibnamefont
-  {Walsh}},\ }\bibfield  {title} {\bibinfo {title} {A closed set of normal
-  orthogonal functions},\ }\href {https://doi.org/10.2307/2387224} {\bibfield
-  {journal} {\bibinfo  {journal} {American Journal of Mathematics}\ }\textbf
-  {\bibinfo {volume} {45}},\ \bibinfo {pages} {5} (\bibinfo {year}
-  {1923})}\BibitemShut {NoStop}%
-\bibitem [{\citenamefont {Schipp}\ \emph {et~al.}(1990)\citenamefont {Schipp},
-  \citenamefont {Wade},\ and\ \citenamefont {Simon}}]{Schipp1990WalshSeries}%
-  \BibitemOpen
-  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {F.}~\bibnamefont
-  {Schipp}}, \bibinfo {author} {\bibfnamefont {W.~R.}\ \bibnamefont {Wade}},\
-  and\ \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Simon}},\
-  }\href@noop {} {\emph {\bibinfo {title} {Walsh Series: An Introduction to
-  Dyadic Harmonic Analysis}}}\ (\bibinfo  {publisher} {Adam Hilger},\ \bibinfo
-  {address} {Bristol},\ \bibinfo {year} {1990})\BibitemShut {NoStop}%
-\bibitem [{\citenamefont {Leung}\ and\ \citenamefont
-  {Watrous}(2017)}]{LeungWatrous2017}%
-  \BibitemOpen
-  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.}~\bibnamefont
-  {Leung}}\ and\ \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
-  {Watrous}},\ }\bibfield  {title} {\bibinfo {title} {On the complementary
-  quantum capacity of the depolarizing channel},\ }\href
-  {https://doi.org/10.22331/q-2017-09-19-28} {\bibfield  {journal} {\bibinfo
-  {journal} {Quantum}\ }\textbf {\bibinfo {volume} {1}},\ \bibinfo {pages} {28}
-  (\bibinfo {year} {2017})}\BibitemShut {NoStop}%
-\bibitem [{\citenamefont {Tsubouchi}\ \emph {et~al.}(2023)\citenamefont
-  {Tsubouchi}, \citenamefont {Sagawa},\ and\ \citenamefont
-  {Yoshioka}}]{Tsubouchi2023UniversalCost}%
-  \BibitemOpen
-  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {K.}~\bibnamefont
-  {Tsubouchi}}, \bibinfo {author} {\bibfnamefont {T.}~\bibnamefont {Sagawa}},\
-  and\ \bibinfo {author} {\bibfnamefont {N.}~\bibnamefont {Yoshioka}},\
-  }\bibfield  {title} {\bibinfo {title} {Universal cost bound of quantum error
-  mitigation based on quantum estimation theory},\ }\href
-  {https://doi.org/10.1103/PhysRevLett.131.210601} {\bibfield  {journal}
-  {\bibinfo  {journal} {Phys. Rev. Lett.}\ }\textbf {\bibinfo {volume} {131}},\
-  \bibinfo {pages} {210601} (\bibinfo {year} {2023})}\BibitemShut {NoStop}%
 \end{thebibliography}%

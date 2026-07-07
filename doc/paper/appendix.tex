@@ -8,7 +8,6 @@
 \@ifundefined{lemma}{\newtheorem{lemma}{Lemma}}{}
 \makeatother
 
-
 \section*{Appendix}
 \makeatletter
 \def\@sectioncntformat#1{\csname the#1\endcsname.\quad}
@@ -642,984 +641,546 @@ In the continuum approximation, the Fisher-information calculation reduces to a 
     This proves the lemma.
 \end{proof}
 
-
-
-We now turn from the QFT benchmark to the DFI of the fixed-phase \myqc-1
-circuit with respect to the hidden period $r$. To compute this DFI, the first
-ingredient is an explicit approximation to the measurement probability
-$\Pr_{\mathrm{HP1}}(x\mid r)$, since the score function is built from
-$\partial_r\log \Pr_{\mathrm{HP1}}(x\mid r)$. Fix a candidate period $r$ and
-let $R:=\lceil 2^n/r\rceil$, so that
-$\ket{V_r}=R^{-1/2}\sum_{q=0}^{R-1}\ket{qr}$ is the truncated periodic input
-state supported on the multiples of $r$ inside the $n$-qubit register. We first
-derive a low-order expression for
-$\Pr_{\mathrm{HP1}}(x\mid r)=|\langle x|\uqc{1}|V_r\rangle|^2$ in a
-form where the dominant interference over the multiples $qr$ is explicit.
-
-The following notation separates the leading oscillatory phase from the small
-fixed-phase correction shells. We use the boundary convention
-$x_k=0$ for $k\notin\{1,\ldots,n\}$. The quantity $B_m(x,y)$ is the local
-phase contribution associated with the distance-$(2m+1)$ couplings, while
-$C_q(x)$ is the leading phase factor of the $q$-th multiple $qr$ after the
-$B_0$ shell has been absorbed into the unperturbed phase.
-Define
-    \begin{align}
-        B_m(x,y)
-        &:=
-        \frac{1}{2}
-        \sum_{j\in\Lambda_2}
-        y_j\left(x_{j-(2m+1)}+x_{j+(2m+1)}\right),
-        \qquad m=0,1,\ldots,
-        \\
-        C_q(x)
-        &:=
-        (-1)^{
-        \sum_{j=1}^{n}x_j(qr)_j
-        }
-        \exp(\pi\ii B_0(x,qr)),
-        \qquad q=0,\ldots,R-1.
-    \end{align}
-    Also set
-    \begin{equation}
-        S_m(x)
-        :=
-        \begin{cases}
-            \displaystyle
-            \sum_{q=0}^{R-1}C_q(x),
-            &m=0,\\[2mm]
-            \displaystyle
-            \sum_{q=0}^{R-1}C_q(x)B_m(x,qr),
-            &m\geq 1.
-        \end{cases}
-    \end{equation}
-Here $S_0(x)$ is the leading amplitude obtained by summing the factors
-$C_q(x)$ over the supported multiples of $r$. For $m\geq 1$, $S_m(x)$ is the
-same sum with one insertion of the $m$-th correction shell $B_m(x,qr)$. This
-notation lets the probability expansion below be read as a Taylor expansion of
-the residual phase, followed by taking the squared modulus of the amplitude.
-The formula in Lemma~\ref{lem:hp1_measurement_probability_expansion} keeps only
-the first-order terms in this residual phase expansion.
+We now turn from the QFT benchmark to the fixed-phase \myqc-1 circuit.  The
+point of the next lemma is to convert the HP-1 periodic-state probability into
+the uniform-background plus explicit coherent-sum term used in the later
+numerator, Fisher, and Chernoff estimates.  Throughout this part, for each
+candidate generator \(r\), set $N:=2^n$.
+Thus \(q=0,\ldots,R^{(r)}-1\) labels precisely the integers \(qr\) contained in
+the \(n\)-bit register.  All products \(qr\) are ordinary integer products
+truncated to the register.
 
 \begin{lemma}[Fixed-phase \myqc-1 measurement probability expansion]
 \label{lem:hp1_measurement_probability_expansion}
-    For the fixed-phase \myqc-1 circuit, keeping the first-order terms in the
-    residual phase expansion gives
-    \begin{align}
-        \Pr\limits_{\mathrm{HP1}}(x\mid r)
-        \approx
-        \frac{1}{R2^n}
-        \left\{
-        |S_0(x)|^2
-        -
-        \frac{\pi}{2}
-        \operatorname{Im}
-        \left[
-        S_0(x)^*S_1(x)
-        \right]
-        -
-        \frac{\pi}{8}
-        \operatorname{Im}
-        \left[
-        S_0(x)^*S_2(x)
-        \right]
-        \right\}.
-        \label{eq:hp1_measurement_probability_expansion}
-    \end{align}
+For the fixed-phase \myqc-1 circuit, with the bit weights \(w_j(x)\) defined
+in the proof, the lag-correlation expansion gives
+\begin{equation}
+    \Pr_r(x)
+    \simeq
+    \frac{1}{N R^{(r)}}
+    \left|
+    \sum_{q=0}^{R^{(r)}-1}
+    \prod_{j=1}^{n}w_j(x)^{(qr)_j}
+    \right|^2 .
+    \label{eq:hp1_surrogate_support_probability}
+\end{equation}
 \end{lemma}
 
 \begin{proof}
-    With the boundary convention in the statement, the fixed-phase
-    \myqc-1 matrix element can be written as
-    \begin{align}
-        \bra{x}\uqc{1}\ket{y}
-        &=
-        \frac{1}{\sqrt{2^n}}
-        (-1)^{\sum_{j=1}^{n}x_jy_j}
-        \exp\left[
-        \pi\ii\sum_{m\geq0}\frac{B_m(x,y)}{4^m}
-        \right]
-        \\
-        &=
-        \frac{1}{\sqrt{2^n}}
-        (-1)^{
-        \sum_{j=1}^{n}x_jy_j
-        }
-        \exp(\pi\ii B_0(x,y))
-        \exp\left[
-        \pi\ii\sum_{m\geq1}\frac{B_m(x,y)}{4^m}
-        \right].
-    \end{align}
-    Therefore the output amplitude for the periodic state
-    $\ket{V_r}=R^{-1/2}\sum_{q=0}^{R-1}\ket{qr}$ is
-    \begin{equation}
-        \bra{x}\uqc{1}\ket{V_r}
-        =
-        \frac{1}{\sqrt{R2^n}}
-        \sum_{q=0}^{R-1}
-        C_q(x)
-        \exp\left[
-        \pi\ii\sum_{m\geq1}\frac{B_m(x,qr)}{4^m}
-        \right].
-    \end{equation}
-    Hence
-    \begin{align}
-        \Pr\limits_{\mathrm{HP1}}(x\mid r)
-        &:=
-        \left|\bra{x}\uqc{1}\ket{V_r}\right|^2
-        \\
-        &=
-        \frac{1}{R2^n}
-        \left|
-        \sum_{q=0}^{R-1}
-        C_q(x)
-        \exp\left[
-        \pi\ii\sum_{m\geq1}\frac{B_m(x,qr)}{4^m}
-        \right]
-        \right|^2.
-    \end{align}
-    By definition, $|C_q(x)|=1$. Since each normalized $B$-insertion has
-    magnitude $1/2$, a term with $k$ insertions and indices
-    $m_1,\ldots,m_k$ has effective size
-    $2^{-k}4^{-(m_1+\cdots+m_k)}$. Keeping all amplitude contributions larger
-    than the first omitted shell gives
-    \begin{align}
-        &\sum_{q=0}^{R-1}
-        C_q(x)
-        \exp\left[
-        \pi\ii\sum_{m\geq1}\frac{B_m(x,qr)}{4^m}
-        \right]
-        \\
-        &\quad =
-        S_0(x)
-        +
-        \frac{\pi\ii}{4}S_1(x)
-        +
-        \frac{\pi\ii}{16}S_2(x)
-        +
-        \mathcal R_{\mathrm{amp}}(x),
-        \qquad
-        |\mathcal R_{\mathrm{amp}}(x)|\leq c_A R2^{-7}.
-    \end{align}
-    Thus Eq.~\eqref{eq:hp1_measurement_probability_expansion} should be read as
-    the probability obtained after retaining the first-order amplitude terms
-    $S_1$ and $S_2$ in the residual phase expansion and dropping quadratic and
-    higher products of these corrections.
-    The omitted amplitude terms include both the linear $B_3/4^3$ shell and the
-    quadratic $B_1^2/4^2$ shell; both are of effective size $R2^{-7}$ under
-    the above counting.
-
-    Substituting the truncated amplitude into $R2^n\Pr_{\mathrm{HP1}}(x\mid r)$
-    gives
-    \begin{align}
-        R2^n\Pr\limits_{\mathrm{HP1}}(x\mid r)
-        &=
-        \left|
-        S_0(x)
-        +
-        \frac{\pi\ii}{4}S_1(x)
-        +
-        \frac{\pi\ii}{16}S_2(x)
-        +
-        \mathcal R_{\mathrm{amp}}(x)
-        \right|^2
-        \\
-        &=
-        |S_0(x)|^2
-        +
-        2\operatorname{Re}
-        \left[
-        S_0(x)^*
-        \left(
-        \frac{\pi\ii}{4}S_1(x)
-        +
-        \frac{\pi\ii}{16}S_2(x)
-        \right)
-        \right]
-        +
-        \mathcal R_{\mathrm{prob}}(x)
-        \\
-        &=
-        |S_0(x)|^2
-        -
-        \frac{\pi}{2}
-        \operatorname{Im}
-        \left[
-        S_0(x)^*S_1(x)
-        \right]
-        -
-        \frac{\pi}{8}
-        \operatorname{Im}
-        \left[
-        S_0(x)^*S_2(x)
-        \right]
-        +
-        \mathcal R_{\mathrm{prob}}(x).
-    \end{align}
-    Here $\mathcal R_{\mathrm{prob}}$ collects the cross terms involving
-    $\mathcal R_{\mathrm{amp}}$, the squared omitted amplitude shells, and the
-    quadratic products among the retained corrections
-    $(\pi\ii S_1/4+\pi\ii S_2/16)$.
-    Expanding the definitions of $S_0,S_1,S_2$, the same retained part is
-    equivalently
-    \begin{align}
-        R2^n\Pr\limits_{\mathrm{HP1}}(x\mid r)
-        =
-        &\sum_{p,q=0}^{R-1}C_q(x)^*C_p(x)
-        -
-        \frac{\pi}{2}
-        \operatorname{Im}
-        \sum_{p,q=0}^{R-1}
-        C_q(x)^*C_p(x)B_1(x,pr)
-        \\
-        &-
-        \frac{\pi}{8}
-        \operatorname{Im}
-        \sum_{p,q=0}^{R-1}
-        C_q(x)^*C_p(x)B_2(x,pr)
-        +
-        \mathcal R_{\mathrm{prob}}(x).
-    \end{align}
-    The leading contribution to the probability remainder is the squared
-    linear $B_1$ correction, whose effective probability size is $R^2 2^{-6}$.
-    Hence the retained expansion in Eq.~\eqref{eq:hp1_measurement_probability_expansion}
-    is obtained by dropping $\mathcal R_{\mathrm{prob}}$, with
-    \begin{equation}
-        |\mathcal R_{\mathrm{prob}}(x)|\leq c_P R^2 2^{-6},
-        \label{eq:hp1_probability_remainder_bound}
-    \end{equation}
-    Here $c_P>0$ is an absolute constant independent of $x$, $r$, $n$, and
-    $R$. It is not a physical parameter or a fitted parameter; it only absorbs
-    fixed constants from the Taylor remainder, triangle inequalities, and the
-    squared linear contribution. This proves
-    Eq.~\eqref{eq:hp1_measurement_probability_expansion}.
-
-
-The truncation in Eq.~\eqref{eq:hp1_measurement_probability_expansion} is a
-controlled perturbative approximation rather than a separate definition of a
-new Fisher quantity. The retained terms are the leading zero-shell contribution
-and the first two linear phase-correction shells. The first omitted
-contributions come from the next linear shell and from quadratic combinations
-of the retained linear correction. Under the dyadic weighting of the fixed-phase
-\myqc-1 circuit, these omitted terms enter only at the smaller effective
-probability scale bounded in Eq.~\eqref{eq:hp1_probability_remainder_bound},
-while the displayed terms carry the dominant period-dependent interference
-structure.
-
-Dropping the remainder is therefore reasonable for the analytical discussion
-because it isolates the leading mechanism responsible for the observed
-period sensitivity and gives a low-order expression that can be compared with
-the direct numerical DFI calculation. This step should not be read as a rigorous
-lower bound on the exact DFI: such a statement would require a separate
-Fisher-smallness control of the omitted terms after summing over measurement
-outcomes. Instead, the truncated expansion provides perturbative analytical
-support for the exact numerical DFI scaling shown in Fig.~\ref{fig:fi_scaling}.
-\end{proof}
-
-
-To keep the notation light, we slightly abuse notation in the perturbative
-argument below: \(\Pr_{\mathrm{HP1}}(x\mid r)\) and \(\fii_{\myqc-1}(r,n)\)
-denote the first-order quantities obtained from
-Eq.~\eqref{eq:hp1_measurement_probability_expansion}, not the exact
-probability and exact DFI.
-
-\begin{lemma}[Statistical surviving-support numerator estimate]
-Let
-\[
-A^{(r)}(x)
-:=
-\left|S^{(r)}_0(x)\right|^2
--\frac{\pi}{2}
-\operatorname{Im}
-\!\left[
-S^{(r)}_0(x)^*S^{(r)}_1(x)
-\right]
--\frac{\pi}{8}
-\operatorname{Im}
-\!\left[
-S^{(r)}_0(x)^*S^{(r)}_2(x)
-\right].
-\]
-Assume the statistical surviving-support estimate derived below: for
-\(1\le r\le\lfloor 2^{n/2}\rfloor\), the local zero
-constraints leave a non-cancelling surviving support of size
-\(\left(R^{(r)}\right)^3/(r\operatorname{poly}(n))\) in the doubled phase-mode expansion. Then
-\[
-\sum_{x\in\{0,1\}^n}
-\left[
-\frac{R^{(r)}}{R^{(r+1)}}A^{(r+1)}(x)
--
-A^{(r)}(x)
-\right]^2
-\ge
-\frac{2^n\left(R^{(r)}\right)^3}{r\operatorname{poly}(n)},
-\qquad
-1\le r\le\lfloor 2^{n/2}\rfloor.
-\]
-\label{lemma: 3}
-\end{lemma}
-
-
-\begin{proof}
-We first open one additional layer of $A^{(r)}(x)$ so that the
-sum over $x$ can be evaluated by local bit factors. Let
-\[
-    y_p^{(r)}:=pr,
+There is a real HP-1 phase kernel \(C\) such that, for every pair of
+computational basis strings \(x,y\in\{0,1\}^n\),
+\begin{equation}
+    \bra{x}\uqc{1}\ket{y}
+    =
+    \frac{1}{\sqrt{N}}
+    \exp\!\left(\pi\ii\Phi_x(y)\right),
     \qquad
-    y_{p,j}^{(r)}:=\text{the }j\text{-th bit of }pr,
-\]
-and write
-\[
-    a_j(x):=
-    x_j
-    +
-    \frac{1}{2}\mathbf{1}_{j\in\Lambda_2}
-    \left(x_{j-1}+x_{j+1}\right).
-\]
-With this notation, the leading local phase is
-\begin{equation}
-    C_p^{(r)}(x)
-    =
-    \exp\left[
-    \ii\pi
-    \sum_{j=1}^{n}a_j(x)y_{p,j}^{(r)}
-    \right],
-    \label{eq:hp1_local_phase_cp}
+    \Phi_x(y):=x^T C y .
+    \label{eq:hp1_flat_phase_kernel}
 \end{equation}
-and therefore, for two coset modes $p,q$,
+For the fixed-phase \(\myqc-1\) skeleton used here,
+\(\Lambda_1=\{1,3,5,\ldots\}\) and \(\Lambda_2=\{2,4,6,\ldots\}\), with
+\(\theta_{ij}=\pi/2^{|i-j|}\) for \(i\in\Lambda_1\), \(j\in\Lambda_2\).
+Using rows for output bits \(x_i\) and columns for input bits \(y_j\), one
+convenient representative of the real phase kernel is
 \begin{equation}
-    \left(C_q^{(r)}(x)\right)^*C_p^{(r)}(x)
-    =
-    \exp\left[\ii\Delta_{pq}^{(r)}(x)\right],
-    \qquad
-    \Delta_{pq}^{(r)}(x)
-    :=
-    \pi
-    \sum_{j=1}^{n}
-    a_j(x)
-    \left(y_{p,j}^{(r)}-y_{q,j}^{(r)}\right).
-    \label{eq:hp1_phase_difference}
-\end{equation}
-The important point is that, after collecting the phase by output bit, all
-coefficients remain local and half-integral: each $a_j(x)$ only involves
-$x_{j-1},x_j,x_{j+1}$ with weights in $\{1,1/2\}$. This is the structural input
-needed for the bitwise sums below.
-
-The linear correction terms are collected by the same re-indexing. For
-$m=1,2$, set
-\begin{equation}
-    L_{m,p,i}^{(r)}
-    :=
-    \frac{1}{2}
-    \left[
-    \mathbf{1}_{i+(2m+1)\in\Lambda_2}
-    y_{p,i+(2m+1)}^{(r)}
-    +
-    \mathbf{1}_{i-(2m+1)\in\Lambda_2}
-    y_{p,i-(2m+1)}^{(r)}
-    \right],
-    \label{eq:hp1_linear_correction_coefficients}
-\end{equation}
-so that
-\[
-    B_m(x,pr)=\sum_{i=1}^{n}L_{m,p,i}^{(r)}x_i.
-\]
-This is only a re-indexing of the definition of $B_m$: the original sum is
-organized by the input bit $y_j$, while
-Eq.~\eqref{eq:hp1_linear_correction_coefficients} collects the same terms by
-the output bit $x_i$.
-Define the combined linear correction by
-\begin{align}
-    L_p^{(r)}(x):=
-    \frac{\pi}{2}B_1(x,pr)
-    +
-    \frac{\pi}{8}B_2(x,pr)
-    &=
-    \sum_i
-    \left(
-    \frac{\pi}{2}L_{1,p,i}^{(r)}
-    +
-    \frac{\pi}{8}L_{2,p,i}^{(r)}
-    \right)x_i,
-    \label{eq:hp1_combined_linear_correction}
-\end{align}
-so $L_p^{(r)}(x)$ is just the $m=1,2$ combination of the coefficients
-$L_{m,p,i}^{(r)}$ defined in Eq.~\eqref{eq:hp1_linear_correction_coefficients}.
-
-We now substitute $S_0^{(r)},S_1^{(r)},S_2^{(r)}$ directly into
-$A^{(r)}(x)$. First, Eq.~\eqref{eq:hp1_phase_difference} gives
-\begin{align*}
-    |S_0^{(r)}(x)|^2
-    &=
-    \left(\sum_{q=0}^{R^{(r)}-1} C_q^{(r)}(x)\right)^*
-    \left(\sum_{p=0}^{R^{(r)}-1} C_p^{(r)}(x)\right)\\
-    &=
-    \sum_{p,q=0}^{R^{(r)}-1}
-    \left(C_q^{(r)}(x)\right)^*C_p^{(r)}(x)
-    =
-    \sum_{p,q=0}^{R^{(r)}-1}
-    \exp\left[\ii\Delta_{pq}^{(r)}(x)\right].
-\end{align*}
-The terms $(p,q)$ and $(q,p)$ are complex conjugates, so this real sum can be
-written as
-\[
-    |S_0^{(r)}(x)|^2
-    =
-    \sum_{p,q=0}^{R^{(r)}-1}\cos\Delta_{pq}^{(r)}(x).
-\]
-The two correction terms are similarly
-\begin{align*}
-    &-\frac{\pi}{2}\operatorname{Im}
-    \left[
-    S_0^{(r)}(x)^*S_1^{(r)}(x)
-    \right]
-    -
-    \frac{\pi}{8}\operatorname{Im}
-    \left[
-    S_0^{(r)}(x)^*S_2^{(r)}(x)
-    \right]\\
-    &\quad =
-    -\operatorname{Im}
-    \sum_{p,q=0}^{R^{(r)}-1}
-    \exp\left[\ii\Delta_{pq}^{(r)}(x)\right]
-    \left[
-    \frac{\pi}{2}B_1(x,pr)
-    +
-    \frac{\pi}{8}B_2(x,pr)
-    \right]\\
-    &\quad =
-    -
-    \sum_{p,q=0}^{R^{(r)}-1}
-    L_p^{(r)}(x)\sin\Delta_{pq}^{(r)}(x),
-\end{align*}
-where the last equality uses Eq.~\eqref{eq:hp1_combined_linear_correction}.
-The truncated numerator can therefore be written as a finite bit-dependent
-trigonometric expansion:
-\begin{equation}
-    A^{(r)}(x)
-    =
-    \sum_{p,q=0}^{R^{(r)}-1}
-    \left[
-    \cos\Delta_{pq}^{(r)}(x)
-    -
-    L_p^{(r)}(x)\sin\Delta_{pq}^{(r)}(x)
-    \right].
-    \label{eq:hp1_trigonometric_expansion}
-\end{equation}
-Consequently
-\[
-    D_r(x)
-    :=
-    \frac{R^{(r)}}{R^{(r+1)}}A^{(r+1)}(x)
-    -
-    A^{(r)}(x)
-\]
-has the same finite trigonometric-mode structure, now with the modes coming
-from both periods $r$ and $r+1$. In other words, Eq.~\eqref{eq:hp1_trigonometric_expansion}
-is the explicit expansion of the numerator ingredients that enter the squared
-difference defining \(D_r(x)\).
-
-If the denominator in the corresponding Fisher-type expression is temporarily
-ignored, the unweighted energy
-$\sum_x D_r(x)^2$ can be expanded analytically. The pure phase part of
-each mode overlap is built from exponentials whose phases are of the
-form in Eq.~\eqref{eq:hp1_phase_difference}. Take two such modes from periods
-$s,t\in\{r,r+1\}$, indexed by $(p,q)$ and $(p',q')$. After collecting the
-difference of their phase differences by output bit $x_i$, set
-\begin{align*}
-    \eta_i^{(s,t)}(p,q;p',q')
-    &:=
-    y_{p,i}^{(s)}-y_{q,i}^{(s)}
-    -y_{p',i}^{(t)}+y_{q',i}^{(t)}
-    \\
-    &\quad
-    +\frac12\mathbf 1_{i+1\in\Lambda_2}
-    \left(
-    y_{p,i+1}^{(s)}-y_{q,i+1}^{(s)}
-    -y_{p',i+1}^{(t)}+y_{q',i+1}^{(t)}
-    \right)
-    \\
-    &\quad
-    +\frac12\mathbf 1_{i-1\in\Lambda_2}
-    \left(
-    y_{p,i-1}^{(s)}-y_{q,i-1}^{(s)}
-    -y_{p',i-1}^{(t)}+y_{q',i-1}^{(t)}
-    \right).
-\end{align*}
-For Eq.~\eqref{eq:hp1_phase_overlap_product} and the following local-factor
-calculation, abbreviate
-\(\eta_i^{(s,t)}(p,q;p',q')\) as \(\eta_i\). By the definition above, the
-phase difference collected by output bit is
-\(\Delta_{pq}^{(s)}(x)-\Delta_{p'q'}^{(t)}(x)=\pi\sum_i\eta_i x_i\).
-Then the basic sum is
-\begin{equation}
-    \begin{aligned}
-    &\sum_{x\in\{0,1\}^n}
-    \exp\left\{
-    \ii\left[
-    \Delta_{pq}^{(s)}(x)-\Delta_{p'q'}^{(t)}(x)
-    \right]
-    \right\}
-    \\
-    &\quad =
-    \sum_{x_1=0}^{1}\cdots\sum_{x_n=0}^{1}
-    \prod_{i=1}^{n}
-    \exp\left(\ii\pi\eta_i x_i\right)
-    \\
-    &\quad =
-    \prod_{i=1}^{n}
-    \left(
-    \sum_{x_i=0}^{1}
-    \exp\left(\ii\pi\eta_i x_i\right)
-    \right)
-    \\
-    &\quad =
-    \prod_{i=1}^{n}
-    \left(
-    1+\exp\left\{
-    \ii\pi\eta_i^{(s,t)}(p,q;p',q')
-    \right\}
-    \right).
-    \end{aligned}
-    \label{eq:hp1_phase_overlap_product}
-\end{equation}
-The additional linear factors coming from $L_p^{(r)}(x)$ only insert local
-$x_i$ factors into the same product calculation, so they do not change the
-underlying local-factor structure.
-By construction,
-$\eta_i^{(s,t)}(p,q;p',q')\in\frac{1}{2}\mathbb Z$, so each local factor has
-magnitude
-\begin{equation}
-    \left|1+\exp(\ii\pi\eta_i)\right|
+    C_{ij}
     =
     \begin{cases}
-        2, & \eta_i\in 2\mathbb Z,\\
-        0, & \eta_i\in 2\mathbb Z+1,\\
-        \sqrt{2}, & \eta_i\in\mathbb Z+\frac{1}{2}.
+        1, & i=j,\\[1mm]
+        2^{-|i-j|}, & i\in\Lambda_1,\ j\in\Lambda_2,\\[1mm]
+        0, & \text{otherwise}.
     \end{cases}
-    \label{eq:hp1_local_factor_magnitudes}
+    \label{eq:hp1_phase_kernel_entries}
 \end{equation}
-The local-factor calculation shows that each pure-phase overlap in the expansion
-of \(\sum_{x\in\{0,1\}^n} D_r(x)^2\) factorizes as
+Equivalently,
 \begin{equation}
-\prod_{i=1}^n \left(1+e^{i\pi\eta_i}\right),
-\qquad
-\eta_i\in \frac{1}{2}\mathbb{Z}.
-\label{eq:hp1_surviving_local_factor_product}
-\end{equation}
-Thus each local factor has magnitude \(2\), \(\sqrt{2}\), or \(0\). The
-surviving pure-phase modes are those for which no local factor vanishes:
-\begin{equation}
-    \mathcal S_r
-    :=
-    \left\{
-    (s,t,p,q,p^{\prime},q^{\prime}):
-    \eta_i^{(s,t)}(p,q;p^{\prime},q^{\prime})\notin 2\mathbb Z+1
-    \text{ for every }i
-    \right\}.
-    \label{eq:hp1_surviving_support}
-\end{equation}
-Here \(s,t\in\{r,r+1\}\), and the mode indices range over the corresponding
-coset lengths. The total number of doubled modes is \(\Theta(\left(R^{(r)}\right)^4)\), since
-\(R^{(r+1)}=\Theta(R^{(r)})\) in the windows considered here.
-
-We now estimate \(|\mathcal S_r|\) statistically. Treat the bit differences
-\(y_{p,j}^{(s)}-y_{q,j}^{(s)}-y_{p^{\prime},j}^{(t)}+y_{q^{\prime},j}^{(t)}\)
-as weakly correlated random integer variables. For even output sites in the
-fixed \(\Lambda_2=\{2,4,\ldots\}\) skeleton, the condition that the local factor
-not vanish is one parity constraint, hence it holds with probability \(1/2\).
-Conditioned on the even-site constraints, each odd output site supplies one
-further parity constraint, again with probability \(1/2\), up to boundary
-effects. Therefore
-\begin{equation}
-    \mathbb E|\mathcal S_r|
+    \Phi_x(y)
     =
-    \Theta(\left(R^{(r)}\right)^4\,2^{-n+\mathcal{O}(1)})
+    \sum_{i=1}^n x_i y_i
+    +
+    \sum_{i\in\Lambda_1}\sum_{j\in\Lambda_2}
+    \frac{x_i y_j}{2^{|i-j|}} .
+    \label{eq:hp1_phase_kernel_expanded}
+\end{equation}
+Consequently, for \(a_j(x):=(C^Tx)_j\), and with the boundary convention
+\(x_k=0\) for \(k\notin\{1,\ldots,n\}\),
+\begin{equation}
+    a_j(x)
     =
-    \Theta\!\left(\frac{\left(R^{(r)}\right)^3}{r}\right),
-    \label{eq:hp1_surviving_support_size}
-\end{equation}
-using \(R^{(r)}/2^n=\Theta(1/r)\). Allowing a polynomial loss in the
-surviving fraction gives the statistical lower envelope
-\begin{equation}
-    |\mathcal S_r|_{\mathrm{surv}}
-    \gtrsim
-    \frac{\left(R^{(r)}\right)^3}{r\operatorname{poly}(n)}.
-    \label{eq:hp1_surviving_support_polynomial_loss}
-\end{equation}
-
-For the surviving modes counted by these parity constraints, the pure local
-factors have magnitude \(2\) at every site and hence contribute scale \(2^n\):
-the even-site constraints remove the half-integer alternatives for the adjacent
-odd-site tests, up to boundary effects. Any additional half-integer surviving
-modes can only increase this support estimate and are not needed here.
-The linear \(L_p^{(r)}(x)\) insertions only change the scale by polynomial
-factors. Thus, under the statistical assumption that a polynomial fraction of
-the surviving signed contributions is not coherently cancelled, the retained
-numerator energy obeys
-\begin{equation}
-    \sum_{x\in\{0,1\}^n} D_r(x)^2
-    \ge
-    \frac{2^n \left(R^{(r)}\right)^3}{r\operatorname{poly}(n)},
+    \begin{cases}
+        x_j, & j\in\Lambda_1,\\[1mm]
+        x_j+\displaystyle\sum_{m\ge0}
+        \dfrac{x_{j-(2m+1)}+x_{j+(2m+1)}}{2^{2m+1}},
+        & j\in\Lambda_2,
+    \end{cases}
     \qquad
-    1\le r\le\lfloor 2^{n/2}\rfloor.
-    \label{eq:hp1_surviving_support_numerator_energy}
+    w_j(x):=\exp\!\left[\pi\ii a_j(x)\right].
+    \label{eq:hp1_bit_phase_weights}
 \end{equation}
-This is the numerator-energy estimate used below. It should be read as a
-typical surviving-support estimate rather than a deterministic arithmetic
-lower bound for every period.
+This admits a useful bulk odd-even form.  Removing the upper finite-register
+boundary by taking \(n\to\infty\), and writing
+\(o_\ell:=x_{2\ell-1}\), \(e_\ell:=x_{2\ell}\), one obtains
+\[
+    a_{2\ell-1}(x)=o_\ell,\qquad
+    a_{2\ell}(x)=
+    e_\ell+
+    \frac12\sum_{m\ge0}4^{-m}
+    \left(o_{\ell-m}+o_{\ell+m+1}\right),
+\]
+with the one-sided convention \(o_\ell=0\) for \(\ell\le0\).  Equivalently,
+if
+\[
+    (Ko)_\ell:=
+    \sum_{m\ge0}4^{-m}
+    \left(o_{\ell-m}+o_{\ell+m+1}\right),
+\]
+then the coherent sum in Eq.~\eqref{eq:hp1_surrogate_support_probability} has
+the semi-closed bulk form
+\[
+    Z_r^{\mathrm{bulk}}(x)
+    =
+    \sum_{q=0}^{R^{(r)}-1}
+    \exp\!\left\{
+    \pi\ii
+    \sum_{\ell\ge1}
+    \left[
+        (qr)_{2\ell-1}o_\ell
+        +
+        (qr)_{2\ell}
+        \left(e_\ell+\frac12(Ko)_\ell\right)
+    \right]
+    \right\},
+    \qquad
+    \Pr_r(x)\simeq
+    \frac{|Z_r^{\mathrm{bulk}}(x)|^2}{N R^{(r)}}.
+\]
+This is the HP-1 analogue of the closed trigonometric moment used in the QFT
+calculation around Eq.~(E21).  It is not reducible to a single Dirichlet-kernel
+moment, because the map \(q\mapsto(qr)_j\) contains binary carries and is not a
+linear function of \(q\) at the bit level.
+The phase factor can therefore be written bitwise as
+\begin{equation}
+    \exp\!\left(\pi\ii\Phi_x(y)\right)
+    =
+    \prod_{j=1}^{n}w_j(x)^{y_j}.
+    \label{eq:hp1_bitwise_phase_factor}
+\end{equation}
+This is the flat-modulus form of an HP-1 circuit.  The Hadamards contribute the
+factor \(N^{-1/2}\), while the Hadamard signs and controlled-phase gates
+contribute only phases.  Since the fixed HP-1 phase gates are two-bit diagonal
+phase gates, fixing the output string \(x\) makes the total phase linear in the
+input string \(y\), giving \(\Phi_x(y)=x^TCy\).  The diagonal part of \(C\)
+comes from the Hadamard signs, and the off-diagonal odd-row/even-column part
+comes from the controlled-phase gates.
+
+For period \(r\), define the coherent phase sum
+\begin{equation}
+    Z_r(x)
+    :=
+    \sum_{q=0}^{R^{(r)}-1}
+    \prod_{j=1}^{n}w_j(x)^{(qr)_j}.
+    \label{eq:hp1_phase_sum_Z}
+\end{equation}
+
+Applying Eq.~\eqref{eq:hp1_flat_phase_kernel} to the truncated periodic state
+gives the exact coherent amplitude
+\[
+    \bra{x}\uqc{1}\ket{V_r}
+    =
+    \frac{Z_r(x)}{\sqrt{R^{(r)}N}}.
+\]
+
+Opening the squared amplitude gives the normalized coherent law
+\begin{equation}
+    \Pr_r(x)
+    =
+    \frac{|Z_r(x)|^2}{R^{(r)}N}
+    =
+    \frac{1}{N R^{(r)}}
+    \left|
+    \sum_{q=0}^{R^{(r)}-1}
+    \prod_{j=1}^{n}w_j(x)^{(qr)_j}
+    \right|^2 .
+    \label{eq:hp1_lag_correlation_probability}
+\end{equation}
+Equivalently, separating the uniform background from the coherent excess gives
+\begin{equation}
+    \Pr_r(x)
+    =
+    \frac1N
+    \left[
+        1+
+        \frac{|Z_r(x)|^2}{R^{(r)}}
+        -1
+    \right].
+    \label{eq:hp1_lag_correlation_probability_reduced}
+\end{equation}
+This normalized form is the form stated in
+Eq.~\eqref{eq:hp1_surrogate_support_probability}.
 \end{proof}
 
 
-
-\begin{theorem}[First-order Fisher lower bound with polynomial loss]
-Assume the statistical surviving-support numerator estimate in Lemma~3. For the fixed
-HP-1 circuit, substituting the first-order probability expansion in Eq.~\eqref{eq:hp1_measurement_probability_expansion}
-into the discrete Fisher expression gives
+For the estimates below we separate the exact probabilistic algebra from the
+lag-correlation heuristic that motivates the hypotheses.  Let
+\begin{equation*}
+    P_r(x)=\frac1N[1+G_r(x)],
+    \tag{BG}
+    \label{eq:hp1_background_normalized_law}
+\end{equation*}
+be the background-normalized law to which the Fisher and Chernoff estimates are
+applied.  For the leading-order reduced lag-correlation approximation, this is
+the law with
 \begin{equation}
-\mathrm{DFI}_{\mathrm{HP}-1}(r,n)
-\ge
-    \frac{1}{r\operatorname{poly}(n)},
-\qquad
-1\le r\le\lfloor 2^{n/2}\rfloor.
-\label{eq:hp1_fisher_polynomial_loss_statement}
+    G_r(x):=
+    \frac{|Z_r(x)|^2}{R^{(r)}}-1
+    =
+    \frac{1}{R^{(r)}}
+    \left|
+    \sum_{q=0}^{R^{(r)}-1}
+    \prod_{j=1}^{n}w_j(x)^{(qr)_j}
+    \right|^2
+    -1,
+    \label{eq:hp1_background_coherent_decomposition}
+\end{equation}
+which is Eq.~\eqref{eq:hp1_lag_correlation_probability_reduced} written in
+background-normalized form.
+If one wants the following estimates for the exact circuit distribution rather
+than for the reduced lag-correlation approximation, Eq.~\eqref{eq:hp1_background_normalized_law}
+should instead be read as the exact identity defining
+\((G_r(x):=NP_r(x)-1)\), and the surviving-support assumptions below must be
+verified for that exact \(G_r\).  Thus no later step uses an uncontrolled
+replacement of \(\simeq\) by \(=\).
+
+The adjacent-period numerator in this background-normalized form is
+\begin{equation}
+    \Delta_rG(x):=G_{r+1}(x)-G_r(x),
+    \qquad
+    P_{r+1}(x)-P_r(x)=\frac{\Delta_rG(x)}{N}.
+    \label{eq:hp1_background_normalized_difference}
+\end{equation}
+Thus the explicit coherent sum in Eq.~\eqref{eq:hp1_phase_sum_Z} controls the
+numerator only through whatever surviving-support estimate is assumed or proved
+for the chosen law.
+
+For the next two lemmas, fix adjacent periods \(r,r+1\) in the register regime
+\(1\ll r\ll N=2^n\), with
+\(P_s(x)=N^{-1}[1+G_s(x)]\).  Assume there are constants
+\(c_\Omega,c_1>0\), polynomially bounded functions
+\(p_\Omega(n),p_+(n),p_0(n)\), and a set
+\(\Omega_r\subseteq\{0,1\}^n\) such that
+\begin{align}
+    |\Omega_r|
+    &\ge
+    c_\Omega\frac{rN\exp[-kn-b]}{p_\Omega(n)},
+    \label{eq:hp1_surviving_support_size_new}\\
+    G_{r+1}(x)
+    &\ge
+    c_1\frac{\exp[kn+b]}{r p_+(n)},
+    \qquad x\in\Omega_r,
+    \label{eq:hp1_surviving_support_height_new}\\
+    1+G_r(x)
+    &\le
+    p_0(n),
+    \qquad x\in\Omega_r,
+    \label{eq:hp1_background_denominator_on_support}
+\end{align}
+Here \(\Omega_r\) is the surviving output support for the adjacent pair
+\((r,r+1)\): it consists of bit strings where the period-\(r+1\) law has a
+coherent excess above background, while the period-\(r\) law remains at
+background scale.  Equation~\eqref{eq:hp1_surviving_support_size_new}
+lower-bounds the size of this set, Eq.~\eqref{eq:hp1_surviving_support_height_new}
+lower-bounds the period-\(r+1\) coherent height on it, and
+Eq.~\eqref{eq:hp1_background_denominator_on_support} keeps the period-\(r\)
+denominator small enough for the Fisher and Chernoff estimates below.
+We also assume
+\begin{equation}
+    r p_0(n)p_+(n)=o\left(\exp[kn+b]\right).
+    \label{eq:hp1_separation_condition}
+\end{equation}
+
+\begin{lemma}[Fisher surviving-support input]
+\label{lem:hp1_fisher_surviving_support}
+Under the assumptions above,
+\begin{equation}
+    \sum_{x\in\Omega_r}\bigl[\Delta_rG(x)\bigr]^2
+    \ge
+    \frac{N\exp[kn+b-O(\log n)]}{r}.
+    \label{eq:hp1_surviving_support_numerator_energy_new}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For \(x\in\Omega_r\), Eqs.~\eqref{eq:hp1_surviving_support_height_new},
+\eqref{eq:hp1_background_denominator_on_support}, and
+\eqref{eq:hp1_separation_condition} give, for all sufficiently large \(n\),
+\begin{align}
+    |\Delta_rG(x)|
+    &=|G_{r+1}(x)-G_r(x)|  \\
+    &\ge G_{r+1}(x)-G_r(x) \\
+    &\ge
+    \frac{c_1}{2}\frac{\exp[kn+b]}{r p_+(n)} .
+    \label{eq:hp1_delta_lower_on_support}
+\end{align}
+Restricting to \(\Omega_r\) and using
+Eq.~\eqref{eq:hp1_surviving_support_size_new},
+\begin{align}
+    \sum_{x\in\Omega_r}\bigl[\Delta_rG(x)\bigr]^2
+    &\ge
+    |\Omega_r|\,\frac{c_1^2}{4}
+    \frac{\exp[2kn+2b]}{r^2p_+(n)^2} \\
+    &\ge
+    \frac{c_\Omega c_1^2}{4}
+    \frac{N\exp[kn+b]}{r p_\Omega(n)p_+(n)^2} \\
+    &=
+    \frac{N\exp[kn+b-O(\log n)]}{r}.
+\end{align}
+\end{proof}
+
+\begin{lemma}[Chernoff surviving-support input]
+\label{lem:hp1_chernoff_surviving_support}
+Under the assumptions above, with
+\begin{equation}
+    \eta_n
+    :=
+    \frac{r p_0(n)p_+(n)}{c_1\exp[kn+b]},
+    \label{eq:hp1_chernoff_ratio_eta}
+\end{equation}
+one has \(\eta_n=o(1)\) and
+\begin{align}
+    \frac{P_r(x)}{P_{r+1}(x)}
+    &\le \eta_n,
+    \qquad x\in\Omega_r,
+    \label{eq:hp1_chernoff_ratio_on_support}\\
+    P_{r+1}(\Omega_r)
+    &\ge
+    \frac{1}{\operatorname{poly}(n)}.
+    \label{eq:hp1_surviving_support_mass_new}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+The condition \(\eta_n=o(1)\) is exactly
+Eq.~\eqref{eq:hp1_separation_condition}.  For \(x\in\Omega_r\),
+Eqs.~\eqref{eq:hp1_surviving_support_height_new} and
+\eqref{eq:hp1_background_denominator_on_support} give
+\[
+    \frac{P_r(x)}{P_{r+1}(x)}
+    =
+    \frac{1+G_r(x)}{1+G_{r+1}(x)}
+    \le
+    \frac{p_0(n)}{G_{r+1}(x)}
+    \le
+    \eta_n .
+\]
+Also,
+\begin{align}
+    P_{r+1}(\Omega_r)
+    &\ge
+    \frac1N\sum_{x\in\Omega_r}G_{r+1}(x) \\
+    &\ge
+    \frac{|\Omega_r|}{N}
+    c_1\frac{\exp[kn+b]}{r p_+(n)} \\
+    &\ge
+    \frac{c_\Omega c_1}{p_\Omega(n)p_+(n)}
+    \ge
+    \frac1{\operatorname{poly}(n)} .
+\end{align}
+\end{proof}
+
+\begin{theorem}[First-order Fisher lower bound with explicit \(1/r\) loss]
+\label{thm:hp1_first_order_fisher_transfer}
+For adjacent periods \(r,r+1\) in the register regime \(1\ll r\ll2^n\),
+assume the surviving-support hypotheses of
+Lemma~\ref{lem:hp1_fisher_surviving_support}.  Then the adjacent-period
+discrete Fisher information of the fixed-phase \(\myqc-1\) background-normalized
+law satisfies
+\begin{equation}
+    \fii_{\myqc-1}(r,n)
+    \ge
+    \frac{\exp[kn+b-O(\log n)]}{r}.
+    \label{eq:hp1_fisher_explicit_r_loss}
+\end{equation}
+Equivalently,
+\begin{equation}
+    \log \fii_{\myqc-1}(r,n)
+    \ge
+    kn+b-\log r-O(\log n).
+    \label{eq:hp1_fisher_log_general_window}
+\end{equation}
+In particular, if \(r\le \exp(\rho n)\) with \(0\le\rho<k\), then
+\begin{equation}
+    \log \fii_{\myqc-1}(r,n)
+    \ge
+    (k-\rho)n+b-O(\log n),
+    \label{eq:hp1_fisher_log_exponential_window}
+\end{equation}
+and if \(\log r=o(n)\) this reduces to
+\begin{equation}
+    \log \fii_{\myqc-1}(r,n)
+    \ge
+    kn+b-o(n).
+    \label{eq:hp1_fisher_log_subexponential_window}
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-Using the notation introduced above, Lemma~\ref{lem:hp1_measurement_probability_expansion}
-gives the retained first-order probability
-\(\Pr_{\mathrm{HP1}}(x\mid s)\approx A^{(s)}(x)/(R^{(s)}N)\). Hence, with
-\begin{equation}
-    D_r(x)
-    :=
-    \frac{R^{(r)}}{R^{(r+1)}}A^{(r+1)}(x)
-    -
-    A^{(r)}(x),
-\end{equation}
-we have \(\Pr_{\mathrm{HP1}}(x\mid r+1)-\Pr_{\mathrm{HP1}}(x\mid r)=D_r(x)/(R^{(r)}N)\). Substituting this into
-the DFI gives the first-order expression
-\(\fii_{\myqc-1}(r,n)\approx
-\sum_x D_r(x)^2/(R^{(r)}N\,A^{(r)}(x))\).
-
-We next estimate the denominator at its coherent-sum envelope scale. Since
-\(|C_q^{(r)}(x)|=1\), the leading amplitude obeys
-\(|S_0^{(r)}(x)|\leq R^{(r)}\) and
-\(|S_0^{(r)}(x)|^2\leq \left(R^{(r)}\right)^2\).
-For \(m=1,2\), the definition of \(B_m\) gives the explicit bound
-\begin{equation}
-    |B_m(x,qr)|
-    =
-    \left|
-    \frac{1}{2}
-    \sum_{j\in\Lambda_2}
-    (qr)_j\left(x_{j-(2m+1)}+x_{j+(2m+1)}\right)
-    \right|
-    \leq
-    |\Lambda_2|
-    \leq
-    n,
-\end{equation}
-because all bits are in \(\{0,1\}\) and the boundary convention sets the
-out-of-range \(x\)-bits to zero. Therefore
-\begin{equation}
-    |S_m^{(r)}(x)|
-    \leq
-    \sum_{q=0}^{R^{(r)}-1}
-    |C_q^{(r)}(x)|\,|B_m(x,qr)|
-    \leq
-    nR^{(r)} .
-\end{equation}
-Consequently
-\begin{equation}
-    |S_0^{(r)}(x)^*S_m^{(r)}(x)|
-    =
-    |S_0^{(r)}(x)|\,|S_m^{(r)}(x)|
-    \leq
-    n\left(R^{(r)}\right)^2,
-    \qquad m=1,2.
-\end{equation}
-Absorbing the fixed coefficients in the definition of \(A^{(r)}(x)\)
-into a constant, there is a constant \(C_A>0\) such that
-\begin{equation}
-    A^{(r)}(x)
-    \leq
-    C_An\left(R^{(r)}\right)^2 .
-\end{equation}
-This is an envelope estimate from coherent addition of the \(R^{(r)}\) phase terms;
-it is not a random-phase typical-scale estimate.
-
-For the Fisher sum, this bound is applied on the positive retained-probability
-support. If a retained denominator vanishes while the corresponding numerator
-does not, the lower bound is trivial. Therefore
-\begin{equation}
+Using Eq.~\eqref{eq:hp1_background_normalized_law}, the adjacent DFI is
+\begin{align}
     \fii_{\myqc-1}(r,n)
-    \geq
-    \frac{1}{C_An\left(R^{(r)}\right)^3N}
-    \sum_x D_r(x)^2 .
-\end{equation}
-By Lemma~\ref{lemma: 3},
-\begin{equation}
-    \sum_x D_r(x)^2
-    \ge
-    \frac{N \left(R^{(r)}\right)^3}{r\operatorname{poly}(n)}.
-\end{equation}
-Thus,
-\begin{equation}
-    \mathrm{DFI}_{\mathrm{HP}-1}(r,n)
-    \ge
-    \frac{1}{r\operatorname{poly}(n)}.
-\end{equation}
-Thus the first-order Fisher approximation has the explicit additional \(1/r\)
-loss dictated by the surviving-support count; no separate polynomial bound on
-\(r\) is assumed.
+    &=
+    \sum_x
+    \frac{\left(P_{r+1}(x)-P_r(x)\right)^2}{P_r(x)}  \\
+    &=
+    \frac1N
+    \sum_x
+    \frac{\left[\Delta_rG(x)\right]^2}{1+G_r(x)} .
+    \label{eq:hp1_dfi_background_form}
+\end{align}
+If \(P_r(x)=0\) for some \(x\) with \(P_{r+1}(x)>0\), the corresponding
+DFI term is interpreted as \(+\infty\), and the lower bound is immediate.
+Otherwise the denominators are positive.  Restricting the sum to \(\Omega_r\)
+and using Eq.~\eqref{eq:hp1_background_denominator_on_support},
+\begin{align}
+    \fii_{\myqc-1}(r,n)
+    &\ge
+    \frac{1}{Np_0(n)}
+    \sum_{x\in\Omega_r}\bigl[\Delta_rG(x)\bigr]^2 \\
+    &\ge
+    \frac{\exp[kn+b-O(\log n)]}{r},
+\end{align}
+where the last step is the support-local bound in Eq.~\eqref{eq:hp1_surviving_support_numerator_energy_new}
+and the polynomial \(p_0(n)\) has been absorbed into \(O(\log n)\).
+Taking logarithms gives Eq.~\eqref{eq:hp1_fisher_log_general_window}.  The two
+special cases follow by substituting \(\log r\le \rho n\) and
+\(\log r=o(n)\), respectively.
 \end{proof}
 
+The role of the denominator is now explicit.  The numerator difference is of
+size \(N\exp(kn)/r\) in the background-normalized variables, and it is
+concentrated on outputs where the period-\(r\) law is at background scale.
+This is why the Fisher information gains the exponential factor \(e^{kn}\),
+while the period multiplicity appears as the explicit \(1/r\) loss.
 
-
-\section{First-order Chernoff separation}
-The Fisher statement above is a retained first-order statement rather than an
-exact lower bound for the full HP-1 measurement law. In this section,
-\(\Pr_{\mathrm{HP1}}(x\mid s)\) is still understood in the retained
-first-order sense of Eq.~\eqref{eq:hp1_measurement_probability_expansion}.
-With the notation used above,
+\section{Chernoff separation from the same surviving support}
+\label{app:hp1_chernoff_transfer}
+Let \(P_r\) and \(P_{r+1}\) denote the same background-normalized laws as above.
+Define the adjacent Chernoff information by
 \begin{equation}
-    \Pr_{\mathrm{HP1}}(x\mid s)
-    =
-    \frac{A^{(s)}(x)}{R^{(s)}N}.
-\end{equation}
-With the numerator difference from Lemma~\ref{lemma: 3},
-\begin{equation}
-    D_r(x)
-    :=
-    \frac{R^{(r)}}{R^{(r+1)}}A^{(r+1)}(x)
-    -
-    A^{(r)}(x),
-\end{equation}
-the retained probability difference is
-\begin{equation}
-    \Delta_r\Pr_{\mathrm{HP1}}(x)
-    :=
-    \Pr_{\mathrm{HP1}}(x\mid r+1)
-    -
-    \Pr_{\mathrm{HP1}}(x\mid r)
-    =
-    \frac{D_r(x)}{R^{(r)}N}.
-    \label{eq:first_order_probability_difference}
-\end{equation}
-
-Define the first-order Chernoff information between the adjacent retained HP-1
-period distributions by
-\begin{equation}
-    \mathcal C_{\mathrm{HP1}}(r)
+    \mathcal C(P_r,P_{r+1})
     :=
     -\log
-    \min_{\alpha\in[0,1]}
-    \sum_x
-    \Pr_{\mathrm{HP1}}(x\mid r)^\alpha
-    \Pr_{\mathrm{HP1}}(x\mid r+1)^{1-\alpha}.
+    \min_{0\le\alpha\le 1}
+    \sum_x P_r(x)^\alpha P_{r+1}(x)^{1-\alpha} .
+    \label{eq:hp1_chernoff_information_definition}
 \end{equation}
-Taking \(\alpha=1/2\) gives the Bhattacharyya coefficient of the same two HP-1
-distributions. Hence
-\begin{align}
-    \mathcal C_{\mathrm{HP1}}(r)
-    &\ge
-    -\log
-    \sum_x
-    \sqrt{
-    \Pr_{\mathrm{HP1}}(x\mid r)
-    \Pr_{\mathrm{HP1}}(x\mid r+1)
-    }
-    \nonumber\\
-    &\ge
-    1-
-    \sum_x
-    \sqrt{
-    \Pr_{\mathrm{HP1}}(x\mid r)
-    \Pr_{\mathrm{HP1}}(x\mid r+1)
-    }
-    =:
-    \left(H_{\mathrm{HP1}}(r)\right)^2,
-\end{align}
-where the second inequality uses \(-\log z\ge 1-z\) for \(0<z\le 1\). The
-standard total-variation and Hellinger inequalities, applied to this adjacent
-HP-1 pair, give
+
+\begin{theorem}[Chernoff lower bound]
+\label{thm:hp1_chernoff_poly_bound}
+For adjacent periods \(r,r+1\) in the register regime \(1\ll r\ll2^n\),
+assume the same surviving-support hypotheses as in
+Lemma~\ref{lem:hp1_chernoff_surviving_support}.  Then
 \begin{equation}
-    \operatorname{TV}_{\mathrm{HP1}}(r)
-    \le
-    \sqrt{2}\,H_{\mathrm{HP1}}(r),
-    \qquad
-    \operatorname{TV}_{\mathrm{HP1}}(r)
-    :=
-    \frac12\sum_x
-    \left|
-    \Delta_r\Pr_{\mathrm{HP1}}(x)
-    \right|
-    \ge
-    \frac12
-    \left(
-    \sum_x
-    \left[
-    \Delta_r\Pr_{\mathrm{HP1}}(x)
-    \right]^2
-    \right)^{1/2}.
-\end{equation}
-Therefore
-\begin{equation}
-    \left(H_{\mathrm{HP1}}(r)\right)^2
-    \ge
-    \frac18
-    \sum_x
-    \left[
-    \Delta_r\Pr_{\mathrm{HP1}}(x)
-    \right]^2.
-\end{equation}
-Combining this inequality with Eq.~\eqref{eq:first_order_probability_difference}
-yields
-\begin{equation}
-    \mathcal C_{\mathrm{HP1}}(r)
-    \ge
-    \frac18
-    \sum_x
-    \left[
-    \Delta_r\Pr_{\mathrm{HP1}}(x)
-    \right]^2
-    =
-    \frac{1}{8\left(R^{(r)}\right)^2N^2}
-    \sum_x D_r(x)^2.
-    \label{eq:first_order_chernoff_l2_bound}
-\end{equation}
-Thus the retained HP-1 distributions have inverse-polynomial Chernoff
-separation whenever the numerator difference satisfies the probability-level
-\(\ell_2\) separation condition
-\begin{equation}
-    \sum_x D_r(x)^2
-    \ge
-    \frac{\left(R^{(r)}\right)^2N^2}{\operatorname{poly}(n)}.
-    \label{eq:first_order_l2_separation_condition}
-\end{equation}
-Indeed, substituting Eq.~\eqref{eq:first_order_l2_separation_condition} into
-Eq.~\eqref{eq:first_order_chernoff_l2_bound} gives
-\begin{equation}
-    \mathcal C_{\mathrm{HP1}}(r)
+    \mathcal C(P_r,P_{r+1})
     \ge
     \frac{1}{\operatorname{poly}(n)}.
+    \label{eq:hp1_chernoff_inverse_polynomial}
 \end{equation}
+More quantitatively, with \(\eta_n\) from
+Eq.~\eqref{eq:hp1_chernoff_ratio_eta}, the proof gives
+\begin{equation}
+    \mathcal C(P_r,P_{r+1})
+    \ge
+    \frac12\bigl(1-\sqrt{\eta_n}\bigr)_+^2
+    P_{r+1}(\Omega_r),
+    \label{eq:hp1_chernoff_ratio_bound}
+\end{equation}
+\end{theorem}
 
-We now relate this condition to the statistical surviving-support estimate.
-Lemma~\ref{lemma: 3} gives
+\begin{proof}
+Let
 \begin{equation}
-    \sum_x D_r(x)^2
-    \ge
-    \frac{N\left(R^{(r)}\right)^3}{r\operatorname{poly}(n)}.
-\end{equation}
-Consequently, the retained probability difference obeys
-\begin{equation}
-    \sum_x
-    \left[
-    \Delta_r\Pr_{\mathrm{HP1}}(x)
-    \right]^2
-    =
-    \frac{1}{\left(R^{(r)}\right)^2N^2}
-    \sum_x D_r(x)^2
-    \ge
-    \frac{R^{(r)}}{rN\operatorname{poly}(n)}.
-    \label{eq:first_order_l2_from_support}
-\end{equation}
-Since \(R^{(r)}/N=\Theta(1/r)\),
-Eq.~\eqref{eq:first_order_l2_from_support} can also be written as
-\begin{equation}
-    \sum_x
-    \left[
-    \Delta_r\Pr_{\mathrm{HP1}}(x)
-    \right]^2
-    \gtrsim
-    \frac{1}{r^2\operatorname{poly}(n)}.
-\end{equation}
-Thus
-\begin{equation}
-    \mathcal C_{\mathrm{HP1}}(r)
-    \ge
-    \frac18
-    \frac{R^{(r)}}{rN\operatorname{poly}(n)}.
-    \label{eq:first_order_chernoff_from_support}
-\end{equation}
-Using \(R^{(r)}/N=\Theta(1/r)\), this gives the explicit retained Chernoff bound
-\begin{equation}
-    \mathcal C_{\mathrm{HP1}}(r)
-    \ge
-    \frac{1}{r^2\operatorname{poly}(n)}.
-\end{equation}
-On \(1\le r\le\lfloor 2^{n/2}\rfloor\), this is at worst
-\(2^{-n}/\operatorname{poly}(n)\). Therefore the polynomial-loss
-surviving-support estimate alone does not imply an inverse-polynomial Chernoff
-lower bound uniformly on the full square-root window; no such uniform claim is
-made here.
-
-Finally, let \(\Pr_{\mathrm{HP1}}^{\mathrm{exact}}(x\mid s)\) denote the exact HP-1
-measurement distribution and let \(\mathcal C_{\mathrm{HP1}}^{\mathrm{exact}}(r)\)
-be the corresponding adjacent-period Chernoff information. If
-\(\left(H_{\mathrm{HP1}}(r)\right)^2\ge \delta_n\), with
-\(\delta_n\ge 1/\operatorname{poly}(n)\), and if the exact and retained laws are
-Hellinger-close in the sense that
-\begin{equation}
-    H\!\left(
-    \Pr_{\mathrm{HP1}}^{\mathrm{exact}}(\cdot\mid s),
-    \Pr_{\mathrm{HP1}}(\cdot\mid s)
-    \right)
-    =
-    o\!\left(\delta_n^{1/2}\right),
+    B(P_r,P_{r+1})
+    :=
+    \sum_x\sqrt{P_r(x)P_{r+1}(x)},
     \qquad
-    s=r,r+1,
+    H^2(P_r,P_{r+1}):=1-B(P_r,P_{r+1}).
 \end{equation}
-then the Hellinger triangle inequality gives
-\begin{align}
-    &H\!\left(
-    \Pr_{\mathrm{HP1}}^{\mathrm{exact}}(\cdot\mid r),
-    \Pr_{\mathrm{HP1}}^{\mathrm{exact}}(\cdot\mid r+1)
-    \right)
-    \nonumber\\
-    &\quad\ge
-    H_{\mathrm{HP1}}(r)
-    -
-    H\!\left(
-    \Pr_{\mathrm{HP1}}^{\mathrm{exact}}(\cdot\mid r),
-    \Pr_{\mathrm{HP1}}(\cdot\mid r)
-    \right)
-    -
-    H\!\left(
-    \Pr_{\mathrm{HP1}}^{\mathrm{exact}}(\cdot\mid r+1),
-    \Pr_{\mathrm{HP1}}(\cdot\mid r+1)
-    \right)
-    =
-    (1-o(1))\delta_n^{1/2}.
-\end{align}
-Since Chernoff information lower-bounds squared Hellinger distance for the same
-pair, the same inverse-polynomial lower bound transfers to
-\(\mathcal C_{\mathrm{HP1}}^{\mathrm{exact}}(r)\). This Chernoff route differs from
-the DFI route in one essential respect: the Hellinger/\(\ell_2\) separation
-carries the explicit global-distribution loss \(R^{(r)}/N\simeq 1/r\), whereas the
-Fisher proof can gain from the denominator in small-probability regions.
+Since the minimum over \(\alpha\) is at most the value at \(\alpha=1/2\),
+\begin{equation}
+    \mathcal C(P_r,P_{r+1})
+    \ge -\log B(P_r,P_{r+1}).
+\end{equation}
+Moreover \(-\log z\ge 1-z\) for \(0<z\le1\), hence
+\begin{equation}
+    \mathcal C(P_r,P_{r+1})
+    \ge
+    H^2(P_r,P_{r+1}).
+    \label{eq:hp1_chernoff_hellinger_step}
+\end{equation}
+By Lemma~\ref{lem:hp1_chernoff_surviving_support},
+Eq.~\eqref{eq:hp1_chernoff_ratio_on_support}, for \(x\in\Omega_r\),
+\begin{equation}
+    \left(\sqrt{P_{r+1}(x)}-\sqrt{P_r(x)}\right)^2
+    \ge
+    \bigl(1-\sqrt{\eta_n}\bigr)_+^2 P_{r+1}(x),
+    \qquad x\in\Omega_r .
+\end{equation}
+Using
+\begin{equation}
+    H^2(P_r,P_{r+1})
+    =\frac12\sum_x
+    \left(\sqrt{P_{r+1}(x)}-\sqrt{P_r(x)}\right)^2,
+\end{equation}
+we obtain the quantitative estimate
+\begin{equation}
+    H^2(P_r,P_{r+1})
+    \ge
+    \frac12\bigl(1-\sqrt{\eta_n}\bigr)_+^2
+    P_{r+1}(\Omega_r).
+\end{equation}
+By Lemma~\ref{lem:hp1_chernoff_surviving_support}, \(\eta_n=o(1)\), so for all
+sufficiently large \(n\), the prefactor is bounded below by a positive
+constant, for example \(1/4\).  The same lemma,
+Eq.~\eqref{eq:hp1_surviving_support_mass_new}, gives
+\(P_{r+1}(\Omega_r)\ge1/\operatorname{poly}(n)\).  Combining this with
+Eq.~\eqref{eq:hp1_chernoff_hellinger_step} proves
+\begin{equation}
+    \mathcal C(P_r,P_{r+1})
+    \ge
+    \frac1{\operatorname{poly}(n)} .
+\end{equation}
+\end{proof}
+
+The Chernoff argument uses the same surviving support as the Fisher argument,
+but it uses it differently.  Fisher information is amplified by
+the small period-\(r\) denominator on \(\Omega_r\), producing the exponential
+factor in Theorem~\ref{thm:hp1_first_order_fisher_transfer},
+Eq.~\eqref{eq:hp1_fisher_explicit_r_loss}.  The Chernoff bound also uses the
+same surviving set, together with the explicit ratio estimate
+Eq.~\eqref{eq:hp1_chernoff_ratio_on_support}; the required period dependence is
+therefore carried by the explicit \(1/r\) and by the separation condition, not
+by a polynomial-window assumption.
+
 
 
 \section{Log-linear growth fit for the numerical Fisher-information scan}
 \label{app:fi_log_linear_growth}
-The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. We match the period range used in the main text,
-\(1\le r\le\lfloor 2^{n/2}\rfloor\). The relevant QFT comparator is therefore the worst case within this dynamically scaled window rather than a single fixed value of $r$.
+The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. To ensure the asymptotic condition $1 \ll r \ll 2^n$ is strictly maintained as the system scales, the numerical scan uses the polynomial period window $2 \leq r \leq n^2$. The relevant QFT comparator is therefore the worst case within this dynamically scaled window rather than a single fixed value of $r$.
 
-The leading term in Lemma~\ref{thm:qft_fisher_information} is monotone in $R$, and in the sampled regime $R \approx 2^n/r$. Consequently, the smallest QFT Fisher information inside this window is attained near the largest sampled period. Let
-\(r_{\max}(n)=\lfloor 2^{n/2}\rfloor\). The window-matched estimate is
+The leading term in Lemma~\ref{thm:qft_fisher_information} is monotone in $R$, and in the sampled regime $R \approx 2^n/r$. Consequently, the smallest QFT Fisher information inside the scan window is attained near the largest sampled period. Substituting $r_{\max}(n) = n^2$ yields the window-matched estimate
 \begin{equation}
     \fii_{\mathrm{QFT,min}}(n)
     \approx
-    \frac{4\pi^2}{9}\left( \left\lfloor \frac{2^n}{r_{\max}(n)} \right\rfloor^2 - 1 \right).
+    \frac{4\pi^2}{9}\left( \left\lfloor \frac{2^n}{n^2} \right\rfloor^2 - 1 \right).
 \end{equation}
 If one keeps only the dominant exponential factor, the logarithmic growth becomes
 \begin{equation}
     \ln \fii_{\mathrm{QFT,min}}(n)
     =
-     n\ln{2}+\mathcal{O}(1).
+     2n\ln{2}-4\ln n + \mathcal{O}(1).
 \end{equation}
-Thus, under the explicit choice $r_{\max}(n)=\lfloor 2^{n/2}\rfloor$, the asymptotic QFT exponent approaches $k_{\mathrm{QFT},\infty}=\ln 2$.
+Thus, the asymptotic QFT exponent under this polynomial period scaling approaches $k_{\mathrm{QFT},\infty}=2\ln 2$, with a finite-window reduction from the $-4\ln n$ term.
 
 This observation suggests a simple diagnostic for the numerical data in Fig.~\ref{fig:fi_scaling}. If the plotted curves retain a stable exponential dependence on the qubit count over the sampled window, then the transformed data should be well approximated by
 \begin{equation}
@@ -1644,7 +1205,7 @@ We therefore perform ordinary least-squares fits to the log-transformed mean val
 
 The fitted lines account for most of the log-scale variance across the sampled window. The coefficient of determination ($R^2$) ranges from $0.972$ to $0.997$, the log-space root-mean-square residual lies between $0.075$ and $0.217$, and every fitted slope ($k$) is significantly positive with a $p$-value $\leq 4.6\times 10^{-9}$. In that sense, a linear regression on $\ln I_{\min}$ is justified as a finite-window descriptive model for these curves. At the same time, the fitted slope $k$ should be interpreted as an effective exponent on the restricted range $n=7,\dots,18$ (where $n$ is the number of qubits), not as a claim about the ultimate asymptotic law.
 
-The comparison with the QFT benchmark is unambiguous. Even after matching the period window used in the numerical scan, the QFT reference fit remains steeper, with $k_{\mathrm{QFT,win}}=0.695$ and $R^2=0.9999$ over $n=7,\ldots,18$. The empirical circuit families therefore grow more slowly: their fitted exponents occupy about $51\%$--$57\%$ of both the window-matched QFT slope and the asymptotic QFT exponent $\ln 2$. Among the plotted families, the random-layer \myqc{} circuit has the largest point estimate, near $k=0.398$, followed by the shared optimized \myqc-1 circuit, near $k=0.379$.
+The comparison with the QFT benchmark is unambiguous. Even after matching the period window used in the numerical scan, the QFT reference fit remains much steeper, with $k_{\mathrm{QFT,win}}=1.089$ and $R^2=0.999$. The empirical circuit families therefore grow substantially more slowly: their fitted exponents occupy $32\%$--$37\%$ of the window-matched QFT slope, and $25\%$--$29\%$ of the asymptotic QFT exponent $2\ln 2$. Among the plotted families, the random-layer \myqc{} circuit has the largest point estimate, near $k=0.398$, followed by the shared optimized \myqc-1 circuit, near $k=0.379$.
 
 This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}. The \myqc{} family circuits retain a clear exponential-in-$n$ growth trend in the $\fii_{\text{min}}$ over the sampled window, which is why the log-linear fit works well, but they do not reproduce the QFT growth rate. Their advantage in the present setting is therefore not that they match the full QFT benchmark asymptotically, but that they retain a nontrivial and practically usable fraction of that information while remaining much shallower.
 
