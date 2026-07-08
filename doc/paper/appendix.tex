@@ -643,9 +643,8 @@ In the continuum approximation, the Fisher-information calculation reduces to a 
 
 We now turn from the QFT benchmark to the fixed-phase \myqc-1 circuit.  The
 point of the next lemma is to convert the HP-1 periodic-state probability into
-the uniform-background plus explicit coherent-sum term used in the later
-numerator, Fisher, and Chernoff estimates.  Throughout this part, for each
-candidate generator \(r\), set $N:=2^n$.
+the explicit coherent-sum form used in the \(C\)-twisted numerator identity.
+Throughout this part, for each candidate generator \(r\), set $N:=2^n$.
 Thus \(q=0,\ldots,R^{(r)}-1\) labels precisely the integers \(qr\) contained in
 the \(n\)-bit register.  All products \(qr\) are ordinary integer products
 truncated to the register.
@@ -718,47 +717,6 @@ Consequently, for \(a_j(x):=(C^Tx)_j\), and with the boundary convention
     w_j(x):=\exp\!\left[\pi\ii a_j(x)\right].
     \label{eq:hp1_bit_phase_weights}
 \end{equation}
-This admits a useful bulk odd-even form.  Removing the upper finite-register
-boundary by taking \(n\to\infty\), and writing
-\(o_\ell:=x_{2\ell-1}\), \(e_\ell:=x_{2\ell}\), one obtains
-\[
-    a_{2\ell-1}(x)=o_\ell,\qquad
-    a_{2\ell}(x)=
-    e_\ell+
-    \frac12\sum_{m\ge0}4^{-m}
-    \left(o_{\ell-m}+o_{\ell+m+1}\right),
-\]
-with the one-sided convention \(o_\ell=0\) for \(\ell\le0\).  Equivalently,
-if
-\[
-    (Ko)_\ell:=
-    \sum_{m\ge0}4^{-m}
-    \left(o_{\ell-m}+o_{\ell+m+1}\right),
-\]
-then the coherent sum in Eq.~\eqref{eq:hp1_surrogate_support_probability} has
-the semi-closed bulk form
-\[
-    Z_r^{\mathrm{bulk}}(x)
-    =
-    \sum_{q=0}^{R^{(r)}-1}
-    \exp\!\left\{
-    \pi\ii
-    \sum_{\ell\ge1}
-    \left[
-        (qr)_{2\ell-1}o_\ell
-        +
-        (qr)_{2\ell}
-        \left(e_\ell+\frac12(Ko)_\ell\right)
-    \right]
-    \right\},
-    \qquad
-    \Pr_r(x)\simeq
-    \frac{|Z_r^{\mathrm{bulk}}(x)|^2}{N R^{(r)}}.
-\]
-This is the HP-1 analogue of the closed trigonometric moment used in the QFT
-calculation around Eq.~(E21).  It is not reducible to a single Dirichlet-kernel
-moment, because the map \(q\mapsto(qr)_j\) contains binary carries and is not a
-linear function of \(q\) at the bit level.
 The phase factor can therefore be written bitwise as
 \begin{equation}
     \exp\!\left(\pi\ii\Phi_x(y)\right)
@@ -804,365 +762,363 @@ Opening the squared amplitude gives the normalized coherent law
     \right|^2 .
     \label{eq:hp1_lag_correlation_probability}
 \end{equation}
-Equivalently, separating the uniform background from the coherent excess gives
-\begin{equation}
-    \Pr_r(x)
-    =
-    \frac1N
-    \left[
-        1+
-        \frac{|Z_r(x)|^2}{R^{(r)}}
-        -1
-    \right].
-    \label{eq:hp1_lag_correlation_probability_reduced}
-\end{equation}
-This normalized form is the form stated in
+This normalized coherent law is the form stated in
 Eq.~\eqref{eq:hp1_surrogate_support_probability}.
 \end{proof}
 
 
-For the estimates below we separate the exact probabilistic algebra from the
-lag-correlation heuristic that motivates the hypotheses.  Let
-\begin{equation*}
-    P_r(x)=\frac1N[1+G_r(x)],
-    \tag{BG}
-    \label{eq:hp1_background_normalized_law}
-\end{equation*}
-be the background-normalized law to which the Fisher and Chernoff estimates are
-applied.  For the leading-order reduced lag-correlation approximation, this is
-the law with
+For the estimates below we use the exact probabilistic algebra of the coherent
+lag-correlation law.  Let \(\Pr_r\) denote the coherent period-\(r\) law in
+Eq.~\eqref{eq:hp1_lag_correlation_probability}.
+The adjacent-period numerator is the direct probability difference
 \begin{equation}
-    G_r(x):=
-    \frac{|Z_r(x)|^2}{R^{(r)}}-1
+    \Delta_r\Pr(x):=\Pr_{r+1}(x)-\Pr_r(x).
+    \label{eq:hp1_probability_difference}
+\end{equation}
+
+\begin{lemma}[\(C\)-twisted adjacent-period numerator]
+\label{lem:hp1_c_twisted_numerator}
+For the coherent law in Eq.~\eqref{eq:hp1_lag_correlation_probability},
+\begin{equation}
+    \sum_{x\in\{0,1\}^n}\bigl[\Delta_r\Pr(x)\bigr]^2
     =
-    \frac{1}{R^{(r)}}
-    \left|
-    \sum_{q=0}^{R^{(r)}-1}
-    \prod_{j=1}^{n}w_j(x)^{(qr)_j}
-    \right|^2
-    -1,
-    \label{eq:hp1_background_coherent_decomposition}
-\end{equation}
-which is Eq.~\eqref{eq:hp1_lag_correlation_probability_reduced} written in
-background-normalized form.
-If one wants the following estimates for the exact circuit distribution rather
-than for the reduced lag-correlation approximation, Eq.~\eqref{eq:hp1_background_normalized_law}
-should instead be read as the exact identity defining
-\((G_r(x):=NP_r(x)-1)\), and the surviving-support assumptions below must be
-verified for that exact \(G_r\).  Thus no later step uses an uncontrolled
-replacement of \(\simeq\) by \(=\).
-
-The adjacent-period numerator in this background-normalized form is
-\begin{equation}
-    \Delta_rG(x):=G_{r+1}(x)-G_r(x),
-    \qquad
-    P_{r+1}(x)-P_r(x)=\frac{\Delta_rG(x)}{N}.
-    \label{eq:hp1_background_normalized_difference}
-\end{equation}
-Thus the explicit coherent sum in Eq.~\eqref{eq:hp1_phase_sum_Z} controls the
-numerator only through whatever surviving-support estimate is assumed or proved
-for the chosen law.
-
-For the next two lemmas, fix adjacent periods \(r,r+1\) in the register regime
-\(1\ll r\ll N=2^n\), with
-\(P_s(x)=N^{-1}[1+G_s(x)]\).  Assume there are constants
-\(c_\Omega,c_1>0\), polynomially bounded functions
-\(p_\Omega(n),p_+(n),p_0(n)\), and a set
-\(\Omega_r\subseteq\{0,1\}^n\) such that
-\begin{align}
-    |\Omega_r|
-    &\ge
-    c_\Omega\frac{rN\exp[-kn-b]}{p_\Omega(n)},
-    \label{eq:hp1_surviving_support_size_new}\\
-    G_{r+1}(x)
-    &\ge
-    c_1\frac{\exp[kn+b]}{r p_+(n)},
-    \qquad x\in\Omega_r,
-    \label{eq:hp1_surviving_support_height_new}\\
-    1+G_r(x)
-    &\le
-    p_0(n),
-    \qquad x\in\Omega_r,
-    \label{eq:hp1_background_denominator_on_support}
-\end{align}
-Here \(\Omega_r\) is the surviving output support for the adjacent pair
-\((r,r+1)\): it consists of bit strings where the period-\(r+1\) law has a
-coherent excess above background, while the period-\(r\) law remains at
-background scale.  Equation~\eqref{eq:hp1_surviving_support_size_new}
-lower-bounds the size of this set, Eq.~\eqref{eq:hp1_surviving_support_height_new}
-lower-bounds the period-\(r+1\) coherent height on it, and
-Eq.~\eqref{eq:hp1_background_denominator_on_support} keeps the period-\(r\)
-denominator small enough for the Fisher and Chernoff estimates below.
-We also assume
-\begin{equation}
-    r p_0(n)p_+(n)=o\left(\exp[kn+b]\right).
-    \label{eq:hp1_separation_condition}
-\end{equation}
-
-\begin{lemma}[Fisher surviving-support input]
-\label{lem:hp1_fisher_surviving_support}
-Under the assumptions above,
-\begin{equation}
-    \sum_{x\in\Omega_r}\bigl[\Delta_rG(x)\bigr]^2
-    \ge
-    \frac{N\exp[kn+b-O(\log n)]}{r}.
-    \label{eq:hp1_surviving_support_numerator_energy_new}
+    \frac1N
+    \left[
+    \mathcal E_C(r+1,r+1)
+    +
+    \mathcal E_C(r,r)
+    -
+    2\operatorname{Re}\mathcal E_C(r+1,r)
+    \right].
+    \label{eq:hp1_c_dephasing_numerator_scale}
 \end{equation}
 \end{lemma}
 
 \begin{proof}
-For \(x\in\Omega_r\), Eqs.~\eqref{eq:hp1_surviving_support_height_new},
-\eqref{eq:hp1_background_denominator_on_support}, and
-\eqref{eq:hp1_separation_condition} give, for all sufficiently large \(n\),
-\begin{align}
-    |\Delta_rG(x)|
-    &=|G_{r+1}(x)-G_r(x)|  \\
-    &\ge G_{r+1}(x)-G_r(x) \\
-    &\ge
-    \frac{c_1}{2}\frac{\exp[kn+b]}{r p_+(n)} .
-    \label{eq:hp1_delta_lower_on_support}
-\end{align}
-Restricting to \(\Omega_r\) and using
-Eq.~\eqref{eq:hp1_surviving_support_size_new},
-\begin{align}
-    \sum_{x\in\Omega_r}\bigl[\Delta_rG(x)\bigr]^2
-    &\ge
-    |\Omega_r|\,\frac{c_1^2}{4}
-    \frac{\exp[2kn+2b]}{r^2p_+(n)^2} \\
-    &\ge
-    \frac{c_\Omega c_1^2}{4}
-    \frac{N\exp[kn+b]}{r p_\Omega(n)p_+(n)^2} \\
-    &=
-    \frac{N\exp[kn+b-O(\log n)]}{r}.
-\end{align}
-\end{proof}
-
-\begin{lemma}[Chernoff surviving-support input]
-\label{lem:hp1_chernoff_surviving_support}
-Under the assumptions above, with
+For the \(C\)-twisted formulation, write \(b(m)\in\{0,1\}^n\) for the \(n\)-bit
+register string of the integer \(m\), and set
 \begin{equation}
-    \eta_n
+    v_{s,t}(p,q;p',q')
     :=
-    \frac{r p_0(n)p_+(n)}{c_1\exp[kn+b]},
-    \label{eq:hp1_chernoff_ratio_eta}
+    b(ps)-b(qs)+b(p't)-b(q't)\in\mathbb Z^n .
+    \label{eq:hp1_c_twisted_mode_vector}
 \end{equation}
-one has \(\eta_n=o(1)\) and
-\begin{align}
-    \frac{P_r(x)}{P_{r+1}(x)}
-    &\le \eta_n,
-    \qquad x\in\Omega_r,
-    \label{eq:hp1_chernoff_ratio_on_support}\\
-    P_{r+1}(\Omega_r)
-    &\ge
-    \frac{1}{\operatorname{poly}(n)}.
-    \label{eq:hp1_surviving_support_mass_new}
-\end{align}
-\end{lemma}
-
-\begin{proof}
-The condition \(\eta_n=o(1)\) is exactly
-Eq.~\eqref{eq:hp1_separation_condition}.  For \(x\in\Omega_r\),
-Eqs.~\eqref{eq:hp1_surviving_support_height_new} and
-\eqref{eq:hp1_background_denominator_on_support} give
-\[
-    \frac{P_r(x)}{P_{r+1}(x)}
-    =
-    \frac{1+G_r(x)}{1+G_{r+1}(x)}
-    \le
-    \frac{p_0(n)}{G_{r+1}(x)}
-    \le
-    \eta_n .
-\]
-Also,
-\begin{align}
-    P_{r+1}(\Omega_r)
-    &\ge
-    \frac1N\sum_{x\in\Omega_r}G_{r+1}(x) \\
-    &\ge
-    \frac{|\Omega_r|}{N}
-    c_1\frac{\exp[kn+b]}{r p_+(n)} \\
-    &\ge
-    \frac{c_\Omega c_1}{p_\Omega(n)p_+(n)}
-    \ge
-    \frac1{\operatorname{poly}(n)} .
-\end{align}
-\end{proof}
-
-\begin{theorem}[First-order Fisher lower bound with explicit \(1/r\) loss]
-\label{thm:hp1_first_order_fisher_transfer}
-For adjacent periods \(r,r+1\) in the register regime \(1\ll r\ll2^n\),
-assume the surviving-support hypotheses of
-Lemma~\ref{lem:hp1_fisher_surviving_support}.  Then the adjacent-period
-discrete Fisher information of the fixed-phase \(\myqc-1\) background-normalized
-law satisfies
+For \(v\in\mathbb Z^n\), define the normalized \(C\)-twisted kernel
 \begin{equation}
-    \fii_{\myqc-1}(r,n)
-    \ge
-    \frac{\exp[kn+b-O(\log n)]}{r}.
-    \label{eq:hp1_fisher_explicit_r_loss}
+    \Gamma_C(v)
+    :=
+    \prod_{i=1}^{n}
+    \frac{1+\exp\!\left(\pi\ii [Cv]_i\right)}{2}.
+    \label{eq:hp1_c_twisted_kernel}
+\end{equation}
+For periods \(s,t\), define
+\begin{equation}
+    \mathcal E_C(s,t)
+    :=
+    \frac{1}{R^{(s)}R^{(t)}}
+    \sum_{p,q=0}^{R^{(s)}-1}
+    \sum_{p',q'=0}^{R^{(t)}-1}
+    \Gamma_C\!\left(v_{s,t}(p,q;p',q')\right),
+    \label{eq:hp1_c_twisted_energy}
+\end{equation}
+
+Lemma~\ref{lem:hp1_measurement_probability_expansion} gives the coherent
+period-\(s\) law in Eq.~\eqref{eq:hp1_lag_correlation_probability}.  We use
+that conclusion in the form
+\[
+    \Pr_s(x)
+    =
+    \frac{1}{N R^{(s)}}
+    \left|
+    \sum_{q=0}^{R^{(s)}-1}
+    \prod_{j=1}^{n}w_j(x)^{(qs)_j}
+    \right|^2 .
+\]
+Applying this formula to \(s=r\) and \(s=r+1\), the probability difference can
+be expanded directly.  In the expansions below,
+integer products such as \(ps\) are read as \(n\)-bit register strings.  Then
+\begin{equation}
+    \begin{aligned}
+    \Delta_r\Pr(x)
+    =
+    \frac1N\biggl[
+    &\frac{1}{R^{(r+1)}}
+    \sum_{p,q=0}^{R^{(r+1)}-1}
+    \prod_{j=1}^{n}w_j(x)^{(p(r+1))_j}
+    \overline{\prod_{j=1}^{n}w_j(x)^{(q(r+1))_j}} \\
+    &-
+    \frac{1}{R^{(r)}}
+    \sum_{p,q=0}^{R^{(r)}-1}
+    \prod_{j=1}^{n}w_j(x)^{(pr)_j}
+    \overline{\prod_{j=1}^{n}w_j(x)^{(qr)_j}}
+    \biggr].
+    \end{aligned}
+    \label{eq:hp1_probability_difference_coherent_expansion}
+\end{equation}
+For a pair of periods \(s,t\), the overlap calculation only needs the inner
+\(x\)-sum over a fixed quadruple of modes.  Using the bitwise phase form in
+Eq.~\eqref{eq:hp1_bitwise_phase_factor}, this sum factorizes as
+\begin{equation}
+\begin{aligned}
+    \mathcal K_{s,t}(p,q;p',q')
+    &:=
+    \sum_{x\in\{0,1\}^n}
+    \prod_{j=1}^{n}w_j(x)^{(ps)_j}
+    \overline{\prod_{j=1}^{n}w_j(x)^{(qs)_j}}
+    \prod_{j=1}^{n}w_j(x)^{(p't)_j}
+    \overline{\prod_{j=1}^{n}w_j(x)^{(q't)_j}} \\
+    &=
+    \prod_{i=1}^{n}
+    \left[
+        1+
+        \exp\!\left(
+        \pi\ii
+        \left[
+        C\left(
+        ps-qs+p't-q't
+        \right)
+        \right]_i
+        \right)
+    \right].
+\end{aligned}
+\label{eq:hp1_mode_overlap_factorization}
+\end{equation}
+Thus
+\(\mathcal K_{s,t}(p,q;p',q')=N\Gamma_C(v_{s,t}(p,q;p',q'))\), so each
+overlap \(\sum_x\Pr_s(x)\Pr_t(x)\) equals \(N^{-1}\mathcal E_C(s,t)\).
+Applying this to the adjacent numerator gives the exact identity
+\begin{equation}
+    \sum_{x\in\{0,1\}^n}\bigl[\Delta_r\Pr(x)\bigr]^2
+    =
+    \frac1N
+    \left[
+    \mathcal E_C(r+1,r+1)
+    +
+    \mathcal E_C(r,r)
+    -
+    2\operatorname{Re}\mathcal E_C(r+1,r)
+    \right].
+    \label{eq:hp1_c_twisted_numerator_identity}
+\end{equation}
+
+The kernel \(\Gamma_C\) gives a soft \(C\)-resonance condition.  Since
+\((1+e^{\ii\theta})/2=e^{\ii\theta/2}\cos(\theta/2)\),
+\begin{equation}
+    \Gamma_C(v)
+    =
+    \exp\!\left[
+        \frac{\pi\ii}{2}\sum_{i=1}^{n}[Cv]_i
+    \right]
+    \prod_{i=1}^{n}
+    \cos\!\left(\frac{\pi}{2}[Cv]_i\right),
+    \label{eq:hp1_c_twisted_kernel_cosine}
+\end{equation}
+and hence
+\begin{equation}
+    |\Gamma_C(v)|
+    =
+    \prod_{i=1}^{n}
+    \left|
+    \cos\!\left(\frac{\pi}{2}[Cv]_i\right)
+    \right|.
+    \label{eq:hp1_c_twisted_kernel_magnitude}
+\end{equation}
+Thus the hard-threshold picture would keep modes with
+\(Cv\in(2\mathbb Z)^n\), while Eq.~\eqref{eq:hp1_c_twisted_kernel_magnitude}
+also retains near-resonant modes with only partial dephasing.
+
+For the fixed-phase \(\myqc-1\) matrix \(C\), this condition is not a bare
+bitwise-XOR collision.  Using Eq.~\eqref{eq:hp1_phase_kernel_entries},
+\begin{equation}
+    [Cv]_i
+    =
+    \begin{cases}
+        v_i+\displaystyle\sum_{j\in\Lambda_2}2^{-|i-j|}v_j,
+        & i\in\Lambda_1,\\[1mm]
+        v_i, & i\in\Lambda_2 .
+    \end{cases}
+    \label{eq:hp1_c_twisted_row_structure}
+\end{equation}
+The even rows give an exact parity filter because
+\[
+    \frac{1+\exp(\pi\ii v_i)}{2}
+    =
+\mathbf 1\{v_i\ \text{is even}\},
+\qquad i\in\Lambda_2,
+\]
+where \(\mathbf 1\{\cdot\}\) denotes the indicator function,
+whereas the odd rows add the dyadic phase hash
+\(\sum_{j\in\Lambda_2}2^{-|i-j|}v_j\).  This makes the adjacent numerator a
+direct comparison of the three \(C\)-twisted energies in
+Eq.~\eqref{eq:hp1_c_dephasing_numerator_scale}.
+
+We now use this identity as a scaling diagnostic for the adjacent numerator,
+not as a theorem-level lower bound.  Set
+\begin{equation}
+    S_r:=
+    \sum_{x\in\{0,1\}^n}
+    \bigl(\Pr_{r+1}(x)-\Pr_r(x)\bigr)^2 .
+    \label{eq:hp1_c_twisted_adjacent_numerator_definition}
+\end{equation}
+and
+\begin{equation}
+    I_{s,t}:=\sum_x \Pr_s(x)\Pr_t(x).
+    \label{eq:hp1_c_twisted_overlap_definition}
+\end{equation}
+Then
+\begin{equation}
+    S_r=I_{r+1,r+1}+I_{r,r}-2\operatorname{Re}I_{r+1,r}.
+    \label{eq:hp1_c_twisted_overlap_decomposition}
+\end{equation}
+The exchanged-sum calculation above gives
+\begin{equation}
+    I_{s,t}=\frac1N\mathcal E_C(s,t),
+    \label{eq:hp1_c_twisted_overlap_energy_identity}
+\end{equation}
+with \(\mathcal E_C\) defined in Eq.~\eqref{eq:hp1_c_twisted_energy} and
+\(\Gamma_C\) defined in Eq.~\eqref{eq:hp1_c_twisted_kernel}.  Therefore
+\begin{equation}
+    S_r
+    =
+    \frac1N
+    \left[
+    \mathcal E_C(r+1,r+1)
+    +
+    \mathcal E_C(r,r)
+    -
+    2\operatorname{Re}\mathcal E_C(r+1,r)
+    \right].
+    \label{eq:hp1_c_twisted_scaling_identity}
+\end{equation}
+
+The remaining step is statistical rather than algebraic.  The fixed-phase
+\(\myqc-1\) matrix does not produce a generic random phase hash.  Because its
+off-diagonal entries are dyadic, periods with large \(2\)-adic valuation
+produce many near-resonant modes.  Write
+\begin{equation}
+    s=2^{a}u,\qquad u\ \text{odd},\qquad a=\nu_2(s).
+    \label{eq:hp1_period_2adic_decomposition}
+\end{equation}
+Here \(\nu_2(m)\) denotes the \(2\)-adic valuation of \(m\), namely the largest
+integer \(a\) such that \(2^a\) divides \(m\).
+For example, if \(s=40\), then
+\begin{equation}
+    40=2^3\cdot 5,
+    \label{eq:hp1_2adic_decomposition_example}
+\end{equation}
+so \(a=\nu_2(40)=3\) and \(u=5\).
+Then all multiples \(qs\) have \(a\) fixed trailing zero bits.  These fixed bits
+pass through the exact parity filters on \(\Lambda_2\) and also suppress part
+of the dyadic phase hash on \(\Lambda_1\).  Thus the number of \(C\)-resonant
+modes is enhanced by a factor of order \(2^a\), up to subexponential
+corrections.  We summarize this by the scaling heuristic
+\begin{equation}
+    \mathcal E_C(s,t)-1
+    =
+    \frac{N}{st}\,
+    2^{\min(\nu_2(s),\nu_2(t))}
+    \operatorname{poly}(n)
+    \label{eq:hp1_c_twisted_cross_energy_heuristic}
+\end{equation}
+for cross overlaps, and in particular
+\begin{equation}
+    \mathcal E_C(s,s)-1
+    =
+    \frac{N}{s^2}\,
+    2^{\nu_2(s)}
+    \operatorname{poly}(n).
+    \label{eq:hp1_c_twisted_dyadic_energy_heuristic}
+\end{equation}
+The constant term \(1\) is the uniform diagonal background.  It cancels in the
+adjacent difference in Eq.~\eqref{eq:hp1_c_twisted_scaling_identity}.
+
+For adjacent periods \(r\) and \(r+1\), one of the two integers is odd, so
+\begin{equation}
+    \min\{\nu_2(r),\nu_2(r+1)\}=0.
+    \label{eq:hp1_adjacent_2adic_minimum}
+\end{equation}
+Substituting Eq.~\eqref{eq:hp1_c_twisted_dyadic_energy_heuristic} into
+Eq.~\eqref{eq:hp1_c_twisted_scaling_identity} gives
+\begin{equation}
+    S_r
+    =
+    \operatorname{poly}(n)
+    \left[
+    \frac{2^{\nu_2(r)}}{r^2}
+    +
+    \frac{2^{\nu_2(r+1)}}{(r+1)^2}
+    -
+    \frac{2}{r(r+1)}
+    \right]
+    +
+    O(N^{-1}).
+    \label{eq:hp1_c_twisted_numerator_heuristic}
+\end{equation}
+This expression should be interpreted as a \(C\)-twisted dyadic-resonance
+estimate, not as a bitwise-XOR collision count.
+
+At the upper edge of the square-root period window, take
+\begin{equation}
+    r=2^{n/2}=\sqrt N.
+    \label{eq:hp1_square_root_period}
+\end{equation}
+Then \(\nu_2(r)=n/2\), and the first term in
+Eq.~\eqref{eq:hp1_c_twisted_numerator_heuristic} dominates:
+\begin{equation}
+    S_r
+    \sim
+    \operatorname{poly}(n)\frac{2^{n/2}}{2^n}
+    =
+    \operatorname{poly}(n)\,2^{-n/2}.
+    \label{eq:hp1_c_twisted_square_root_window_numerator}
 \end{equation}
 Equivalently,
 \begin{equation}
-    \log \fii_{\myqc-1}(r,n)
-    \ge
-    kn+b-\log r-O(\log n).
-    \label{eq:hp1_fisher_log_general_window}
+    \log S_r
+    =
+    -\frac{\log 2}{2}n+O(\log n).
+    \label{eq:hp1_c_twisted_square_root_log_numerator}
 \end{equation}
-In particular, if \(r\le \exp(\rho n)\) with \(0\le\rho<k\), then
-\begin{equation}
-    \log \fii_{\myqc-1}(r,n)
-    \ge
-    (k-\rho)n+b-O(\log n),
-    \label{eq:hp1_fisher_log_exponential_window}
-\end{equation}
-and if \(\log r=o(n)\) this reduces to
-\begin{equation}
-    \log \fii_{\myqc-1}(r,n)
-    \ge
-    kn+b-o(n).
-    \label{eq:hp1_fisher_log_subexponential_window}
-\end{equation}
-\end{theorem}
+Thus the unweighted adjacent numerator can decay exponentially even though the
+discrete Fisher information grows exponentially.
 
-\begin{proof}
-Using Eq.~\eqref{eq:hp1_background_normalized_law}, the adjacent DFI is
-\begin{align}
-    \fii_{\myqc-1}(r,n)
-    &=
-    \sum_x
-    \frac{\left(P_{r+1}(x)-P_r(x)\right)^2}{P_r(x)}  \\
-    &=
-    \frac1N
-    \sum_x
-    \frac{\left[\Delta_rG(x)\right]^2}{1+G_r(x)} .
-    \label{eq:hp1_dfi_background_form}
-\end{align}
-If \(P_r(x)=0\) for some \(x\) with \(P_{r+1}(x)>0\), the corresponding
-DFI term is interpreted as \(+\infty\), and the lower bound is immediate.
-Otherwise the denominators are positive.  Restricting the sum to \(\Omega_r\)
-and using Eq.~\eqref{eq:hp1_background_denominator_on_support},
-\begin{align}
-    \fii_{\myqc-1}(r,n)
-    &\ge
-    \frac{1}{Np_0(n)}
-    \sum_{x\in\Omega_r}\bigl[\Delta_rG(x)\bigr]^2 \\
-    &\ge
-    \frac{\exp[kn+b-O(\log n)]}{r},
-\end{align}
-where the last step is the support-local bound in Eq.~\eqref{eq:hp1_surviving_support_numerator_energy_new}
-and the polynomial \(p_0(n)\) has been absorbed into \(O(\log n)\).
-Taking logarithms gives Eq.~\eqref{eq:hp1_fisher_log_general_window}.  The two
-special cases follow by substituting \(\log r\le \rho n\) and
-\(\log r=o(n)\), respectively.
+Indeed, the discrete Fisher information is
+\begin{equation}
+    \fii(r,n)
+    =
+    \sum_x\frac{(\Delta_r\Pr(x))^2}{\Pr_r(x)}.
+    \label{eq:hp1_discrete_fisher_definition}
+\end{equation}
+If the dominant contribution comes from outputs where
+\begin{equation}
+    \Pr_r(x)=N^{-1}\operatorname{poly}(n),
+    \label{eq:hp1_typical_background_probability}
+\end{equation}
+then
+\begin{equation}
+    \fii(r,n)
+    \approx
+    N S_r\,\operatorname{poly}(n)^{-1}.
+    \label{eq:hp1_dfi_from_numerator_heuristic}
+\end{equation}
+Combining this with
+Eq.~\eqref{eq:hp1_c_twisted_square_root_window_numerator} gives
+\begin{equation}
+    \fii(r,n)
+    \sim
+    \operatorname{poly}(n)\,2^{n/2},
+    \label{eq:hp1_square_root_window_dfi_growth}
+\end{equation}
+or
+\begin{equation}
+    \log \fii(r,n)
+    =
+    \frac{\log 2}{2}n+O(\log n).
+    \label{eq:hp1_c_twisted_square_root_window_dfi}
+\end{equation}
+This explains why the log-DFI can be approximately linear in \(n\), while the
+unweighted numerator \(S_r\) is exponentially small.
 \end{proof}
-
-The role of the denominator is now explicit.  The numerator difference is of
-size \(N\exp(kn)/r\) in the background-normalized variables, and it is
-concentrated on outputs where the period-\(r\) law is at background scale.
-This is why the Fisher information gains the exponential factor \(e^{kn}\),
-while the period multiplicity appears as the explicit \(1/r\) loss.
-
-\section{Chernoff separation from the same surviving support}
-\label{app:hp1_chernoff_transfer}
-Let \(P_r\) and \(P_{r+1}\) denote the same background-normalized laws as above.
-Define the adjacent Chernoff information by
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    :=
-    -\log
-    \min_{0\le\alpha\le 1}
-    \sum_x P_r(x)^\alpha P_{r+1}(x)^{1-\alpha} .
-    \label{eq:hp1_chernoff_information_definition}
-\end{equation}
-
-\begin{theorem}[Chernoff lower bound]
-\label{thm:hp1_chernoff_poly_bound}
-For adjacent periods \(r,r+1\) in the register regime \(1\ll r\ll2^n\),
-assume the same surviving-support hypotheses as in
-Lemma~\ref{lem:hp1_chernoff_surviving_support}.  Then
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    \ge
-    \frac{1}{\operatorname{poly}(n)}.
-    \label{eq:hp1_chernoff_inverse_polynomial}
-\end{equation}
-More quantitatively, with \(\eta_n\) from
-Eq.~\eqref{eq:hp1_chernoff_ratio_eta}, the proof gives
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    \ge
-    \frac12\bigl(1-\sqrt{\eta_n}\bigr)_+^2
-    P_{r+1}(\Omega_r),
-    \label{eq:hp1_chernoff_ratio_bound}
-\end{equation}
-\end{theorem}
-
-\begin{proof}
-Let
-\begin{equation}
-    B(P_r,P_{r+1})
-    :=
-    \sum_x\sqrt{P_r(x)P_{r+1}(x)},
-    \qquad
-    H^2(P_r,P_{r+1}):=1-B(P_r,P_{r+1}).
-\end{equation}
-Since the minimum over \(\alpha\) is at most the value at \(\alpha=1/2\),
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    \ge -\log B(P_r,P_{r+1}).
-\end{equation}
-Moreover \(-\log z\ge 1-z\) for \(0<z\le1\), hence
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    \ge
-    H^2(P_r,P_{r+1}).
-    \label{eq:hp1_chernoff_hellinger_step}
-\end{equation}
-By Lemma~\ref{lem:hp1_chernoff_surviving_support},
-Eq.~\eqref{eq:hp1_chernoff_ratio_on_support}, for \(x\in\Omega_r\),
-\begin{equation}
-    \left(\sqrt{P_{r+1}(x)}-\sqrt{P_r(x)}\right)^2
-    \ge
-    \bigl(1-\sqrt{\eta_n}\bigr)_+^2 P_{r+1}(x),
-    \qquad x\in\Omega_r .
-\end{equation}
-Using
-\begin{equation}
-    H^2(P_r,P_{r+1})
-    =\frac12\sum_x
-    \left(\sqrt{P_{r+1}(x)}-\sqrt{P_r(x)}\right)^2,
-\end{equation}
-we obtain the quantitative estimate
-\begin{equation}
-    H^2(P_r,P_{r+1})
-    \ge
-    \frac12\bigl(1-\sqrt{\eta_n}\bigr)_+^2
-    P_{r+1}(\Omega_r).
-\end{equation}
-By Lemma~\ref{lem:hp1_chernoff_surviving_support}, \(\eta_n=o(1)\), so for all
-sufficiently large \(n\), the prefactor is bounded below by a positive
-constant, for example \(1/4\).  The same lemma,
-Eq.~\eqref{eq:hp1_surviving_support_mass_new}, gives
-\(P_{r+1}(\Omega_r)\ge1/\operatorname{poly}(n)\).  Combining this with
-Eq.~\eqref{eq:hp1_chernoff_hellinger_step} proves
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    \ge
-    \frac1{\operatorname{poly}(n)} .
-\end{equation}
-\end{proof}
-
-The Chernoff argument uses the same surviving support as the Fisher argument,
-but it uses it differently.  Fisher information is amplified by
-the small period-\(r\) denominator on \(\Omega_r\), producing the exponential
-factor in Theorem~\ref{thm:hp1_first_order_fisher_transfer},
-Eq.~\eqref{eq:hp1_fisher_explicit_r_loss}.  The Chernoff bound also uses the
-same surviving set, together with the explicit ratio estimate
-Eq.~\eqref{eq:hp1_chernoff_ratio_on_support}; the required period dependence is
-therefore carried by the explicit \(1/r\) and by the separation condition, not
-by a polynomial-window assumption.
-
-
 
 \section{Log-linear growth fit for the numerical Fisher-information scan}
 \label{app:fi_log_linear_growth}
