@@ -1011,7 +1011,9 @@ Then all multiples \(qs\) have \(a\) fixed trailing zero bits.  These fixed bits
 pass through the exact parity filters on \(\Lambda_2\) and also suppress part
 of the dyadic phase hash on \(\Lambda_1\).  Thus the number of \(C\)-resonant
 modes is enhanced by a factor of order \(2^a\), up to subexponential
-corrections.  We summarize this by the scaling heuristic
+corrections.  The statistical input used below is the corresponding cross-period
+version of this observation: two periods can share only the trailing-zero
+structure common to both of them.  We summarize this by the scaling heuristic
 \begin{equation}
     \mathcal E_C(s,t)-1
     =
@@ -1020,7 +1022,27 @@ corrections.  We summarize this by the scaling heuristic
     \operatorname{poly}(n)
     \label{eq:hp1_c_twisted_cross_energy_heuristic}
 \end{equation}
-for cross overlaps, and in particular
+for cross overlaps.  The factor \(2^{\min(\nu_2(s),\nu_2(t))}\) records the
+common dyadic depth, while the polynomial factor absorbs finite-register
+boundary effects and the soft width of the near-resonance condition
+\(|\Gamma_C(v)|\approx1\).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\columnwidth]{hp1_c_twisted_dyadic_resonance.pdf}
+    \caption{\label{fig:hp1_c_twisted_dyadic_resonance}
+    Numerical check of the dyadic-resonance scaling in
+    Eq.~\eqref{eq:hp1_c_twisted_cross_energy_heuristic}.  The data are obtained
+    by exact CUDA state-vector evaluation at \(n=20\) for the fixed-phase
+    \(\myqc-1\) kernel, using the pairs \(s=2^a u\), \(t=2^a v\) with
+    \((u,v)=(3,5),(3,7),(5,7)\) and \(a=0,\ldots,6\).  The left panel plots
+    \((\mathcal E_C(s,t)-1)st/N\), after removing the base \(N/(st)\) overlap
+    scale.  The right panel divides the same quantity by \(2^a\); the result
+    remains order one up to finite-size fluctuations, supporting the shared
+    \(2\)-adic depth as the leading statistical enhancement.}
+\end{figure}
+
+For self overlaps this gives, in particular,
 \begin{equation}
     \mathcal E_C(s,s)-1
     =
