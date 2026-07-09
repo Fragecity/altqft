@@ -785,11 +785,9 @@ The adjacent-period numerator is the direct probability difference
 \begin{lemma}[\(C\)-twisted adjacent-period numerator]
 \label{lem:hp1_c_twisted_numerator}
 For the coherent law in Eq.~\eqref{eq:hp1_lag_correlation_probability}, the
-\(C\)-twisted dyadic-resonance estimate gives, at the square-root period
-window \(r=2^{n/2}=\sqrt N\),
+\(C\)-twisted dyadic-resonance estimate gives, at the square-root period window
+\(r=2^{n/2}=\sqrt N\),
 \[
-    S_r
-    :=
     \sum_{x\in\{0,1\}^n}\bigl[\Delta_r\Pr(x)\bigr]^2
     \sim
     \Theta(2^{-n/2}).
@@ -797,8 +795,67 @@ window \(r=2^{n/2}=\sqrt N\),
 \end{lemma}
 
 \begin{proof}
-For the \(C\)-twisted formulation, write \(b(m)\in\{0,1\}^n\) for the \(n\)-bit
-register string of the integer \(m\), and set
+We first separate the exact algebra from the statistical scaling estimate.  Fix
+two candidate periods \(s,t\).
+Let \(\nu_2(m)\) denote the \(2\)-adic valuation of \(m\), namely the largest
+integer \(a\) such that \(2^a\) divides \(m\).
+For an integer \(m\in\{0,\ldots,N-1\}\), let
+\(b(m)=(b_1(m),\ldots,b_n(m))\in\{0,1\}^n\) be its \(n\)-bit register string.
+This notation keeps integer products such as \(ps\) separate from their bit
+vectors \(b(ps)\).
+The purpose of this notation is to turn the \(L^2\) numerator
+\(\sum_x[\Delta_r\Pr(x)]^2\) into an overlap problem between two coherent
+period laws.  Once the output sum over \(x\) is exchanged with the period-mode
+sums, the HP-1 phase matrix \(C\) appears only through a single resonance
+kernel.
+
+Lemma~\ref{lem:hp1_measurement_probability_expansion} gives, for period \(s\),
+\begin{equation}
+    \Pr_s(x)
+    =
+    \frac{1}{N R^{(s)}}
+    \left|
+    \sum_{q=0}^{R^{(s)}-1}
+    \prod_{j=1}^{n}w_j(x)^{b_j(qs)}
+    \right|^2 .
+    \label{eq:hp1_coherent_law_period_s}
+\end{equation}
+Using \(w_j(x)=\exp(\pi\ii(C^Tx)_j)\), define the coherent digital phase sum
+\begin{equation}
+    Z_s(x)
+    :=
+    \sum_{q=0}^{R^{(s)}-1}
+    \exp\!\left(\pi\ii\,x^TC\,b(qs)\right).
+    \label{eq:hp1_c_twisted_coherent_sum}
+\end{equation}
+Thus \(Z_s(x)\) is the coherent sum of all register multiples of \(s\), with
+the HP-1 circuit contributing the \(C\)-twisted phase.  In particular,
+\(\Pr_s(x)=|Z_s(x)|^2/(N R^{(s)})\).  Opening the modulus square is useful
+because every probability becomes a pair sum over two period modes.  Applying
+Eq.~\eqref{eq:hp1_coherent_law_period_s} to \(s=r\) and \(s=r+1\), the
+adjacent probability difference therefore expands as
+\begin{equation}
+    \begin{aligned}
+    \Delta_r\Pr(x)
+    =
+    \frac1N\biggl[
+    &\frac{1}{R^{(r+1)}}
+    \sum_{p,q=0}^{R^{(r+1)}-1}
+    \prod_{j=1}^{n}w_j(x)^{b_j(p(r+1))}
+    \overline{\prod_{j=1}^{n}w_j(x)^{b_j(q(r+1))}} \\
+    &-
+    \frac{1}{R^{(r)}}
+    \sum_{p,q=0}^{R^{(r)}-1}
+    \prod_{j=1}^{n}w_j(x)^{b_j(pr)}
+    \overline{\prod_{j=1}^{n}w_j(x)^{b_j(qr)}}
+    \biggr].
+    \end{aligned}
+    \label{eq:hp1_probability_difference_coherent_expansion}
+\end{equation}
+
+The overlap of two period laws is obtained by summing a fixed quadruple of
+coherent modes over all output strings \(x\).  For mode pairs
+\((p,q)\) at period \(s\) and \((p',q')\) at period \(t\), set
 \begin{equation}
     v_{s,t}(p,q;p',q')
     :=
@@ -813,82 +870,104 @@ For \(v\in\mathbb Z^n\), define the normalized \(C\)-twisted kernel
     \frac{1+\exp\!\left(\pi\ii [Cv]_i\right)}{2}.
     \label{eq:hp1_c_twisted_kernel}
 \end{equation}
-For periods \(s,t\), define
-\begin{equation}
-    \mathcal E_C(s,t)
-    :=
-    \frac{1}{R^{(s)}R^{(t)}}
-    \sum_{p,q=0}^{R^{(s)}-1}
-    \sum_{p',q'=0}^{R^{(t)}-1}
-    \Gamma_C\!\left(v_{s,t}(p,q;p',q')\right),
-    \label{eq:hp1_c_twisted_energy}
-\end{equation}
-
-Lemma~\ref{lem:hp1_measurement_probability_expansion} gives the coherent
-period-\(s\) law in Eq.~\eqref{eq:hp1_lag_correlation_probability}.  We use
-that conclusion in the form
-\[
-    \Pr_s(x)
-    =
-    \frac{1}{N R^{(s)}}
-    \left|
-    \sum_{q=0}^{R^{(s)}-1}
-    \prod_{j=1}^{n}w_j(x)^{(qs)_j}
-    \right|^2 .
-\]
-Applying this formula to \(s=r\) and \(s=r+1\), the probability difference can
-be expanded directly.  In the expansions below,
-integer products such as \(ps\) are read as \(n\)-bit register strings.  Then
-\begin{equation}
-    \begin{aligned}
-    \Delta_r\Pr(x)
-    =
-    \frac1N\biggl[
-    &\frac{1}{R^{(r+1)}}
-    \sum_{p,q=0}^{R^{(r+1)}-1}
-    \prod_{j=1}^{n}w_j(x)^{(p(r+1))_j}
-    \overline{\prod_{j=1}^{n}w_j(x)^{(q(r+1))_j}} \\
-    &-
-    \frac{1}{R^{(r)}}
-    \sum_{p,q=0}^{R^{(r)}-1}
-    \prod_{j=1}^{n}w_j(x)^{(pr)_j}
-    \overline{\prod_{j=1}^{n}w_j(x)^{(qr)_j}}
-    \biggr].
-    \end{aligned}
-    \label{eq:hp1_probability_difference_coherent_expansion}
-\end{equation}
-For a pair of periods \(s,t\), the overlap calculation only needs the inner
-\(x\)-sum over a fixed quadruple of modes.  Using the bitwise phase form in
-Eq.~\eqref{eq:hp1_bitwise_phase_factor}, this sum factorizes as
+Here \(v_{s,t}\) is the digital mode mismatch generated by one pair from
+period \(s\) and one pair from period \(t\).  The kernel \(\Gamma_C(v)\) is
+introduced so that the whole output-string sum can be replaced by a single
+quantity measuring whether this mismatch survives the \(C\)-twisted phase
+average.
+Using the bitwise phase form in Eq.~\eqref{eq:hp1_bitwise_phase_factor}, the
+fixed-quadruple \(x\)-sum factorizes as
 \begin{equation}
 \begin{aligned}
     \mathcal K_{s,t}(p,q;p',q')
     &:=
     \sum_{x\in\{0,1\}^n}
-    \prod_{j=1}^{n}w_j(x)^{(ps)_j}
-    \overline{\prod_{j=1}^{n}w_j(x)^{(qs)_j}}
-    \prod_{j=1}^{n}w_j(x)^{(p't)_j}
-    \overline{\prod_{j=1}^{n}w_j(x)^{(q't)_j}} \\
+    \prod_{j=1}^{n}w_j(x)^{b_j(ps)}
+    \overline{\prod_{j=1}^{n}w_j(x)^{b_j(qs)}}
+    \prod_{j=1}^{n}w_j(x)^{b_j(p't)}
+    \overline{\prod_{j=1}^{n}w_j(x)^{b_j(q't)}} \\
+    &=
+    \sum_{x\in\{0,1\}^n}
+    \exp\!\left(\pi\ii\,x^TC\,v_{s,t}(p,q;p',q')\right)\\
     &=
     \prod_{i=1}^{n}
     \left[
         1+
         \exp\!\left(
         \pi\ii
-        \left[
-        C\left(
-        ps-qs+p't-q't
+        \left[C\,v_{s,t}(p,q;p',q')\right]_i
         \right)
-        \right]_i
-        \right)
-    \right].
+    \right]\\
+    &=
+    N\,\Gamma_C\!\left(v_{s,t}(p,q;p',q')\right).
 \end{aligned}
 \label{eq:hp1_mode_overlap_factorization}
 \end{equation}
-Thus
-\(\mathcal K_{s,t}(p,q;p',q')=N\Gamma_C(v_{s,t}(p,q;p',q'))\), so each
-overlap \(\sum_x\Pr_s(x)\Pr_t(x)\) equals \(N^{-1}\mathcal E_C(s,t)\).
-Applying this to the adjacent numerator gives the exact identity
+Accordingly define the \(C\)-twisted energy
+\begin{equation}
+    \mathcal E_C(s,t)
+    :=
+    \frac{1}{R^{(s)}R^{(t)}}
+    \sum_{p,q=0}^{R^{(s)}-1}
+    \sum_{p',q'=0}^{R^{(t)}-1}
+    \Gamma_C\!\left(v_{s,t}(p,q;p',q')\right).
+    \label{eq:hp1_c_twisted_energy}
+\end{equation}
+This energy is just the normalized average of the surviving \(C\)-twisted
+resonances over all period-mode quadruples.  It is not a new probability law;
+it is a compact way to record the exact overlap algebra.
+The quadruple sum is invariant under the conjugating swaps \(p\leftrightarrow q\)
+and \(p'\leftrightarrow q'\), so the resulting overlap is real.  The exchanged
+sum gives
+\begin{equation}
+    \sum_x \Pr_s(x)\Pr_t(x)
+    =
+    \frac1N\mathcal E_C(s,t).
+    \label{eq:hp1_c_twisted_overlap_energy_identity}
+\end{equation}
+Equivalently, using Eq.~\eqref{eq:hp1_c_twisted_coherent_sum},
+\begin{equation}
+    \mathcal E_C(s,t)
+    =
+    \frac{1}{N R^{(s)}R^{(t)}}
+    \sum_{x\in\{0,1\}^n}
+    |Z_s(x)|^2|Z_t(x)|^2 .
+    \label{eq:hp1_c_twisted_energy_fourth_moment}
+\end{equation}
+The fourth-moment form says the same thing from the output side: large
+\(\mathcal E_C(s,t)\) means that the coherent sums for periods \(s\) and \(t\)
+are simultaneously large on a non-negligible set of outcomes.  This is the
+quantity that controls the adjacent numerator.
+
+The adjacent numerator decomposes into three probability overlaps:
+\begin{equation}
+    \sum_{x\in\{0,1\}^n}
+    \bigl(\Pr_{r+1}(x)-\Pr_r(x)\bigr)^2
+    =
+    \sum_x \Pr_{r+1}(x)^2
+    +
+    \sum_x \Pr_r(x)^2
+    -
+    2\sum_x \Pr_{r+1}(x)\Pr_r(x).
+    \label{eq:hp1_c_twisted_overlap_decomposition}
+\end{equation}
+For these three overlaps, Eq.~\eqref{eq:hp1_c_twisted_overlap_energy_identity}
+gives
+\begin{equation}
+    \begin{aligned}
+    \sum_x \Pr_{r+1}(x)^2
+    &=
+    \frac1N\mathcal E_C(r+1,r+1),\\
+    \sum_x \Pr_r(x)^2
+    &=
+    \frac1N\mathcal E_C(r,r),\\
+    \sum_x \Pr_{r+1}(x)\Pr_r(x)
+    &=
+    \frac1N\operatorname{Re}\mathcal E_C(r+1,r).
+    \end{aligned}
+    \label{eq:hp1_c_twisted_adjacent_overlap_energies}
+\end{equation}
+Thus the exact \(C\)-twisted identity for the adjacent numerator is
 \begin{equation}
     \sum_{x\in\{0,1\}^n}\bigl[\Delta_r\Pr(x)\bigr]^2
     =
@@ -902,8 +981,13 @@ Applying this to the adjacent numerator gives the exact identity
     \right].
     \label{eq:hp1_c_twisted_numerator_identity}
 \end{equation}
+This identity is the exact part of the lemma.  It reduces the adjacent-period
+numerator to three energies: two self-overlaps, which measure concentration of
+each period law, and one cross-overlap, which measures how much the two adjacent
+period laws share.
 
-The kernel \(\Gamma_C\) gives a soft \(C\)-resonance condition.  Since
+The kernel \(\Gamma_C\) gives the soft resonance condition behind this identity.
+Since
 \((1+e^{\ii\theta})/2=e^{\ii\theta/2}\cos(\theta/2)\),
 \begin{equation}
     \Gamma_C(v)
@@ -954,94 +1038,167 @@ whereas the odd rows add the dyadic phase hash
 direct comparison of the three \(C\)-twisted energies in
 Eq.~\eqref{eq:hp1_c_twisted_numerator_identity}.
 
-We now use this identity as a scaling diagnostic for the adjacent numerator,
-not as a theorem-level lower bound.  Set
+We now use Eq.~\eqref{eq:hp1_c_twisted_numerator_identity} as a scaling diagnostic
+for the adjacent numerator, not as a theorem-level lower bound.  The remaining
+input is statistical rather than algebraic.  To make the scale transparent, we
+first separate the deterministic zero digital mode from the nonzero modes.
+First consider the case with no dyadic enhancement, namely
+\(\nu_2(s)=\nu_2(t)=0\), equivalently \(s\) and \(t\) are odd.  Isolating the
+zero digital mode in
+Eq.~\eqref{eq:hp1_c_twisted_energy_fourth_moment} gives
 \begin{equation}
-    S_r:=
-    \sum_{x\in\{0,1\}^n}
-    \bigl(\Pr_{r+1}(x)-\Pr_r(x)\bigr)^2 .
-    \label{eq:hp1_c_twisted_adjacent_numerator_definition}
+    Z_s(0)=R^{(s)},\qquad Z_t(0)=R^{(t)},
+    \label{eq:hp1_c_twisted_zero_mode_sum}
 \end{equation}
-and
+and hence contributes
 \begin{equation}
-    I_{s,t}:=\sum_x \Pr_s(x)\Pr_t(x).
-    \label{eq:hp1_c_twisted_overlap_definition}
-\end{equation}
-Then
-\begin{equation}
-    S_r=I_{r+1,r+1}+I_{r,r}-2\operatorname{Re}I_{r+1,r}.
-    \label{eq:hp1_c_twisted_overlap_decomposition}
-\end{equation}
-The exchanged-sum calculation above gives
-\begin{equation}
-    I_{s,t}=\frac1N\mathcal E_C(s,t),
-    \label{eq:hp1_c_twisted_overlap_energy_identity}
-\end{equation}
-with \(\mathcal E_C\) defined in Eq.~\eqref{eq:hp1_c_twisted_energy} and
-\(\Gamma_C\) defined in Eq.~\eqref{eq:hp1_c_twisted_kernel}.  Therefore
-\begin{equation}
-    S_r
+    \mathcal E_C^{(0)}(s,t)
     =
-    \frac1N
-    \left[
-    \mathcal E_C(r+1,r+1)
-    +
-    \mathcal E_C(r,r)
-    -
-    2\operatorname{Re}\mathcal E_C(r+1,r)
-    \right].
-    \label{eq:hp1_c_twisted_scaling_identity}
+    \frac{\bigl(R^{(s)}\bigr)^2\bigl(R^{(t)}\bigr)^2}{N R^{(s)}R^{(t)}}
+    =
+    \frac{R^{(s)}R^{(t)}}{N}.
+    \label{eq:hp1_c_twisted_zero_mode_contribution}
 \end{equation}
+When \(N\gg s,t\),
+\begin{equation}
+    R^{(s)}=\frac Ns+O(1),
+    \qquad
+    R^{(t)}=\frac Nt+O(1),
+    \label{eq:hp1_period_count_asymptotic}
+\end{equation}
+so
+\begin{equation}
+    \mathcal E_C^{(0)}(s,t)
+    =
+    \frac{N}{st}
+    \left[
+    1+O\!\left(\frac{s+t}{N}\right)
+    \right].
+    \label{eq:hp1_c_twisted_zero_mode_asymptotic}
+\end{equation}
+This is the base \(N/(st)\) overlap scale: it is present even before any extra
+dyadic resonance is used.
 
-The remaining step is statistical rather than algebraic.  The fixed-phase
-\(\myqc-1\) matrix does not produce a generic random phase hash.  Because its
-off-diagonal entries are dyadic, periods with large \(2\)-adic valuation
-produce many near-resonant modes.  Write
+When \(s\) and \(t\) are odd, multiplication by either period is an invertible
+rearrangement modulo every \(2^k\).  Hence the nonzero digital modes do not
+acquire a stable trailing-zero resonance.  The corresponding
+square-root-cancellation estimate is
+\begin{equation}
+    |Z_s(x)|^2\sim R^{(s)},
+    \qquad
+    |Z_t(x)|^2\sim R^{(t)},
+    \qquad x\neq0.
+    \label{eq:hp1_c_twisted_nonzero_mode_cancellation}
+\end{equation}
+Thus the total nonzero-mode contribution is only order one:
+\begin{equation}
+    \mathcal E_C^{(\neq0)}(s,t)
+    \sim
+    \frac{1}{N R^{(s)}R^{(t)}}
+    \sum_{x\neq0}R^{(s)}R^{(t)}
+    =
+    O(1).
+    \label{eq:hp1_c_twisted_nonzero_mode_background}
+\end{equation}
+Thus, in the odd-period case, the zero mode controls the leading scale whenever
+\(st\ll N\); the remaining modes only contribute a bounded background.
+Combining the zero and nonzero modes gives
+\begin{equation}
+    \mathcal E_C(s,t)-1
+    =
+    \frac{N}{st}
+    +
+    O(1).
+    \label{eq:hp1_c_twisted_odd_cross_energy_background}
+\end{equation}
+Therefore, under the sharper scale condition \(st\ll N\),
+\begin{equation}
+    \begin{gathered}
+    \nu_2(s)=\nu_2(t)=0,\quad st\ll N,\\
+    \mathcal E_C(s,t)-1
+    =
+    \frac{N}{st}\,[1+o(1)] .
+    \end{gathered}
+    \label{eq:hp1_c_twisted_cross_energy_heuristic}
+\end{equation}
+Equivalently,
+\begin{equation}
+    \frac{(\mathcal E_C(s,t)-1)st}{N}
+    =
+    1+O\!\left(\frac{st}{N}\right).
+    \label{eq:hp1_c_twisted_odd_cross_normalized}
+\end{equation}
+For self overlaps, setting \(s=t=r\) gives
+\begin{equation}
+    \begin{gathered}
+    r\ \text{odd},\quad r^2\ll N,\\
+    \mathcal E_C(r,r)-1
+    =
+    \frac{N}{r^2}\,[1+o(1)] .
+    \end{gathered}
+    \label{eq:hp1_c_twisted_dyadic_energy_heuristic}
+\end{equation}
+The required self-overlap scale condition is \(r^2\ll N\), not merely
+\(r\ll N\).
+If \(r\sim c\sqrt N\), then \(N/r^2=O(1)\), and the nonzero-mode background is
+of the same order as the zero-mode term.  In that regime the leading-mode
+argument still gives an \(O(1)\) scale but does not by itself fix the constant
+to be one.
+
+For periods with nonzero \(2\)-adic depth, write
 \begin{equation}
     s=2^{a}u,\qquad u\ \text{odd},\qquad a=\nu_2(s).
     \label{eq:hp1_period_2adic_decomposition}
 \end{equation}
-Here \(\nu_2(m)\) denotes the \(2\)-adic valuation of \(m\), namely the largest
-integer \(a\) such that \(2^a\) divides \(m\).
-For example, if \(s=40\), then
+For example,
 \begin{equation}
     40=2^3\cdot 5,
     \label{eq:hp1_2adic_decomposition_example}
 \end{equation}
-so \(a=\nu_2(40)=3\) and \(u=5\).
-Then all multiples \(qs\) have \(a\) fixed trailing zero bits.  These fixed bits
-pass through the exact parity filters on \(\Lambda_2\) and also suppress part
-of the dyadic phase hash on \(\Lambda_1\).  Thus the number of \(C\)-resonant
-modes is enhanced by a factor of order \(2^a\).  The remaining finite-register
-correction is treated as an order-one residual.  The statistical input used
-below is the corresponding cross-period version of this observation: two periods
-can share only the trailing-zero structure common to both of them.  We summarize
-this by the scaling heuristic
+so \(\nu_2(40)=3\).  Multiples \(qs\) then have \(a\) fixed trailing zero bits.
+These fixed bits pass through the exact parity filters on \(\Lambda_2\) and also
+suppress part of the dyadic phase hash on \(\Lambda_1\).  This is the mechanism
+that creates more near-resonant mode quadruples: the larger the common
+trailing-zero depth, the fewer phase constraints remain active.  We use the
+resulting dyadic extension
 \begin{equation}
     \mathcal E_C(s,t)-1
     =
     \frac{N}{st}\,
     2^{\min(\nu_2(s),\nu_2(t))}
     \,\Theta(1)
-    \label{eq:hp1_c_twisted_cross_energy_heuristic}
+    \label{eq:hp1_c_twisted_dyadic_cross_energy_extension}
 \end{equation}
-for cross overlaps.  The factor \(2^{\min(\nu_2(s),\nu_2(t))}\) records the
-common dyadic depth, while the \(\Theta(1)\) factor absorbs finite-register
-boundary effects and the soft width of the near-resonance condition
-\(|\Gamma_C(v)|\approx1\).  This bounded-residual assumption is checked
-numerically in Fig.~\ref{fig:hp1_c_twisted_dyadic_resonance}: the right panel
-fixes the dyadic depth and shows no visible polynomial or exponential drift in
-\(n\) after the \(N2^a/(st)\) scale has been divided out.
+for cross overlaps, where the factor
+\(2^{\min(\nu_2(s),\nu_2(t))}\) records the common dyadic depth.  The residual
+\(\Theta(1)\) absorbs finite-register boundary effects and the soft width of the
+near-resonance condition \(|\Gamma_C(v)|\approx1\).
 
-\begin{figure}[h]
+For self overlaps this gives, in particular,
+\begin{equation}
+    \mathcal E_C(s,s)-1
+    =
+    \frac{N}{s^2}\,
+    2^{\nu_2(s)}
+    \,\Theta(1).
+    \label{eq:hp1_c_twisted_dyadic_self_energy_extension}
+\end{equation}
+The constant term \(1\) is the uniform diagonal background.  It cancels in the
+adjacent difference in Eq.~\eqref{eq:hp1_c_twisted_numerator_identity}.
+
+The numerical scaling checks for Eqs.~\eqref{eq:hp1_c_twisted_cross_energy_heuristic}
+and \eqref{eq:hp1_c_twisted_dyadic_cross_energy_extension} are summarized in
+Fig.~\ref{fig:hp1_c_twisted_dyadic_resonance}.
+\begin{figure}[H]
     \centering
     \includegraphics[width=\columnwidth]{hp1_c_twisted_dyadic_resonance_n26_maxa14_30pairs.pdf}
     \caption{\label{fig:hp1_c_twisted_dyadic_resonance}
-    Numerical check of the dyadic-resonance scaling in
-    Eq.~\eqref{eq:hp1_c_twisted_cross_energy_heuristic}.  The data are obtained
-    by exact state-vector evaluation at \(n=26\) for the fixed-phase
-    \(\myqc-1\) kernel, using \(s=2^a u\), \(t=2^a v\) over \(30\) odd
-    pairs \((u,v)\) and \(a=0,\ldots,14\).  The left panel plots
+    Numerical check of the \(a=0\) base scaling in
+    Eq.~\eqref{eq:hp1_c_twisted_cross_energy_heuristic} and of the dyadic
+    extension in Eq.~\eqref{eq:hp1_c_twisted_dyadic_cross_energy_extension}.
+    The data are obtained by exact state-vector evaluation at \(n=26\) for the
+    fixed-phase \(\myqc-1\) kernel, using \(s=2^a u\), \(t=2^a v\) over \(30\)
+    odd pairs \((u,v)\) and \(a=0,\ldots,14\).  The left panel plots
     \((\mathcal E_C(s,t)-1)st/N\), after removing the base \(N/(st)\) overlap
     scale; borderless light-blue circles are individual period-pair overlaps
     and the black dashed curve shows \(2^a\).  The right panel fixes \(a=6\)
@@ -1053,27 +1210,21 @@ fixes the dyadic depth and shows no visible polynomial or exponential drift in
     leading statistical enhancement.}
 \end{figure}
 
-For self overlaps this gives, in particular,
-\begin{equation}
-    \mathcal E_C(s,s)-1
-    =
-    \frac{N}{s^2}\,
-    2^{\nu_2(s)}
-    \,\Theta(1).
-    \label{eq:hp1_c_twisted_dyadic_energy_heuristic}
-\end{equation}
-The constant term \(1\) is the uniform diagonal background.  It cancels in the
-adjacent difference in Eq.~\eqref{eq:hp1_c_twisted_scaling_identity}.
-
 For adjacent periods \(r\) and \(r+1\), one of the two integers is odd, so
 \begin{equation}
     \min\{\nu_2(r),\nu_2(r+1)\}=0.
     \label{eq:hp1_adjacent_2adic_minimum}
 \end{equation}
-Substituting Eq.~\eqref{eq:hp1_c_twisted_dyadic_energy_heuristic} into
-Eq.~\eqref{eq:hp1_c_twisted_scaling_identity} gives
+This is why the cross-overlap has only the base dyadic depth, whereas each
+self-overlap keeps its own \(2\)-adic enhancement.
+Substituting the self-overlap estimate
+Eq.~\eqref{eq:hp1_c_twisted_dyadic_self_energy_extension} and the adjacent
+cross-overlap estimate from
+Eq.~\eqref{eq:hp1_c_twisted_dyadic_cross_energy_extension} into
+Eq.~\eqref{eq:hp1_c_twisted_numerator_identity}, and absorbing bounded residual
+factors into the displayed \(\Theta(1)\), gives
 \begin{equation}
-    S_r
+    \sum_{x\in\{0,1\}^n}\bigl[\Delta_r\Pr(x)\bigr]^2
     =
     \Theta(1)
     \left[
@@ -1090,7 +1241,7 @@ Eq.~\eqref{eq:hp1_c_twisted_scaling_identity} gives
 This expression should be interpreted as a \(C\)-twisted dyadic-resonance
 estimate, not as a bitwise-XOR collision count.
 
-At the upper edge of the square-root period window, take
+At the formal upper edge of the square-root period window, take
 \begin{equation}
     r=2^{n/2}=\sqrt N.
     \label{eq:hp1_square_root_period}
@@ -1103,18 +1254,23 @@ Then
 and the first term in
 Eq.~\eqref{eq:hp1_c_twisted_numerator_heuristic} dominates:
 \begin{equation}
-    S_r
+    \sum_{x\in\{0,1\}^n}\bigl[\Delta_r\Pr(x)\bigr]^2
     \sim
     \Theta(1)\frac{2^{n/2}}{2^n}
     =
     \Theta(2^{-n/2}).
     \label{eq:hp1_c_twisted_square_root_window_numerator}
 \end{equation}
-This is the claimed square-root-window numerator scaling.
+This final substitution explains why the lemma statement is formulated at the
+square-root window: the dyadic enhancement \(2^{\nu_2(r)}=2^{n/2}\) compensates
+one square-root factor of the denominator \(r^2=2^n\).  The boundary
+substitution should be read as the square-root-window extrapolation of the
+\(r^2\ll N\) diagnostic, and it recovers the numerator scaling used below.
 \end{proof}
 
 \begin{theoremrestatement}{thm:hp1_first_order_fisher_transfer_maintext}{Ln-linear minimum Fisher information for \myqc-1, restated}
-For \myqc-1, the minimum adjacent-period DFI obeys the ln-linear scaling
+For \myqc-1, restrict the adjacent-period scan to generators satisfying
+\(r^2\ll 2^n\).  The minimum adjacent-period DFI obeys the ln-linear scaling
 \begin{equation}
     \ln \fii_{\min}(n)\sim kn+b,
     \label{eq:hp_minimum_dfi_ln_linear}
@@ -1122,27 +1278,40 @@ For \myqc-1, the minimum adjacent-period DFI obeys the ln-linear scaling
 \end{theoremrestatement}
 
 \begin{proof}
-The discrete Fisher information is
+The discrete Fisher information weights the adjacent probability change by the
+inverse background probability.  Thus Lemma~\ref{lem:hp1_c_twisted_numerator}
+controls the numerator of the Fisher information, while the typical size of
+\(\Pr_r(x)\) controls how much that numerator is amplified.  We start from
 \begin{equation}
     \fii(r,n)
     =
     \sum_x\frac{(\Delta_r\Pr(x))^2}{\Pr_r(x)}.
     \label{eq:hp1_discrete_fisher_definition}
 \end{equation}
-If the dominant contribution comes from outputs where
+The scaling transfer used here is therefore a numerator-to-Fisher-information
+heuristic: assume that the dominant contribution comes from outputs where
 \begin{equation}
     \Pr_r(x)=N^{-1}\operatorname{poly}(n),
     \label{eq:hp1_typical_background_probability}
 \end{equation}
-then
+namely from outcomes whose probabilities are polynomially close to the uniform
+background.  On such outcomes the denominator in
+Eq.~\eqref{eq:hp1_discrete_fisher_definition} contributes a factor
+\(N\operatorname{poly}(n)^{-1}\).  Therefore
 \begin{equation}
     \fii(r,n)
     \approx
-    N S_r\,\operatorname{poly}(n)^{-1}.
+    N
+    \left[
+    \sum_x\bigl(\Delta_r\Pr(x)\bigr)^2
+    \right]
+    \operatorname{poly}(n)^{-1}.
     \label{eq:hp1_dfi_from_numerator_heuristic}
 \end{equation}
-Combining this with
-Eq.~\eqref{eq:hp1_c_twisted_square_root_window_numerator} gives
+Lemma~\ref{lem:hp1_c_twisted_numerator} gives the square-root-window numerator
+scaling, recorded in Eq.~\eqref{eq:hp1_c_twisted_square_root_window_numerator}.
+Combining that scaling with Eq.~\eqref{eq:hp1_dfi_from_numerator_heuristic}
+gives
 \begin{equation}
     \fii(r,n)
     \sim
@@ -1156,9 +1325,12 @@ or
     \frac{\ln 2}{2}n+O(\ln n).
     \label{eq:hp1_c_twisted_square_root_window_dfi}
 \end{equation}
-Thus the DFI is ln-linear up to sublinear corrections on the square-root period
-windows.  The finite-window exponent and intercept are then determined by the
-least-squares fit to the numerical \(\fii_{\min}(n)\) data, yielding
+Taking the logarithm turns this exponential-in-\(n\) Fisher-information scale
+into a linear function of \(n\), while the polynomial factor contributes only
+the sublinear \(O(\ln n)\) correction.  Thus the DFI is ln-linear up to
+sublinear corrections on the square-root period windows.  The finite-window
+exponent and intercept are then determined by the least-squares fit to the
+numerical \(\fii_{\min}(n)\) data, yielding
 Eq.~\eqref{eq:hp_minimum_dfi_ln_linear}.
 \end{proof}
 

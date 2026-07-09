@@ -1,7 +1,7 @@
     
 \documentclass[reprint, aps, prl, superscriptaddress]{revtex4-2}
 \usepackage{graphicx, float, xcolor}
-\graphicspath{{fig/}}
+\graphicspath{{fig/}{../../figs/fi_fig/}{../../figs/recover/}}
 \usepackage[ruled,linesnumbered]{algorithm2e}
 \usepackage{physics}
 \usepackage{hyperref}
@@ -23,10 +23,8 @@
 
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
-\newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}{Proposition}
 \newtheorem*{restatedtheorem}{Theorem}
-\newtheorem*{restatedlemma}{Lemma}
 \newtheorem*{restatedproposition}{Proposition}
 
 
@@ -48,7 +46,7 @@
 \date{\today}
 
 \begin{abstract}
-The Quantum Fourier Transform (QFT) is required by hidden subgroup problem (HSP) algorithms, including Shor's algorithm for factoring. The circuit depth of the QFT remains challenging for near-term hardware. To find shallower alternatives we identify two properties that are exploited by the QFT to enable HSP. Firstly, the shift invariance of the QFT allows for the removal of a random overall shift. Secondly, the QFT retains information about the hidden subgroup generator accessible in the measurement outcomes. We quantify that information via the discrete Fisher information. We construct a family of shallow circuits using Hadamards and controlled-Phase gates, HP-$L$ circuits, and prove shift invariance for the fixed-phase HP-$1$ instance via a general phase-factorization criterion. Numerical analysis shows these circuits retain exponentially growing Fisher information. The $\mathcal{O}(n)$ HP-$1$ can replace the $\mathcal{O}(n^2)$ QFT in Shor's algorithm, as demonstrated numerically, with an efficient neural network implementing classical post-processing.  
+The Quantum Fourier Transform (QFT) is required by hidden subgroup problem (HSP) algorithms, including Shor's algorithm for factoring. The circuit depth of the QFT remains challenging for near-term hardware. To find shallower alternatives we identify two properties that are exploited by the QFT to enable HSP. Firstly, the shift invariance of the QFT allows for the removal of a random overall shift. Secondly, the QFT retains information about the hidden subgroup generator accessible in the measurement outcomes. We quantify that information via the discrete Fisher information. We construct a family of shallow circuits using Hadamards and controlled-Phase gates, HP-$L$ circuits, that we prove preserve shift invariance. Numerical analysis shows these circuits retain exponentially growing Fisher information. The $\mathcal{O}(n)$ HP-$1$ can replace the $\mathcal{O}(n^2)$ QFT in Shor's algorithm, as demonstrated numerically, with an efficient neural network implementing classical post-processing.  
 \end{abstract}
 
 \maketitle
@@ -57,7 +55,7 @@ The Quantum Fourier Transform (QFT) is required by hidden subgroup problem (HSP)
 \section{Introduction}The $\mathcal{O}(n^2)$ circuit depth required by the standard Quantum Fourier Transform (QFT) presents experimental challenges. The QFT is used in the exponential quantum speedups of landmark protocols—such as Shor's algorithms for prime factorization and discrete logarithms \cite{Simon1997, Shor1994, Shor1997}. The associated family of algorithms, all using the QFT, is known as the (quantum) hidden subgroup problem (HSP) algorithms \cite{Kitaev1995, Jozsa2001, Lomont2004, liu2024information}. The experimental implementation of the QFT remains challenging. For a $100$-qubit system ($n=100$), the QFT demands thousands of circuit layers, which vastly exceeds current hardware capabilities. For instance, IBM's $127$-qubit Eagle processor is limited to a depth of $60$ layers even with extensive error mitigation \cite{kim2023evidence}; Google's $105$-qubit Willow processor reaches its operational threshold at around $40$ layers~\cite{google2025quantum}; USTC's $105$-qubit Zuchongzhi~3.0 processor demonstrated random circuit sampling on $83$-qubits, with around $32$ layers~\cite{Zuchongzhi}. Moreover, for quantum error-mitigation protocols that are commonly used, the sampling overhead can scale exponentially with the circuit depth~\cite{takagi2022fundamental, takagi2023universal}.
 
 
-There has been significant progress in reducing the circuit depth required. These efforts have enabled record experimental QFT fidelities \cite{aumann2026demonstrating} through techniques including (i) approximate or truncated QFT constructions, which omit small-angle controlled rotations \cite{Coppersmith2002, park2023reducing} with \(\mathcal{O}(n\log n)\) depth, (ii) dynamic mid-circuit measurements, which reduce the resource scaling of QFT followed immediately by measurement from \(\mathcal{O}(n^2)\) two-qubit gates to \(\mathcal{O}(n)\) mid-circuit measurements without connectivity constraints \cite{baumer2024quantum}, and (iii) quantum circuit cutting and cluster-simulation methods, which trade coherent quantum depth for additional sampling and classical post-processing overhead~\cite{tang2021cutqc, Peng2020}. 
+There has been significant progress in reducing the circuit depth required. These efforts have enabled record experimental QFT fidelities \cite{aumann2026demonstrating} through techniques including (i) approximate or truncated QFT constructions, which omit small-angle controlled rotations \cite{Coppersmith2002, park2023reducing} with \(\mathcal{O}(n\ln n)\) depth, (ii) dynamic mid-circuit measurements, which reduce the resource scaling of QFT followed immediately by measurement from \(\mathcal{O}(n^2)\) two-qubit gates to \(\mathcal{O}(n)\) mid-circuit measurements without connectivity constraints \cite{baumer2024quantum}, and (iii) quantum circuit cutting and cluster-simulation methods, which trade coherent quantum depth for additional sampling and classical post-processing overhead~\cite{tang2021cutqc, Peng2020}. 
 
 We here take a different approach to reducing the circuit depth required. Rather than approximate the QFT we identify key features of the QFT that make it compatible with the HSP. We focus on shift-invariance combined with retention of information about the generator in question. Fig.~\ref{fig:illus}(a) summarizes the main idea. We design non-QFT circuits that retain those key features. 
 
@@ -65,11 +63,11 @@ We here take a different approach to reducing the circuit depth required. Rather
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\columnwidth]{illus v1.4.pdf}
-    \caption{\label{fig:illus} \textbf{Shallow shift-invariant alternative to the QFT.} (a) Shift invariance is a critical property of the QFT. We introduce a circuit family, denoted as \myqc-$L$, and prove this property for the fixed-phase \myqc-1 circuit used below. Within this broader family, \myqc-1 specifically serves as a shallow-depth circuit that is experiment-friendly. (b) In the proposed HSP algorithmic routine, the deep QFT block (the left gray gate) is directly replaced by the \myqc~circuit. A neural network then processes the measurement outcomes, bypassing the standard continued fraction expansion (CFE) typically used in the standard HSP. The HP circuit is composed of Hadamard and phase gates, with $\Lambda_l$ referring to the qubits with Hadamards applied in layer $l$. }
+    \caption{\label{fig:illus} \textbf{Shallow shift-invariant alternative to the QFT.} (a) Shift invariance is a critical property of the QFT. We design a circuit family, denoted as \myqc-$L$, that preserves the shift invariance. Within this broader family, \myqc-1 specifically serves as a shallow-depth circuit that is experiment-friendly. (b) In the proposed HSP algorithmic routine, the deep QFT block (the left gray gate) is directly replaced by the \myqc~circuit. A neural network then processes the measurement outcomes, bypassing the standard continued fraction expansion (CFE) typically used in the standard HSP. The HP circuit is composed of Hadamard and phase gates, with $\Lambda_l$ referring to the qubits with Hadamards applied in layer $l$. }
 \end{figure}
 
 
-We construct a circuit family, called \myqc-$L$ circuits. In particular, the \myqc-$1$ circuits are shallow and retain information about the generator. The \myqc-$L$ circuits interleave transversal Hadamard (H) gates with $L$ layers of phase (P) blocks. We give a general algebraic criterion for shift invariance and verify it analytically for the fixed-phase \myqc-$1$ circuit used below. Numerical scaling analysis demonstrates exponentially increasing retention of Fisher information $\sim e^{kn}$, albeit with a worse exponent $k$ than QFT. That $\sim e^{kn}$-scaling implies efficient scaling of the number of samples required. 
+We construct a circuit family, called \myqc-$L$ circuits, that preserves shift invariance. In particular, the \myqc-$1$ circuits are shallow and retain information about the generator. The \myqc-$L$ circuits interleave transversal Hadamard (H) gates with $L$ layers of phase (P) blocks. We prove analytically that \myqc-$L$ circuits are shift-invariant. Numerical scaling analysis demonstrates exponentially increasing retention of Fisher information $\sim e^{kn}$, albeit with a worse exponent $k$ than QFT. That $\sim e^{kn}$-scaling implies efficient scaling of the number of samples required. 
 
 We numerically simulate replacing the QFT in Shor's algorithm with \myqc-1 circuits, and using an efficiently scaling neural network~\cite{zaheer2017deep} for classical post-processing. Factorisation is successfully achieved.  
 
@@ -108,7 +106,7 @@ To identify shift-invariant circuits beyond the QFT, we first establish a necess
 The proof hinges on analyzing the shift-invariance condition for the trivial subgroup $V = \{0\}$. For the subgroup $V = \{0\}$, the state $\ket{V}$ is the computational basis state $\ket{0}$, and the shifted state is $\ket{c+V} = \ket{c}$. The requirement (Eq.\eqref{eq:shift invariant def}) that $\left|\bra{x}U\ket{0}\right|^2 = \left|\bra{x}U\ket{c}\right|^2$ for all $x, c \in G$ implies that, for any fixed output $x$, the magnitude of every matrix element in the $x$-th row of $U$ must be identical. The special case induces the uniform magnitude $\bra{x}U\ket{y} = 1/\sqrt{|G|} e^{\ii \theta_{xy}}$. The full details of this argument are provided in Appendix~\ref{app:necessary condition of sinv}.
 \end{proof}
 
-\section{Hadamard-Phase circuits and fixed-phase \myqc-1 shift invariance}Proposition \ref{thm:necessary_modulus_condition} suggests a simple design principle for constructing shift-invariant circuits. The condition \(|\langle x|U|y\rangle|=1/\sqrt{|G|}\) requires flat amplitude magnitudes, which are naturally generated by Hadamard gates. The remaining freedom lies in the relative phases \(\theta_{xy}\), which can be adjusted by controlled-phase gates ($\mathrm{CP}(\theta)=\ket{00}\bra{00}+\ket{01}\bra{01}+\ket{10}\bra{10}+e^{\ii\theta}\ket{11}\bra{11}$) without changing these magnitudes. This motivates the Hadamard-phase (HP) circuit family we shall now introduce. As illustrated in Fig.~\ref{fig:illus} (b), the \myqc-$L$ circuit is structured as an alternating sequence of Hadamard gates and phase blocks. The architecture is chosen so that the resulting phases can be checked against the shift-invariance criterion below: (i) each qubit is acted on by a Hadamard gate exactly once; (ii) each qubit pair is connected by at most one controlled-phase gate; and (iii) each controlled-phase gate must come together with 2 Hadamards, one before and one after the phase gate. Here, ``once'' refers to the entire $L$-layer circuit rather than to a single layer. 
+\section{L-phase-block Hadamard-Phase circuits (\myqc): A shift-invariant circuit family}Proposition \ref{thm:necessary_modulus_condition} suggests a simple design principle for constructing shift-invariant circuits. The condition \(|\langle x|U|y\rangle|=1/\sqrt{|G|}\) requires flat amplitude magnitudes, which are naturally generated by Hadamard gates. The remaining freedom lies in the relative phases \(\theta_{xy}\), which can be adjusted by controlled-phase gates ($\mathrm{CP}(\theta)=\ket{00}\bra{00}+\ket{01}\bra{01}+\ket{10}\bra{10}+e^{\ii\theta}\ket{11}\bra{11}$) without changing these magnitudes. This motivates the Hadamard-phase (HP) circuit family we shall now introduce. As illustrated in Fig.~\ref{fig:illus} (b), the \myqc-$L$ circuit is structured as an alternating sequence of Hadamard gates and phase blocks. To respect shift invariance, we enforce three rules for \myqc-$L$: (i) each qubit is acted on by a Hadamard gate exactly once; (ii) each qubit pair is connected by at most one controlled-phase gate; and (iii) each controlled-phase gate must come together with 2 Hadamards, one before and one after the phase gate. Here, ``once'' refers to the entire $L$-layer circuit rather than to a single layer. 
 
 
 To express the allowed circuits mathematically, we define two types of sets of qubits.
@@ -133,56 +131,49 @@ In-between the Hadamard layers, the two sets are coupled via a controlled-phase 
 
 
     
-The shift-invariance proof is most transparent when separated into a general algebraic observation and the specific circuit used below.
+In the following, we show that HP circuits preserve shift invariance. This implies that such invariance is not unique to the QFT, but is a feature that arises in a wider family of quantum circuits. 
 
-\begin{lemma}[Coset shifts as removable phases]
-\label{lem:coset_phase_factorization}
-    Let \(G=\mathbb{Z}_{2^n}\), encoded by \(n\) computational-basis bits. Suppose a unitary \(U\) has matrix elements of the form
-    \begin{equation}
-        \bra{x}U\ket{y}
-        =
-        \frac{1}{\sqrt{2^n}}
-        \exp\left[\ii\sum_{i,j=1}^{n} A_{ij}x_i y_j\right],
-        \qquad A_{ij}\in\mathbb{R}.
-    \end{equation}
-    Then \(U\) is shift-invariant for HSP sampling over \(\mathbb{Z}_{2^n}\).
-\end{lemma}
 
-For the main circuit used in the numerical sections, we take the fixed-phase \myqc-1 skeleton
-\(\Lambda_1=\{1,3,5,\ldots\}\) and \(\Lambda_2=\{2,4,6,\ldots\}\), with
-\(\theta_{ij}=2\pi/2^{|i-j|}\) on each controlled-phase gate between \(i\in\Lambda_1\) and \(j\in\Lambda_2\).
-
-\begin{theorem}[Shift invariance of fixed-phase \myqc-1]
-\label{thm:fixed_phase_hp1_sinv}
-    The fixed-phase \myqc-1 circuit is shift-invariant for HSP sampling over \(\mathbb{Z}_{2^{n}}\).
+\begin{theorem}
+\label{thm:hp_circuits_are_sinv}
+    \myqc-$L$ circuits are shift-invariant for $\mathbb{Z}_{2^{n}}$.
 \end{theorem}
-The proof verifies that the fixed-phase \myqc-1 matrix elements have the bilinear phase form required by Lemma~\ref{lem:coset_phase_factorization} (Appendix~\ref{app:HPk are sinv}).
+The proof involves giving an analytical expression for the state evolved under an HP-L circuit (Eq.\eqref{eq:HP}) and checking that shift invariance is indeed respected (Appendix~\ref{app:HPk are sinv}).
 
-\section{\myqc-0 can be used in HSP over $\mathbb{Z}_{2^n}$}We give an analytical solution for HSP over $\mathbb{Z}_{2^n}$ via parallel Hadamard gates. We consider the cyclic group $\mathbb{Z}_{2^n}$ since the group can be naturally represented in the computational basis. In this case, each subgroup is generated by a power of two,
-\begin{equation}
-    V=\{q2^p:q=0,\ldots,2^{n-p}-1\} \leq \mathbb{Z}_{2^n},
-\label{eq: hp0 subgroup}
-\end{equation}
-where \(p\) specifies the subgroup generator \(2^p\). Applying a transversal Hadamard layer to a coset state gives
-\begin{equation}
-    H^{\otimes n}\ket{c+V}
-    \propto
-    \sum_{k\in\{0,1\}^{p}}(-1)^{k\cdot c}\ket{0}^{\otimes(n-p)}\ket{k}.
-    \label{eq: hp0 after th}
-\end{equation}
-By measuring the state $H^{\otimes n}\ket{c+V}$, one observes that the first $n-p$ bits are always fixed to 0, while the remaining $p$ bits are uniformly distributed over $\{0,1\}^p$. Thus, the value of $p$ can be determined by identifying which bit positions are consistently zero. The detailed calculation and sampling algorithm are provided in Appendix~\ref{app:transversal_hadamard_sampling}.
+% \section{\myqc-0 can be used in HSP over $\mathbb{Z}_{2^n}$}We give an analytical solution for HSP over $\mathbb{Z}_{2^n}$ via parallel Hadamard gates. We consider the cyclic group $\mathbb{Z}_{2^n}$ since the group can be naturally represented in the computational basis. In this case, each subgroup is generated by a power of two,
+% \begin{equation}
+%     V=\{q2^p:q=0,\ldots,2^{n-p}-1\} \leq \mathbb{Z}_{2^n},
+% \label{eq: hp0 subgroup}
+% \end{equation}
+% where \(p\) specifies the subgroup generator \(2^p\). Applying a transversal Hadamard layer to a coset state gives
+% \begin{equation}
+%     H^{\otimes n}\ket{c+V}
+%     \propto
+%     \sum_{k\in\{0,1\}^{p}}(-1)^{k\cdot c}\ket{0}^{\otimes(n-p)}\ket{k}.
+%     \label{eq: hp0 after th}
+% \end{equation}
+% By measuring the state $H^{\otimes n}\ket{c+V}$, one observes that the first $n-p$ bits are always fixed to 0, while the remaining $p$ bits are uniformly distributed over $\{0,1\}^p$. Thus, the value of $p$ can be determined by identifying which bit positions are consistently zero. The detailed calculation and sampling algorithm are provided in Appendix~\ref{app:transversal_hadamard_sampling}.
+
+% \section{\myqc-0 can be used in HSP over $\mathbb{Z}_{2^n}$}:
 
 
 
-\section{\myqc-$L$ for HSP over $\mathbb{Z}$: information on generator is retained}The protocol $\myqc$-0 fails for general cyclic groups $\mathbb{Z}_q$ because the measurement distributions corresponding to different subgroups $V$ are not distinguishable. That absence of distinguishability demonstrates that shift invariance alone is insufficient for successful hidden subgroup recovery, and that distinguishability should be imposed as an additional condition. 
+
+
+
+\section{\myqc-$L$ for HSP over $\mathbb{Z}$: information on generator is retained}
+For HSP over $\mathbb Z_{2^n}$, \myqc-0, namely a parallel Hadamard layer,
+gives an analytically solvable recovery procedure for the hidden subgroup
+generator $2^p$. The key observation is that the first $n-p$ measurement bits
+are deterministically zero after applying $H^{\otimes n}$ to a coset state,
+allowing $p$ to be read off from the zero pattern; the full calculation and
+sampling algorithm are given in
+Appendix~\ref{app:transversal_hadamard_sampling}. However, the protocol $\myqc$-0 fails for general cyclic groups $\mathbb{Z}_q$ because the measurement distributions corresponding to different subgroups $V$ are not distinguishable. That absence of distinguishability demonstrates that shift invariance alone is insufficient for successful hidden subgroup recovery, and that distinguishability should be imposed as an additional condition. 
 
 \begin{figure}[t]
     \includegraphics[width=0.45  \textwidth]{fi_fig v2.pdf}
     \caption{\label{fig:fi_scaling} 
 \textbf{Average discrete Fisher information (DFI) increasing with the number of qubits.} Results are shown for several HP-family circuit settings. $L$ denotes the number of phase blocks layers with HP-1 having a single phase block layer.  Solid curves show the mean, with shaded bands indicating one standard deviation associated with random phase choices.}
-
-
-    
 \end{figure}
 
 
@@ -191,11 +182,15 @@ We use the discrete Fisher information (DFI) as a metric for distinguishability.
 \label{eq:DFI}
     \fii(r, n) = \sum_{x = 0}^{2^n -1} \frac{\left(\text{Pr}(x\mid r+1) - \text{Pr}(x\mid r)\right)^2}{\text{Pr}(x\mid r)},
 \end{equation}
-where $x$ represents measurement outcomes, $r$ is the hidden subgroup generator, and $\text{Pr}(x\mid r)$ is the probability of measuring $x$ when the subgroup generator is $r$. The sample complexity for estimating a discrete parameter is formally governed by the DFI (Eq.\eqref{eq:DFI}) via the Hammersley-Chapman-Robbins bound~\cite{chapman1951minimum, hammersley1950estimating}, 
-\begin{equation}
-    m \ge \frac{\ln\left( 1 + \epsilon^{-2} \right)}{\ln\left( 1 + \fii(r) \right)},
-\end{equation}
-where $m$ is the required number of samples and \(\epsilon\) denotes the maximum tolerable standard deviation of the estimator of the parameter. The bound suggests that retaining an exponentially growing DFI results in tractable ($m$ lower-bounded by $o(\frac{1}{n}$)) sample complexity for the subsequent neural-network-based post-processing. 
+where $x$ represents measurement outcomes, $r$ is the hidden subgroup generator, and $\text{Pr}(x\mid r)$ is the probability of measuring $x$ when the subgroup generator is $r$.
+
+
+% Original eq. 8 
+% The sample complexity for estimating a discrete parameter is formally governed by the DFI (Eq.\eqref{eq:DFI}) via the Hammersley-Chapman-Robbins bound~\cite{chapman1951minimum, hammersley1950estimating}, 
+% \begin{equation}
+%     m \ge \frac{\ln\left( 1 + \epsilon^{-2} \right)}{\ln\left( 1 + \fii(r) \right)},
+% \end{equation}
+% where $m$ is the required number of samples and \(\epsilon\) denotes the maximum tolerable standard deviation of the estimator of the parameter. The bound suggests that retaining an exponentially growing DFI results in tractable ($m$ lower-bounded by $o(\frac{1}{n}$)) sample complexity for the subsequent neural-network-based post-processing. 
 
 
 For the standard QFT (Appendix~\ref{app:qft_fisher_information}), we can calculate the DFI as
@@ -205,15 +200,79 @@ For the standard QFT (Appendix~\ref{app:qft_fisher_information}), we can calcula
 \end{equation} 
 Eq.~\eqref{eq:qft dfi} indicates that the generator $r$ becomes easier to recover as the qubit number increases, which motivates us to limit $r$ to $1 \ll r \ll 2^n$. 
 
+% newly added theorem 2 and 3
+For \myqc-1, Lemma~\ref{lem:hp1_c_twisted_numerator} gives the
+\(C\)-twisted dyadic-resonance scaling of the adjacent-period numerator.  The
+resulting numerical Fisher-information scan is summarized by the following
+ln-linear law.
+
+\begin{theorem}[Ln-linear minimum Fisher information]
+\label{thm:hp1_first_order_fisher_transfer_maintext}
+Restrict the adjacent-period scan to generators satisfying \(r^2\ll 2^n\).
+The minimum adjacent-period DFI obeys the finite-window law
+\begin{equation}
+    \ln \fii_{\min}(n)\sim kn+b,
+    \label{eq:hp1_fisher_ln_linear_minimum}
+\end{equation}
+\end{theorem}
+
+Theorem~\ref{thm:hp1_first_order_fisher_transfer_maintext} shows that, within the square-root resolvability window, \myqc{} circuits retain exponentially growing information about the hidden subgroup generator.
+
+The same distinguishability mechanism also gives a statistical separation guarantee beyond the local Fisher-information criterion. 
+For two adjacent output distributions \(P_r\) and \(P_{r+1}\), define the Chernoff information as
+\begin{equation}
+    \mathcal C(P_r,P_{r+1})
+    :=
+    -\ln \min_{0\leq \alpha\leq 1}
+    \sum_x P_r(x)^\alpha P_{r+1}(x)^{1-\alpha}.
+\end{equation}
+
+\begin{theorem}[Chernoff separation of \myqc-1]
+\label{thm:hp1_chernoff_poly_bound}
+Assume the same \(C\)-twisted dyadic-resonance scaling heuristic as in
+Lemma~\ref{lem:hp1_c_twisted_numerator}. 
+If \(r\le n^a\) for a fixed constant \(a\), then
+\begin{equation}
+    \mathcal C(P_r,P_{r+1})
+    \ge
+    \frac{1}{\operatorname{poly}(n)}.
+    \label{eq:hp1_chernoff_inverse_polynomial}
+\end{equation}
+More generally, the same conclusion holds whenever
+\(r\operatorname{poly}(n)=o(e^{kn+b})\).
+\end{theorem}
+
+Thus, adjacent generators are separated not only in the DFI sense, but also in a hypothesis-testing sense.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 For \myqc{} circuits, the DFI is evaluated numerically. Specifically, for a fixed $r$, the circuit maps the periodic input components $\{\ket{qr}\}_q$ to a computational-basis distribution over outcomes $\ket{b}$, with the exact probabilities given by $\mathrm{Pr}(\ket{b}) = \left|\sum_q \langle b|U|qr\rangle\right|^2$.
 To evaluate the worst-case parameter sensitivity as the system scales, we consider the 
-worst-case DFI: $\fii_{\min}(n):\min_{1 \leq r \leq \lfloor 2^{n/2} \rfloor} \fii(r,n)$.
-Fig.~\ref{fig:fi_scaling} illustrates the minimum DFI against the qubit number $n$. (We bound the period to $1 \leq r \leq \lfloor 2^{n/2} \rfloor$ to satisfy the condition $r \ll 2^n$.)
+worst-case DFI: $\fii_{\min}(n):=\min_{2 \leq r \leq 2^{n/2}} \fii(r,n)$.
+Fig.~\ref{fig:fi_scaling} illustrates the minimum DFI against the qubit number $n$. (We bound the period by the square-root resolvability scale $r\le 2^{n/2}$, which keeps $r \ll 2^n$.)
 
-Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit configurations, where solid curves and shaded bands represent the mean and standard deviation of $\fii_{\min}(n)$. The fixed-phase \myqc-1 circuit utilizes the skeleton, $\Lambda_1 = \{1,3,5, \cdots\}$ and $\Lambda_2 = \{2,4,6, \cdots\}$, with controlled-phase gates with phase $\frac{2\pi}{2^{|i-j|}}$ between qubits $i$ and $j$. The optimized \myqc-1 circuit adopts the same skeleton but treats the gate phases as variational parameters, trained to maximize the $\fii_{\min}$. The deeper \myqc{}-$L$ circuits are constructed by generating valid random skeletons $\Lambda$. 
+Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit configurations, where solid curves and shaded bands represent the mean and standard deviation of $\fii_{\min}(n)$. The fixed-phase \myqc-1 circuit utilizes the skeleton, $\Lambda_1 = \{1,3,5, \cdots\}$ and $\Lambda_2 = \{2,4,6, \cdots\}$, with controlled-phase gates with phase $\frac{\pi}{2^{|i-j|}}$ between qubits $i$ and $j$. The optimized \myqc-1 circuit adopts the same skeleton but treats the gate phases as variational parameters, trained to maximize the $\fii_{\min}$. The deeper \myqc{}-$L$ circuits are constructed by generating valid random skeletons $\Lambda$. 
 
 
-The proposed \myqc~circuit family preserves an exponential growth of DFI, based on the numerical evidence. As detailed in Appendix~\ref{app:fi_log_linear_growth}, numerical data for both the \myqc{} circuits and the QFT benchmark fit the log-linear model $\ln \fii_{\min}(n) = kn + b$, with a coefficient of determination \(R^2 \geq 0.913\).
+The proposed \myqc~circuit family preserves an exponential growth of DFI, based on the numerical evidence. As detailed in Appendix~\ref{app:fi_ln_linear_growth}, numerical data for both the \myqc{} circuits and the QFT benchmark fit the ln-linear model $\ln \fii_{\min}(n) = kn + b$, with a coefficient of determination \(R^2 \geq 0.913\).
 
 
 
