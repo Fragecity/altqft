@@ -7,6 +7,12 @@
 \makeatletter
 \@ifundefined{lemma}{\newtheorem{lemma}{Lemma}}{}
 \makeatother
+\newenvironment{theoremrestatement}[2]{%
+    \begin{trivlist}
+    \item[\hskip\labelsep\bfseries Theorem~\ref{#1} (#2).]\itshape
+}{%
+    \end{trivlist}
+}
 
 \section*{Appendix}
 \makeatletter
@@ -229,9 +235,9 @@ To determine how this restricts the matrix elements of $U$, we can examine the t
 \label{app:HPk are sinv}
  This appendix aims to rigorously prove that the \myqc-$L$ circuit family satisfies the shift-invariance property. Establishing this theorem is of significant practical importance: it fundamentally guarantees that the output statistics obtained from this shallow circuit structure can be reliably used for the classical post-processing reconstruction of the hidden subgroup.
 
-\begin{restatedtheorem}
+\begin{theoremrestatement}{thm:hp_circuits_are_sinv}{restated}
 The \myqc-$L$ circuit is shift-invariant over $\mathbb{Z}_{2^n}$.
-\end{restatedtheorem}
+\end{theoremrestatement}
 
 The core strategy of the proof is as follows: First, we explicitly calculate the sequential effect of each layer of the \myqc-$L$ circuit on the initial basis state, deriving the analytical expression of the final quantum state. Next, we obtain the corresponding probability amplitudes by calculating the matrix elements of this output state in the computational basis. Finally, we compute the squared modulus of these amplitudes over the subgroup $V$ and its coset $c+V$ respectively, using algebraic simplification to factor out a pure phase factor related to the coset representative $c$. Because the modulus of this pure phase factor is strictly $1$, it naturally cancels out when calculating the measurement probabilities, thereby rigorously proving mathematically that the output probability distribution is completely independent of random shifts.
 
@@ -429,10 +435,10 @@ Equivalently, the measurement data have the form
 where each star denotes an unbiased bit.
 Therefore, the classical post-processing only needs to identify the leftmost bit position that ever evaluates to $1$ across all $m$ samples. This single position $j^*$ uniquely determines $p$, and hence determines the subgroup $V=\langle 2^p\rangle$.
 
-The sample complexity is logarithmic in the number of qubits.
+The sample complexity only scales with \(\ln(1/\epsilon)\).
 Under this leftmost-$1$ decoding strategy, the algorithm only fails if the most significant free bit (at position $n-p+1$) is measured as $0$ in all $m$ independent samples.
 Because this specific bit is uniformly random, the probability of it being zero $m$ times in a row is exactly $2^{-m}$.
-Thus $m\ge \lceil \log_2(1/\epsilon)\rceil$ samples are sufficient for Algorithm~\ref{alg:transversal_hadamard_sampling} to perfectly identify the hidden subgroup $V$ with probability at least $1-\epsilon$. This tight bound elegantly removes the union-bound dependence on $n$, yielding an optimized sample complexity.
+Thus $m\ge \left\lceil \ln(1/\epsilon)/\ln 2\right\rceil$ samples are sufficient for Algorithm~\ref{alg:transversal_hadamard_sampling} to perfectly identify the hidden subgroup $V$ with probability at least $1-\epsilon$. This tight bound elegantly removes the union-bound dependence on $n$, yielding an optimized sample complexity.
 
 \section{Fisher information for subgroup-generator estimation}
 \label{app:qft_fisher_information}
@@ -778,20 +784,16 @@ The adjacent-period numerator is the direct probability difference
 
 \begin{lemma}[\(C\)-twisted adjacent-period numerator]
 \label{lem:hp1_c_twisted_numerator}
-For the coherent law in Eq.~\eqref{eq:hp1_lag_correlation_probability},
-\begin{equation}
+For the coherent law in Eq.~\eqref{eq:hp1_lag_correlation_probability}, the
+\(C\)-twisted dyadic-resonance estimate gives, at the square-root period
+window \(r=2^{n/2}=\sqrt N\),
+\[
+    S_r
+    :=
     \sum_{x\in\{0,1\}^n}\bigl[\Delta_r\Pr(x)\bigr]^2
-    =
-    \frac1N
-    \left[
-    \mathcal E_C(r+1,r+1)
-    +
-    \mathcal E_C(r,r)
-    -
-    2\operatorname{Re}\mathcal E_C(r+1,r)
-    \right].
-    \label{eq:hp1_c_dephasing_numerator_scale}
-\end{equation}
+    \sim
+    \Theta(2^{-n/2}).
+\]
 \end{lemma}
 
 \begin{proof}
@@ -950,7 +952,7 @@ where \(\mathbf 1\{\cdot\}\) denotes the indicator function,
 whereas the odd rows add the dyadic phase hash
 \(\sum_{j\in\Lambda_2}2^{-|i-j|}v_j\).  This makes the adjacent numerator a
 direct comparison of the three \(C\)-twisted energies in
-Eq.~\eqref{eq:hp1_c_dephasing_numerator_scale}.
+Eq.~\eqref{eq:hp1_c_twisted_numerator_identity}.
 
 We now use this identity as a scaling diagnostic for the adjacent numerator,
 not as a theorem-level lower bound.  Set
@@ -1010,36 +1012,45 @@ so \(a=\nu_2(40)=3\) and \(u=5\).
 Then all multiples \(qs\) have \(a\) fixed trailing zero bits.  These fixed bits
 pass through the exact parity filters on \(\Lambda_2\) and also suppress part
 of the dyadic phase hash on \(\Lambda_1\).  Thus the number of \(C\)-resonant
-modes is enhanced by a factor of order \(2^a\), up to subexponential
-corrections.  The statistical input used below is the corresponding cross-period
-version of this observation: two periods can share only the trailing-zero
-structure common to both of them.  We summarize this by the scaling heuristic
+modes is enhanced by a factor of order \(2^a\).  The remaining finite-register
+correction is treated as an order-one residual.  The statistical input used
+below is the corresponding cross-period version of this observation: two periods
+can share only the trailing-zero structure common to both of them.  We summarize
+this by the scaling heuristic
 \begin{equation}
     \mathcal E_C(s,t)-1
     =
     \frac{N}{st}\,
     2^{\min(\nu_2(s),\nu_2(t))}
-    \operatorname{poly}(n)
+    \,\Theta(1)
     \label{eq:hp1_c_twisted_cross_energy_heuristic}
 \end{equation}
 for cross overlaps.  The factor \(2^{\min(\nu_2(s),\nu_2(t))}\) records the
-common dyadic depth, while the polynomial factor absorbs finite-register
+common dyadic depth, while the \(\Theta(1)\) factor absorbs finite-register
 boundary effects and the soft width of the near-resonance condition
-\(|\Gamma_C(v)|\approx1\).
+\(|\Gamma_C(v)|\approx1\).  This bounded-residual assumption is checked
+numerically in Fig.~\ref{fig:hp1_c_twisted_dyadic_resonance}: the right panel
+fixes the dyadic depth and shows no visible polynomial or exponential drift in
+\(n\) after the \(N2^a/(st)\) scale has been divided out.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\columnwidth]{hp1_c_twisted_dyadic_resonance.pdf}
+    \includegraphics[width=\columnwidth]{hp1_c_twisted_dyadic_resonance_n26_maxa14_30pairs.pdf}
     \caption{\label{fig:hp1_c_twisted_dyadic_resonance}
     Numerical check of the dyadic-resonance scaling in
     Eq.~\eqref{eq:hp1_c_twisted_cross_energy_heuristic}.  The data are obtained
-    by exact CUDA state-vector evaluation at \(n=20\) for the fixed-phase
-    \(\myqc-1\) kernel, using the pairs \(s=2^a u\), \(t=2^a v\) with
-    \((u,v)=(3,5),(3,7),(5,7)\) and \(a=0,\ldots,6\).  The left panel plots
+    by exact state-vector evaluation at \(n=26\) for the fixed-phase
+    \(\myqc-1\) kernel, using \(s=2^a u\), \(t=2^a v\) over \(30\) odd
+    pairs \((u,v)\) and \(a=0,\ldots,14\).  The left panel plots
     \((\mathcal E_C(s,t)-1)st/N\), after removing the base \(N/(st)\) overlap
-    scale.  The right panel divides the same quantity by \(2^a\); the result
-    remains order one up to finite-size fluctuations, supporting the shared
-    \(2\)-adic depth as the leading statistical enhancement.}
+    scale; borderless light-blue circles are individual period-pair overlaps
+    and the black dashed curve shows \(2^a\).  The right panel fixes \(a=6\)
+    and sweeps \(n=10,\ldots,26\), plotting the normalized residual
+    \((\mathcal E_C(s,t)-1)st/(N2^6)\).  The black dashed line marks the unit
+    residual; apart from a few small-\(n\) finite-size outliers above the plotted
+    range, the absence of exponential drift in \(n\) supports the shared
+    \(2\)-adic depth, rather than an additional \(n\)-exponential factor, as the
+    leading statistical enhancement.}
 \end{figure}
 
 For self overlaps this gives, in particular,
@@ -1048,7 +1059,7 @@ For self overlaps this gives, in particular,
     =
     \frac{N}{s^2}\,
     2^{\nu_2(s)}
-    \operatorname{poly}(n).
+    \,\Theta(1).
     \label{eq:hp1_c_twisted_dyadic_energy_heuristic}
 \end{equation}
 The constant term \(1\) is the uniform diagonal background.  It cancels in the
@@ -1064,7 +1075,7 @@ Eq.~\eqref{eq:hp1_c_twisted_scaling_identity} gives
 \begin{equation}
     S_r
     =
-    \operatorname{poly}(n)
+    \Theta(1)
     \left[
     \frac{2^{\nu_2(r)}}{r^2}
     +
@@ -1084,27 +1095,34 @@ At the upper edge of the square-root period window, take
     r=2^{n/2}=\sqrt N.
     \label{eq:hp1_square_root_period}
 \end{equation}
-Then \(\nu_2(r)=n/2\), and the first term in
+Then
+\begin{equation}
+    \nu_2(r)=\frac n2,
+    \label{eq:hp1_square_root_2adic_valuation}
+\end{equation}
+and the first term in
 Eq.~\eqref{eq:hp1_c_twisted_numerator_heuristic} dominates:
 \begin{equation}
     S_r
     \sim
-    \operatorname{poly}(n)\frac{2^{n/2}}{2^n}
+    \Theta(1)\frac{2^{n/2}}{2^n}
     =
-    \operatorname{poly}(n)\,2^{-n/2}.
+    \Theta(2^{-n/2}).
     \label{eq:hp1_c_twisted_square_root_window_numerator}
 \end{equation}
-Equivalently,
-\begin{equation}
-    \log S_r
-    =
-    -\frac{\log 2}{2}n+O(\log n).
-    \label{eq:hp1_c_twisted_square_root_log_numerator}
-\end{equation}
-Thus the unweighted adjacent numerator can decay exponentially even though the
-discrete Fisher information grows exponentially.
+This is the claimed square-root-window numerator scaling.
+\end{proof}
 
-Indeed, the discrete Fisher information is
+\begin{theoremrestatement}{thm:hp1_first_order_fisher_transfer_maintext}{Ln-linear minimum Fisher information for \myqc-1, restated}
+For \myqc-1, the minimum adjacent-period DFI obeys the ln-linear scaling
+\begin{equation}
+    \ln \fii_{\min}(n)\sim kn+b,
+    \label{eq:hp_minimum_dfi_ln_linear}
+\end{equation}
+\end{theoremrestatement}
+
+\begin{proof}
+The discrete Fisher information is
 \begin{equation}
     \fii(r,n)
     =
@@ -1128,43 +1146,51 @@ Eq.~\eqref{eq:hp1_c_twisted_square_root_window_numerator} gives
 \begin{equation}
     \fii(r,n)
     \sim
-    \operatorname{poly}(n)\,2^{n/2},
+    \frac{2^{n/2}}{\operatorname{poly}(n)},
     \label{eq:hp1_square_root_window_dfi_growth}
 \end{equation}
 or
 \begin{equation}
-    \log \fii(r,n)
+    \ln \fii(r,n)
     =
-    \frac{\log 2}{2}n+O(\log n).
+    \frac{\ln 2}{2}n+O(\ln n).
     \label{eq:hp1_c_twisted_square_root_window_dfi}
 \end{equation}
-This explains why the log-DFI can be approximately linear in \(n\), while the
-unweighted numerator \(S_r\) is exponentially small.
+Thus the DFI is ln-linear up to sublinear corrections on the square-root period
+windows.  The finite-window exponent and intercept are then determined by the
+least-squares fit to the numerical \(\fii_{\min}(n)\) data, yielding
+Eq.~\eqref{eq:hp_minimum_dfi_ln_linear}.
 \end{proof}
 
-\section{Log-linear growth fit for the numerical Fisher-information scan}
-\label{app:fi_log_linear_growth}
-The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. To ensure the asymptotic condition $1 \ll r \ll 2^n$ is strictly maintained as the system scales, the numerical scan uses the polynomial period window $2 \leq r \leq n^2$. The relevant QFT comparator is therefore the worst case within this dynamically scaled window rather than a single fixed value of $r$.
+\section{Ln-linear growth fit for the numerical Fisher-information scan}
+\label{app:fi_ln_linear_growth}
+The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. We use the square-root resolvability window \(2 \leq r \leq 2^{n/2}\), which keeps \(r \ll 2^n\) while matching the period scale used in the recovery experiments. The relevant QFT comparator is therefore the worst case within this dynamically scaled window rather than a single fixed value of \(r\).
 
-The leading term in Lemma~\ref{thm:qft_fisher_information} is monotone in $R$, and in the sampled regime $R \approx 2^n/r$. Consequently, the smallest QFT Fisher information inside the scan window is attained near the largest sampled period. Substituting $r_{\max}(n) = n^2$ yields the window-matched estimate
+The leading term in Lemma~\ref{thm:qft_fisher_information} is monotone in \(R\), and in the sampled regime \(R \approx 2^n/r\). Consequently, the smallest QFT Fisher information inside the scan window is attained near the largest sampled period. Substituting \(r_{\max}(n) = \lfloor 2^{n/2}\rfloor\) yields the window-matched estimate
 \begin{equation}
     \fii_{\mathrm{QFT,min}}(n)
     \approx
-    \frac{4\pi^2}{9}\left( \left\lfloor \frac{2^n}{n^2} \right\rfloor^2 - 1 \right).
+    \frac{4\pi^2}{9}
+    \left[
+    \left\lfloor \frac{2^n}{\lfloor 2^{n/2}\rfloor} \right\rfloor^2
+    -1
+    \right]
+    \asymp
+    \frac{4\pi^2}{9}2^n .
 \end{equation}
-If one keeps only the dominant exponential factor, the logarithmic growth becomes
+If one keeps only the dominant exponential factor, the natural-ln growth becomes
 \begin{equation}
     \ln \fii_{\mathrm{QFT,min}}(n)
     =
-     2n\ln{2}-4\ln n + \mathcal{O}(1).
+     n\ln{2} + \mathcal{O}(1).
 \end{equation}
-Thus, the asymptotic QFT exponent under this polynomial period scaling approaches $k_{\mathrm{QFT},\infty}=2\ln 2$, with a finite-window reduction from the $-4\ln n$ term.
+Thus, the asymptotic QFT exponent under this square-root period scaling is \(k_{\mathrm{QFT},\infty}=\ln 2\).
 
 This observation suggests a simple diagnostic for the numerical data in Fig.~\ref{fig:fi_scaling}. If the plotted curves retain a stable exponential dependence on the qubit count over the sampled window, then the transformed data should be well approximated by
 \begin{equation}
     \ln \fii_{\min}(n)=kn+b.
 \end{equation}
-We therefore perform ordinary least-squares fits to the log-transformed mean values of each curve shown in Fig.~\ref{fig:fi_scaling}. Table~\ref{tab:fi_log_regression_results} summarizes the fitted exponents; we do not repeat the transformed plot because it carries the same point set as Fig.~\ref{fig:fi_scaling}.
+We therefore perform ordinary least-squares fits to the ln-transformed mean values of each curve shown in Fig.~\ref{fig:fi_scaling}. Table~\ref{tab:fi_ln_regression_results} summarizes the fitted exponents; we do not repeat the transformed plot because it carries the same point set as Fig.~\ref{fig:fi_scaling}.
 
 \begin{table}[h]
     \centering
@@ -1178,14 +1204,14 @@ We therefore perform ordinary least-squares fits to the log-transformed mean val
         \myqc-$L$ random with phase & $7$--$18$ & $0.352$ & $[0.336,\,0.367]$ & $0.996$ \\
         \hline
     \end{tabular}
-    \caption{\label{tab:fi_log_regression_results} Effective exponents obtained from the log-linear model $\ln \fii_{\min}(n)=kn+b$ applied to the numerical Fisher-information curves in Fig.~\ref{fig:fi_scaling}.}
+    \caption{\label{tab:fi_ln_regression_results} Effective exponents obtained from the ln-linear model $\ln \fii_{\min}(n)=kn+b$ applied to the numerical Fisher-information curves in Fig.~\ref{fig:fi_scaling}.}
 \end{table}
 
-The fitted lines account for most of the log-scale variance across the sampled window. The coefficient of determination ($R^2$) ranges from $0.972$ to $0.997$, the log-space root-mean-square residual lies between $0.075$ and $0.217$, and every fitted slope ($k$) is significantly positive with a $p$-value $\leq 4.6\times 10^{-9}$. In that sense, a linear regression on $\ln I_{\min}$ is justified as a finite-window descriptive model for these curves. At the same time, the fitted slope $k$ should be interpreted as an effective exponent on the restricted range $n=7,\dots,18$ (where $n$ is the number of qubits), not as a claim about the ultimate asymptotic law.
+The fitted lines account for most of the ln-scale variance across the sampled window. The coefficient of determination ($R^2$) ranges from $0.972$ to $0.997$, the ln-space root-mean-square residual lies between $0.075$ and $0.217$, and every fitted slope ($k$) is significantly positive with a $p$-value $\leq 4.6\times 10^{-9}$. In that sense, a linear regression on $\ln I_{\min}$ is justified as a finite-window descriptive model for these curves. At the same time, the fitted slope $k$ should be interpreted as an effective exponent on the restricted range $n=7,\dots,18$ (where $n$ is the number of qubits), not as a claim about the ultimate asymptotic law.
 
-The comparison with the QFT benchmark is unambiguous. Even after matching the period window used in the numerical scan, the QFT reference fit remains much steeper, with $k_{\mathrm{QFT,win}}=1.089$ and $R^2=0.999$. The empirical circuit families therefore grow substantially more slowly: their fitted exponents occupy $32\%$--$37\%$ of the window-matched QFT slope, and $25\%$--$29\%$ of the asymptotic QFT exponent $2\ln 2$. Among the plotted families, the random-layer \myqc{} circuit has the largest point estimate, near $k=0.398$, followed by the shared optimized \myqc-1 circuit, near $k=0.379$.
+The comparison with the QFT benchmark is unambiguous. Even after matching the square-root period window used in the numerical scan, the QFT reference fit remains steeper, with \(k_{\mathrm{QFT,win}}=0.695\) and \(R^2=1.000\) over \(n=7,\ldots,18\). The empirical circuit families therefore grow more slowly: their fitted exponents occupy about \(51\%\)--\(57\%\) of the window-matched QFT slope and of the asymptotic QFT exponent \(\ln 2\). Among the plotted families, the random-layer \myqc{} circuit has the largest point estimate, near \(k=0.398\), followed by the shared optimized \myqc-1 circuit, near \(k=0.379\).
 
-This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}. The \myqc{} family circuits retain a clear exponential-in-$n$ growth trend in the $\fii_{\text{min}}$ over the sampled window, which is why the log-linear fit works well, but they do not reproduce the QFT growth rate. Their advantage in the present setting is therefore not that they match the full QFT benchmark asymptotically, but that they retain a nontrivial and practically usable fraction of that information while remaining much shallower.
+This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}. The \myqc{} family circuits retain a clear exponential-in-$n$ growth trend in the $\fii_{\text{min}}$ over the sampled window, which is why the ln-linear fit works well, but they do not reproduce the QFT growth rate. Their advantage in the present setting is therefore not that they match the full QFT benchmark asymptotically, but that they retain a nontrivial and practically usable fraction of that information while remaining much shallower.
 
 \section{Noise-robustness experiment details}
 \label{app:noise_robustness_details}
