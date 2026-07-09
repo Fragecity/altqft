@@ -15,5 +15,6 @@ data/
 model/*
 !model/README.md
 outputs/
+tmp/
 
 # paper
