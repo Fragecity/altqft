@@ -200,72 +200,6 @@ For the standard QFT (Appendix~\ref{app:qft_fisher_information}), we can calcula
 \end{equation} 
 Eq.~\eqref{eq:qft dfi} indicates that the generator $r$ becomes easier to recover as the qubit number increases, which motivates us to limit $r$ to $1 \ll r \ll 2^n$. 
 
-% newly added theorem 2 and 3
-For \myqc-1, Lemma~\ref{lem:hp1_c_twisted_numerator} gives the
-\(C\)-twisted dyadic-resonance scaling of the adjacent-period numerator.  Passing
-from this numerator to the DFI also requires the inverse-probability denominator
-to be controlled on the outcomes that dominate the adjacent difference.  With
-this numerator-to-denominator transfer, the numerical Fisher-information scan is
-summarized by the following ln-linear law.
-
-\begin{theorem}[Ln-linear minimum Fisher information]
-\label{thm:hp1_first_order_fisher_transfer_maintext}
-Restrict the adjacent-period scan to generators satisfying \(r^2\ll 2^n\).
-The minimum adjacent-period DFI obeys the finite-window law
-\begin{equation}
-    \ln \fii_{\min}(n)\sim kn+b,
-    \label{eq:hp1_fisher_ln_linear_minimum}
-\end{equation}
-\end{theorem}
-
-Theorem~\ref{thm:hp1_first_order_fisher_transfer_maintext} shows that, within the restricted period window, \myqc{} circuits retain exponentially growing information about the hidden subgroup generator.
-
-The same distinguishability mechanism also gives a statistical separation guarantee beyond the local Fisher-information criterion. 
-For two adjacent output distributions \(P_r\) and \(P_{r+1}\), define the Chernoff information as
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    :=
-    -\ln \min_{0\leq \alpha\leq 1}
-    \sum_x P_r(x)^\alpha P_{r+1}(x)^{1-\alpha}.
-\end{equation}
-
-\begin{theorem}[Chernoff separation of \myqc-1]
-\label{thm:hp1_chernoff_poly_bound}
-Assume the same \(C\)-twisted dyadic-resonance scaling heuristic as in
-Lemma~\ref{lem:hp1_c_twisted_numerator}. 
-If \(r\le n^a\) for a fixed constant \(a\), then
-\begin{equation}
-    \mathcal C(P_r,P_{r+1})
-    \ge
-    \frac{1}{\operatorname{poly}(n)}.
-    \label{eq:hp1_chernoff_inverse_polynomial}
-\end{equation}
-More generally, the same conclusion holds whenever
-\(r\operatorname{poly}(n)=o(e^{kn+b})\).
-\end{theorem}
-
-Thus, adjacent generators are separated not only in the DFI sense, but also in a hypothesis-testing sense.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 For \myqc{} circuits, the DFI is evaluated numerically. Specifically, for a fixed $r$, the circuit maps the periodic input components $\{\ket{qr}\}_q$ to a computational-basis distribution over outcomes $\ket{b}$, with the exact probabilities given by $\mathrm{Pr}(\ket{b}) = \left|\sum_q \langle b|U|qr\rangle\right|^2$.
 To evaluate the worst-case parameter sensitivity as the system scales, we consider the 
 worst-case DFI: $\fii_{\min}(n):=\min_{2 \leq r \leq r_{\max}(n)} \fii(r,n)$, with \(r_{\max}(n)^2\ll 2^n\) in the asymptotic statement.
@@ -273,13 +207,7 @@ Fig.~\ref{fig:fi_scaling} illustrates the minimum DFI against the qubit number $
 
 Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit configurations, where solid curves and shaded bands represent the mean and standard deviation of $\fii_{\min}(n)$. The fixed-phase \myqc-1 circuit utilizes the skeleton, $\Lambda_1 = \{1,3,5, \cdots\}$ and $\Lambda_2 = \{2,4,6, \cdots\}$, with controlled-phase gates with phase $\frac{\pi}{2^{|i-j|}}$ between qubits $i$ and $j$. The optimized \myqc-1 circuit adopts the same skeleton but treats the gate phases as variational parameters, trained to maximize the $\fii_{\min}$. The deeper \myqc{}-$L$ circuits are constructed by generating valid random skeletons $\Lambda$. 
 
-
 The proposed \myqc~circuit family preserves an exponential growth of DFI, based on the numerical evidence. As detailed in Appendix~\ref{app:fi_ln_linear_growth}, numerical data for both the \myqc{} circuits and the QFT benchmark fit the ln-linear model $\ln \fii_{\min}(n) = kn + b$, with a coefficient of determination \(R^2 \geq 0.913\).
-
-
-
-
-
 
 \begin{figure}[!t]
     \includegraphics[width=0.5\textwidth]{fig/recover v2.pdf}
