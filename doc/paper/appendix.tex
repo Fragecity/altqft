@@ -1278,40 +1278,83 @@ For \myqc-1, restrict the adjacent-period scan to generators satisfying
 \end{theoremrestatement}
 
 \begin{proof}
-The discrete Fisher information weights the adjacent probability change by the
-inverse background probability.  Thus Lemma~\ref{lem:hp1_c_twisted_numerator}
-controls the numerator of the Fisher information, while the typical size of
-\(\Pr_r(x)\) controls how much that numerator is amplified.  We start from
+The discrete Fisher information is not the same object as the unweighted
+\(L^2\) numerator estimated in Lemma~\ref{lem:hp1_c_twisted_numerator}.  The
+extra inverse-probability weight is the point that has to be tracked separately.
+We start from
 \begin{equation}
     \fii(r,n)
     =
     \sum_x\frac{(\Delta_r\Pr(x))^2}{\Pr_r(x)}.
     \label{eq:hp1_discrete_fisher_definition}
 \end{equation}
-The scaling transfer used here is therefore a numerator-to-Fisher-information
-heuristic: assume that the dominant contribution comes from outputs where
+Equivalently, whenever the adjacent numerator is nonzero,
+\begin{equation}
+    \fii(r,n)
+    =
+    \left[
+    \frac{
+    \sum_x(\Delta_r\Pr(x))^2/\Pr_r(x)
+    }{
+    \sum_x(\Delta_r\Pr(x))^2
+    }
+    \right]
+    \sum_x(\Delta_r\Pr(x))^2 .
+    \label{eq:hp1_dfi_effective_denominator_decomposition}
+\end{equation}
+The bracketed factor is the effective inverse background probability seen by
+the adjacent difference.  Lemma~\ref{lem:hp1_c_twisted_numerator} supplies the
+second factor, but it does not by itself determine this denominator factor.
+
+The numerator-to-Fisher-information transfer used for the \(\myqc-1\) scan is
+therefore the following regularity assumption: the dominant contribution comes
+from outputs where
 \begin{equation}
     \Pr_r(x)=N^{-1}\operatorname{poly}(n),
     \label{eq:hp1_typical_background_probability}
 \end{equation}
 namely from outcomes whose probabilities are polynomially close to the uniform
-background.  On such outcomes the denominator in
-Eq.~\eqref{eq:hp1_discrete_fisher_definition} contributes a factor
-\(N\operatorname{poly}(n)^{-1}\).  Therefore
+background.  In the exact decomposition
+Eq.~\eqref{eq:hp1_dfi_effective_denominator_decomposition}, this says that
+\begin{equation}
+    \frac{
+    \sum_x(\Delta_r\Pr(x))^2/\Pr_r(x)
+    }{
+    \sum_x(\Delta_r\Pr(x))^2
+    }
+    =
+    N\,\operatorname{poly}(n)^{-1}.
+    \label{eq:hp1_effective_inverse_background_heuristic}
+\end{equation}
+Combining Eq.~\eqref{eq:hp1_effective_inverse_background_heuristic} with the
+\(r\)-dependent numerator estimate obtained in
+Lemma~\ref{lem:hp1_c_twisted_numerator}, namely
+Eq.~\eqref{eq:hp1_c_twisted_numerator_heuristic}, gives the Fisher-information
+scaling diagnostic
 \begin{equation}
     \fii(r,n)
     \approx
-    N
+    \frac{N}{\operatorname{poly}(n)}
     \left[
-    \sum_x\bigl(\Delta_r\Pr(x)\bigr)^2
-    \right]
-    \operatorname{poly}(n)^{-1}.
-    \label{eq:hp1_dfi_from_numerator_heuristic}
+    \frac{2^{\nu_2(r)}}{r^2}
+    +
+    \frac{2^{\nu_2(r+1)}}{(r+1)^2}
+    -
+    \frac{2}{r(r+1)}
+    \right],
+    \label{eq:hp1_dfi_from_r_dependent_numerator}
 \end{equation}
-Lemma~\ref{lem:hp1_c_twisted_numerator} gives the square-root-window numerator
-scaling, recorded in Eq.~\eqref{eq:hp1_c_twisted_square_root_window_numerator}.
-Combining that scaling with Eq.~\eqref{eq:hp1_dfi_from_numerator_heuristic}
-gives
+up to the bounded residuals already absorbed in
+Eq.~\eqref{eq:hp1_c_twisted_numerator_heuristic}.  This is the corrected
+logical use of Lemma~\ref{lem:hp1_c_twisted_numerator}: the lemma fixes the
+adjacent numerator scale, while Eq.~\eqref{eq:hp1_effective_inverse_background_heuristic}
+supplies the denominator transfer.
+
+At the square-root boundary representative \(r=2^{n/2}\), the numerator part of
+Eq.~\eqref{eq:hp1_dfi_from_r_dependent_numerator} reduces to the conclusion of
+Lemma~\ref{lem:hp1_c_twisted_numerator}, recorded in
+Eq.~\eqref{eq:hp1_c_twisted_square_root_window_numerator}.  Therefore the same
+transfer gives
 \begin{equation}
     \fii(r,n)
     \sim
@@ -1325,18 +1368,27 @@ or
     \frac{\ln 2}{2}n+O(\ln n).
     \label{eq:hp1_c_twisted_square_root_window_dfi}
 \end{equation}
-Taking the logarithm turns this exponential-in-\(n\) Fisher-information scale
-into a linear function of \(n\), while the polynomial factor contributes only
-the sublinear \(O(\ln n)\) correction.  Thus the DFI is ln-linear up to
-sublinear corrections on the square-root period windows.  The finite-window
-exponent and intercept are then determined by the least-squares fit to the
-numerical \(\fii_{\min}(n)\) data, yielding
+Taking the logarithm turns this representative exponential-in-\(n\)
+Fisher-information scale into a linear function of \(n\), while the polynomial
+factor contributes only the sublinear \(O(\ln n)\) correction.
+
+The theorem concerns the minimum over the restricted scan, not only the single
+boundary representative.  For \(\myqc-1\), we apply the diagnostic
+Eq.~\eqref{eq:hp1_dfi_from_r_dependent_numerator} over generators satisfying
+\(r^2\ll N\).  The dyadic factor in that expression and the finite-window
+denominator residual in
+Eq.~\eqref{eq:hp1_effective_inverse_background_heuristic} are both
+\(r\)-dependent, so Lemma~\ref{lem:hp1_c_twisted_numerator} alone does not fix a
+universal analytic value of the slope \(k\).  It explains why an ln-linear law
+is expected after the numerator-to-denominator transfer; the effective
+finite-window exponent and intercept are then determined by the least-squares
+fit to the numerical \(\fii_{\min}(n)\) data, yielding
 Eq.~\eqref{eq:hp_minimum_dfi_ln_linear}.
 \end{proof}
 
 \section{Ln-linear growth fit for the numerical Fisher-information scan}
 \label{app:fi_ln_linear_growth}
-The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. We use the square-root resolvability window \(2 \leq r \leq 2^{n/2}\), which keeps \(r \ll 2^n\) while matching the period scale used in the recovery experiments. The relevant QFT comparator is therefore the worst case within this dynamically scaled window rather than a single fixed value of \(r\).
+The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. The analytic transfer in Theorem~\ref{thm:hp1_first_order_fisher_transfer_maintext} is stated for the interior regime \(r^2\ll2^n\). For the finite-size numerical plot, we use the square-root boundary proxy \(2 \leq r \leq \lfloor2^{n/2}\rfloor\), matching the period scale used in the recovery experiments. The relevant QFT comparator is therefore the worst case within this dynamically scaled finite window rather than a single fixed value of \(r\).
 
 The leading term in Lemma~\ref{thm:qft_fisher_information} is monotone in \(R\), and in the sampled regime \(R \approx 2^n/r\). Consequently, the smallest QFT Fisher information inside the scan window is attained near the largest sampled period. Substituting \(r_{\max}(n) = \lfloor 2^{n/2}\rfloor\) yields the window-matched estimate
 \begin{equation}
