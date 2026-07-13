@@ -206,43 +206,22 @@ To evaluate the worst-case parameter sensitivity as the system scales, we consid
 worst-case DFI: $\fii_{\min}(n):=\min_{2 \leq r \leq r_{\max}(n)} \fii(r,n)$, with \(r_{\max}(n)^2\ll 2^n\) in the asymptotic statement.
 Fig.~\ref{fig:fi_scaling} illustrates the minimum DFI against the qubit number $n$. (For the finite-size numerical scan, we use the square-root boundary proxy \(r_{\max}(n)=\lfloor 2^{n/2}\rfloor\), matching the period scale used in the recovery experiments.)
 
-\begin{theorem}[Ln-linear DFI Growth]
+\begin{theorem}[Restricted-window ln-linear DFI bound]
 \label{thm:hp1_first_order_fisher_transfer_maintext}
-For \myqc-1, restrict the adjacent-period scan to generators satisfying
-\(r^2\ll 2^n\). The minimum adjacent-period DFI obeys the ln-linear scaling
+For fixed-phase \myqc-1, the minimum DFI follows the ln-linear lower bound
+under \(2<r<2^{n/4}\),
 \begin{equation}
-    \ln \fii_{\min}(n)\sim kn+b,
-    \label{eq:hp1_fisher_ln_linear_minimum}
+    \fii_{\min}(n)
+    \gtrsim
+    \exp(kn+b),
+    \label{eq:hp1_restricted_window_ln_linear_bound_maintext}
 \end{equation}
-for constants \(k\) and \(b\) over the asymptotic scan window.
-\end{theorem}
-
-For two adjacent \myqc-1 output distributions \(\hpdist{r}\) and \(\hpdist{r+1}\), define the Chernoff information as
-\begin{equation}
-\begin{aligned}
-    \mathcal C(\hpdist{r},\hpdist{r+1})
-    &:=
-    -\ln \min_{0\leq \alpha\leq 1}
-    \sum_x \hpdist{r}(x)^\alpha \\
-    &\qquad\qquad\qquad\qquad\times
-    \hpdist{r+1}(x)^{1-\alpha}.
-\end{aligned}
-\end{equation}
-
-\begin{theorem}[Local Chernoff bound of the \myqc-1 circuit]
-\label{thm:hp1_chernoff_poly_bound}
-For \(r\ll 2^n\), the local Chernoff bound of the \myqc-1 circuit is
-\begin{equation}
-    \mathcal C(\hpdist{r},\hpdist{r+1})
-    \ge
-    \frac{1}{\operatorname{poly}(n)}.
-    \label{eq:hp1_chernoff_inverse_polynomial}
-\end{equation}
+for constants \(k\) and \(b\).
 \end{theorem}
 
 Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit configurations, where solid curves and shaded bands represent the mean and standard deviation of $\fii_{\min}(n)$. The fixed-phase \myqc-1 circuit utilizes the skeleton, $\Lambda_1 = \{1,3,5, \cdots\}$ and $\Lambda_2 = \{2,4,6, \cdots\}$, with controlled-phase gates with phase $\frac{\pi}{2^{|i-j|}}$ between qubits $i$ and $j$. The optimized \myqc-1 circuit adopts the same skeleton but treats the gate phases as variational parameters, trained to maximize the $\fii_{\min}$. The deeper \myqc{}-$L$ circuits are constructed by generating valid random skeletons $\Lambda$. 
 
-The proposed \myqc~circuit family preserves an exponential growth of DFI, based on the numerical evidence. As detailed in Appendix~\ref{app:fi_ln_linear_growth}, numerical data for both the \myqc{} circuits and the QFT benchmark fit the ln-linear model $\ln \fii_{\min}(n) = kn + b$, with a coefficient of determination \(R^2 \geq 0.913\).
+The proposed \myqc~circuit family preserves an exponential growth of DFI, based on the numerical evidence. As detailed in Appendix~\ref{app:fi_ln_linear_growth}, numerical data for both the \myqc{} circuits and the QFT benchmark fit straight-line trends on the natural-log scale, with a coefficient of determination \(R^2 \geq 0.913\).
 
 \begin{figure}[!t]
     \includegraphics[width=0.5\textwidth]{fig/recover v2.pdf}
@@ -264,7 +243,7 @@ The neural net trained successfully. As shown in Fig.~\ref{fig:recovery_pipeline
 
 The combined HP-1 and neural net protocol recovers the subgroup generator in the tested instances. As illustrated in Fig.~\ref{fig:recovery_pipeline}(b), each composite integer is colored by the minimum number of guesses $k$. Most instances are solved on the first attempt ($k=1$) and rest within k=3. 
 
-Noise simulation under a post-circuit global depolarizing channel demonstrates that our protocol with the optimized \myqc-1 circuit is robust against moderate environmental noise. The recovery accuracy remains stable up to noise-strength $\eta \approx 0.215$ for $10$ qubits ($1-\eta$ is the probability of applying the identity to the input state). Appendix~\ref{app:noise_robustness_details} provides detailed settings, complete numerical results, and corresponding interpretations.
+Fig.~\ref{fig:gate_noise_accuracy} reports the 18-qubit gate-level Pauli-noise sweep: top-1 accuracy drops from \(0.9059\) at \(10^{-3}\) to \(0.1412\) at \(10^{-1.5}\). Details are in Appendix~\ref{app:noise_robustness_details}.
 
 \section{Summary and outlook}We propose a hardware-efficient framework for solving the HSP by shallow, shift-invariant \myqc{}-1 circuits with a polynomial-scaling neural network. To verify the scalability of this protocol, we analyzed the growth model of the DFI. Finally, we evaluated our protocol on Shor's algorithm. The numerical simulations demonstrate that our approach successfully finds the hidden subgroup with high accuracy and remains robust against moderate depolarizing noise.
 
