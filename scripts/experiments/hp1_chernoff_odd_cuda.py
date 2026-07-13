@@ -467,7 +467,12 @@ def compact_coefficient_tex(value: float) -> str:
     return rf"{mantissa:.1f}\times10^{{{exponent}}}"
 
 
-def plot_rows(path_stem: Path, rows: list[OddChernoffRow]) -> None:
+def plot_rows(
+    path_stem: Path,
+    rows: list[OddChernoffRow],
+    *,
+    show_envelope_fits: bool,
+) -> None:
     path_stem.parent.mkdir(parents=True, exist_ok=True)
     positive_rows = [
         row
@@ -504,33 +509,34 @@ def plot_rows(path_stem: Path, rows: list[OddChernoffRow]) -> None:
         label=r"$C_{1/2}$",
     )
 
-    r_min_float = float(r_min)
-    r_max_float = float(r_max)
-    dense_r = np.geomspace(r_min_float, r_max_float, 512)
-    upper_fit = fit_upper_envelope(positive_rows)
-    if upper_fit is not None:
-        slope, intercept = upper_fit
-        ax.plot(
-            dense_r,
-            intercept + slope * np.log2(dense_r),
-            linestyle="--",
-            linewidth=1.2,
-            color="#ff7f0e",
-            label=rf"upper fit ${slope:.2f}\log_2 r+{intercept:.2f}$",
-        )
+    if show_envelope_fits:
+        r_min_float = float(r_min)
+        r_max_float = float(r_max)
+        dense_r = np.geomspace(r_min_float, r_max_float, 512)
+        upper_fit = fit_upper_envelope(positive_rows)
+        if upper_fit is not None:
+            slope, intercept = upper_fit
+            ax.plot(
+                dense_r,
+                intercept + slope * np.log2(dense_r),
+                linestyle="--",
+                linewidth=1.2,
+                color="#ff7f0e",
+                label=rf"upper fit ${slope:.2f}\log_2 r+{intercept:.2f}$",
+            )
 
-    lower_fit = fit_tail_lower_envelope(positive_rows, cutoff=70)
-    if lower_fit is not None:
-        amplitude, exponent, lower_start = lower_fit
-        lower_r = np.geomspace(float(lower_start), r_max_float, 256)
-        ax.plot(
-            lower_r,
-            amplitude * lower_r ** (-exponent),
-            linestyle="--",
-            linewidth=1.2,
-            color="#d62728",
-            label=rf"lower fit ${compact_coefficient_tex(amplitude)}r^{{-{exponent:.2f}}}$",
-        )
+        lower_fit = fit_tail_lower_envelope(positive_rows, cutoff=70)
+        if lower_fit is not None:
+            amplitude, exponent, lower_start = lower_fit
+            lower_r = np.geomspace(float(lower_start), r_max_float, 256)
+            ax.plot(
+                lower_r,
+                amplitude * lower_r ** (-exponent),
+                linestyle="--",
+                linewidth=1.2,
+                color="#d62728",
+                label=rf"lower fit ${compact_coefficient_tex(amplitude)}r^{{-{exponent:.2f}}}$",
+            )
 
     ax.set_xlabel(r"Period $r$")
     ax.set_ylabel(r"$C_{1/2}$")
@@ -639,6 +645,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("figs/fi_fig/hp1_chernoff_repro_n16_logspace_cuda"),
         help="Output stem; .png and .pdf are written.",
     )
+    parser.add_argument(
+        "--show-envelope-fits",
+        action="store_true",
+        help="Draw dashed upper/lower envelope fits on the plot.",
+    )
     return parser.parse_args()
 
 
@@ -696,7 +707,7 @@ def main() -> None:
             max_support_count=max_support_count,
         )
     write_csv(args.csv_output, rows)
-    plot_rows(args.plot_output, rows)
+    plot_rows(args.plot_output, rows, show_envelope_fits=args.show_envelope_fits)
     min_row = min(rows, key=lambda row: row.chernoff_half)
     print(f"csv={args.csv_output}")
     print(f"plot={args.plot_output.with_suffix('.png')}")

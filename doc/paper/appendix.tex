@@ -88,7 +88,7 @@ A direct measurement in the computational basis is uninformative. Indeed, using 
 \end{equation}
 For fixed $c$, the map $v \mapsto c+v$ is a bijection from $V$ to the coset $c+V$. Therefore the sum $\sum_{v \in V} \delta_{g,c+v}$ equals $1$ when $g \in c+V$ and equals $0$ when $g \notin c+V$. Hence
 \begin{equation}
-    \Pr[g\,|\,c,V] = |\langle g|c+V\rangle|^2 =
+    \mathrm{Pr}[g\,|\,c,V] = |\langle g|c+V\rangle|^2 =
     \begin{cases}
         1/|V|,& g\in c+V,\\
         0,& g\notin c+V,
@@ -96,7 +96,7 @@ For fixed $c$, the map $v \mapsto c+v$ is a bijection from $V$ to the coset $c+V
 \end{equation}
 so the observed element is uniform on the unknown coset. Averaging over uniformly random cosets gives the marginal distribution
 \begin{equation}
-    \Pr[g]=\frac{1}{|G|},
+    \mathrm{Pr}[g]=\frac{1}{|G|},
 \end{equation}
 which contains no direct information about the hidden subgroup $V$.
 
@@ -116,7 +116,7 @@ By the orthogonality of group characters, the sum $\sum_{v \in V} \chi_y(v)$ eva
 \end{equation}
 Measuring this state in the computational basis gives the probability of observing an outcome $y \in V^\perp$:
 \begin{equation}
-    \Pr[y] = \left| \sqrt{\frac{|V|}{|G|}} \chi_y(c) \right|^2 = \frac{|V|}{|G|} |\chi_y(c)|^2 = \frac{|V|}{|G|}.
+    \mathrm{Pr}[y] = \left| \sqrt{\frac{|V|}{|G|}} \chi_y(c) \right|^2 = \frac{|V|}{|G|} |\chi_y(c)|^2 = \frac{|V|}{|G|}.
 \end{equation}
 Crucially, because $|\chi_y(c)|^2 = 1$ for all group characters, the resulting measurement distribution is uniformly distributed over $V^\perp$ and is strictly independent of the random coset representative $c$. This shift invariance is the fundamental property that allows the extraction of subgroup information by effectively removing the unknown shift at the probability level.
 
@@ -150,7 +150,7 @@ F_G|c+V\rangle
 \end{equation}
 The Fourier-basis measurement distribution is therefore
 \begin{equation}
-\text{Pr}(\chi\,\mid\,c,V)=
+\mathrm{Pr}(\chi\,\mid\,c,V)=
 \begin{cases}
 |V|/|G|,& \chi\in V^\perp,\\
 0,& \chi\notin V^\perp,
@@ -476,7 +476,7 @@ and therefore
 \end{equation}
 The corresponding measurement probability is
 \begin{equation}
-    \Pr(k|r)
+    \mathrm{Pr}(k|r)
     =
     \frac{1}{R2^n}
     \left|
@@ -649,18 +649,30 @@ In the continuum approximation, the Fisher-information calculation reduces to a 
 
 \begin{lemma}[HP-1 period-law overlap]
 \label{lem:hp1_period_law_overlap}
-For the fixed-phase \myqc-1 circuit, let \(\Pr_s\) and \(\Pr_t\) denote the
-coherent output probability laws associated with two candidate periods \(s,t\).
-Their overlap is
+For the fixed-phase \myqc-1 circuit, let \(\hpdist{s}\) and \(\hpdist{t}\)
+denote the coherent output probability laws associated with two candidate
+periods \(s,t\).  Let \(\nu_2(m)\) denote the largest integer \(a\) such that
+\(2^a\) divides \(m\), and set \(a=\nu_2(\gcd(s,t))\).  Then, for a constant
+\(\kappa_a\) depending on \(a\), their overlap obeys the following statistical
+law:
 \begin{equation}
-    \sum_x \Pr_s(x)\Pr_t(x)
-    =
+    \sum_x \hpdist{s}(x)\hpdist{t}(x)
+    \approx
+    \frac{1}{2^n}
+    +
+    \kappa_a\,\frac{2^a}{st},
+    \qquad
+    a=\nu_2(\gcd(s,t)).
     \label{eq:hp1_period_law_overlap_placeholder}
 \end{equation}
 \end{lemma}
 
 \begin{proof}
 Set \(N:=2^n\).
+The goal is to evaluate the period-law overlap by expanding both coherent
+probability laws and then carrying out the sum over output strings \(x\).
+This separates the overlap into a diagonal contribution, two single-period
+off-diagonal contributions, and one genuinely mixed off-diagonal contribution.
 For the fixed-phase \myqc-1 circuit, let
 \(C=C_{\mathrm{HP1}}\in\mathbb R^{n\times n}\) denote the HP-1 phase matrix
 normalized by
@@ -695,9 +707,9 @@ For a candidate period \(s\), define
 \end{equation}
 Let \(\mathbf b_m\in\{0,1\}^n\) denote the \(n\)-bit binary representation of
 the integer \(m\).  Using Eq.~\eqref{eq:hp1_overlap_phase_matrix_definition},
-the probability law \(\Pr_s\) is
+the probability law \(\hpdist{s}\) is
 \begin{align}
-    \Pr_s(x)
+    \hpdist{s}(x)
     &=
     \left|
         \frac{1}{\sqrt{R_s}}
@@ -714,10 +726,10 @@ the probability law \(\Pr_s\) is
     \label{eq:hp1_overlap_probability_law}
 \end{align}
 Substituting Eq.~\eqref{eq:hp1_overlap_probability_law} and the corresponding
-expression for \(\Pr_t\) into Eq.~\eqref{eq:hp1_period_law_overlap_placeholder}
-gives
+expression for \(\hpdist{t}\) into the overlap on the left-hand side of
+Eq.~\eqref{eq:hp1_period_law_overlap_placeholder} gives
 	\begin{align}
-	    \sum_x \Pr_s(x)\Pr_t(x)
+	    \sum_x \hpdist{s}(x)\hpdist{t}(x)
 	    &=
 	    \frac{1}{N^2R_sR_t}
     \sum_{x\in\{0,1\}^n}
@@ -730,8 +742,12 @@ gives
         \sum_{\ell=0}^{R_t-1}
         \exp\!\left(\pi\ii\,x^T C\mathbf b_{\ell t}\right)
     \right|^2 .
-	    \label{eq:hp1_overlap_substituted_probability_laws}
+    \label{eq:hp1_overlap_substituted_probability_laws}
 	\end{align}
+We next perform the \(x\)-sum exactly.  Since \(x\) ranges over all binary
+strings, the sum factorizes bit by bit.  The following kernel records the real
+contribution of each conjugate pair that appears after expanding the two
+squared moduli.
 For \(v\in\mathbb Z^n\), the associated conjugate-pair identity defines the
 real cosine kernel \(\Omega(v)\) by
 \begin{equation}
@@ -769,7 +785,7 @@ Expanding the two squared moduli in
 Eq.~\eqref{eq:hp1_overlap_substituted_probability_laws}, exchanging the order
 of summation, and substituting the \(x\)-sum kernel explicitly gives
 \begin{align}
-    \sum_x \Pr_s(x)\Pr_t(x)
+    \sum_x \hpdist{s}(x)\hpdist{t}(x)
     &=
     \frac{1}{N^2R_sR_t}
     \sum_{q,q'=0}^{R_s-1}
@@ -802,6 +818,15 @@ of summation, and substituting the \(x\)-sum kernel explicitly gives
     \Bigg].
 	    \label{eq:hp1_overlap_x_sum_first}
 	\end{align}
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{hp1_mixed_B_rescaled_n200_a0_150_100pairs_k001_conditioned.pdf}
+    \caption{\label{fig:hp1_mixed_B_statistical_law}
+    Conditioned Monte Carlo estimate of \(B_{s,t}^{(n)}\) for fixed-phase
+    \myqc-1 at \(n=200\).  For each \(a=0,\ldots,150\), \(100\) dyadic
+    pairs are sampled.  The dashed curve shows
+    Eq.~\eqref{eq:hp1_mixed_B_statistical_law}.}
+\end{figure}
 Here \(\Delta_{q,q',0,0}=\mathbf b_{qs}-\mathbf b_{q's}\) and
 \(\Delta_{0,0,\ell,\ell'}=\mathbf b_{\ell t}-\mathbf b_{\ell't}\), since the
 paired diagonal difference is zero.
@@ -828,64 +853,197 @@ terms generated by
 coefficient \(2/(NR_sR_t)\).  Thus the remaining sums run over unordered indices
 \(q<q'\) and \(\ell<\ell'\).  Individual \(\Omega\)-terms need not be
 nonnegative; the nonnegativity of the whole expression follows from its equality
-to the probability overlap \(\sum_x\Pr_s(x)\Pr_t(x)\).
+to the probability overlap \(\sum_x\hpdist{s}(x)\hpdist{t}(x)\).
 
-\begin{figure}[t]
-    \includegraphics[width=\columnwidth]{hp1_cos_zero_vs_alpha_n500_alpha0_100_500per_density.pdf}
-    \caption{\label{fig:hp1_zero_cosine_alpha_density}
-    Gaussian-splat density plot of the empirical probability that
-    \(\cos[\pi(C\Delta_{q,q',0,0})_a/2]=0\), grouped by
-    \(\alpha=\nu_2((q'-q)s)\).  The data use \(n=500\) and 500 stratified
-    samples for each \(\alpha=0,\ldots,100\).  The dashed curve is the
-    empirical mean model, and the dotted curves show its \(\pm2\sigma_\alpha\)
-    band.
-    }
-\end{figure}
-
-For a stratified random triple with
-\(\nu_2((q'-q)s)=\alpha\), define the zero-factor frequency by
+The two single-period off-diagonal sums in
+Eq.~\eqref{eq:hp1_overlap_x_sum_first} are in fact killed by a zero factor in
+the cosine product.  For \(q\ne q'\), set
 \begin{equation}
-    P_\alpha(q,q',s)
-    :=
-    \frac1n
-    \left|
-    \left\{
-        1\le a\le n:
-        \cos\!\left[
-            \frac{\pi}{2}
-            \bigl(C\Delta_{q,q',0,0}\bigr)_a
-        \right]=0
-    \right\}
-    \right|.
-    \label{eq:hp1_zero_factor_frequency}
+    u
+    =
+    \mathbf b_{qs}-\mathbf b_{q's}.
+    \label{eq:hp1_single_s_difference_vector}
 \end{equation}
-The empirical distribution of \(P_\alpha\) is well described by
+Since \(u\ne0\) and each component of \(u\) belongs to \(\{-1,0,1\}\), some
+component \(u_a\) is odd.  If a changed component lies in \(\Lambda_2\), then
+row \(a\) of \(C\) is diagonal and gives the zero factor
+\(\cos(\pi u_a/2)=0\).  If no component in \(\Lambda_2\) changes, then some
+component in \(\Lambda_1\) changes; all \(\Lambda_2\)-tails vanish in that row,
+so again \((Cu)_a=u_a=\pm1\) and the same zero factor appears.  The same
+argument with \(q=q'\) gives the corresponding single-\(t\) cancellation:
 \begin{equation}
     \begin{aligned}
-    P_\alpha(q,q',s)
-    &\approx
-    \mathcal N\!\left(\mu_\alpha,\sigma_\alpha^2\right),\\
-    \mu_\alpha
-    &=
-    \frac14-
-    \frac{\lfloor\alpha/2\rfloor-\mathbf 1_{\alpha\ \mathrm{odd}}}{2n},
-    \qquad
-    \sigma_\alpha^2
-    =
-    \frac{n/2-\lceil\alpha/2\rceil}{4n^2}.
+    \Omega\!\left(\Delta_{q,q',0,0}\right)&=0,
+    && q\ne q',\\
+    \Omega\!\left(\Delta_{0,0,\ell,\ell'}\right)&=0,
+    && \ell\ne\ell'.
     \end{aligned}
-    \label{eq:hp1_zero_factor_gaussian_closure}
+    \label{eq:hp1_single_omega_vanishes}
 \end{equation}
-The reason for this form is the staggered odd/even structure of the HP-1 matrix
-\(C\).  Conditioning on \(\alpha\) freezes a trailing-zero depth in
-\(\Delta_{q,q',0,0}\).  Since the dyadic part of \(C\) couples odd rows to even
-columns, every two additional trailing zeros remove roughly one active dyadic
-hash constraint, giving the drift in \(\mu_\alpha\); the odd-\(\alpha\)
-correction comes from the row-parity staggering.  The remaining
-\(n/2-\lceil\alpha/2\rceil\) active contributions behave like weakly dependent
-Bernoulli fluctuations, so averaging over \(n\) rows gives
-\(\operatorname{Var}(P_\alpha)\approx
-(n/2-\lceil\alpha/2\rceil)/(4n^2)\).
+The mixed term is different because two such bit-difference vectors are added.
+Writing
+\begin{equation}
+    \Delta_{q,q',\ell,\ell'}
+    =
+    u+w,
+    \qquad
+    w=\mathbf b_{\ell t}-\mathbf b_{\ell't},
+    \label{eq:hp1_mixed_difference_sum}
+\end{equation}
+one has
+\begin{equation}
+    u_a,w_a\in\{-1,0,1\},
+    \qquad
+    \bigl(\Delta_{q,q',\ell,\ell'}\bigr)_a
+    \in\{-2,-1,0,1,2\}.
+    \label{eq:hp1_mixed_difference_components}
+\end{equation}
+For the mixed off-diagonal contribution, we define the rescaled quantity
+\begin{equation}
+    B_{s,t}^{(n)}
+    :=
+    \frac{1}{2^{n-1}R_sR_t}
+    \sum_{0\le q<q'<R_s}
+    \sum_{0\le \ell<\ell'<R_t}
+    \left[
+        \Omega\!\left(\Delta_{q,q',\ell,\ell'}\right)
+        +
+        \Omega\!\left(\Delta_{q,q',\ell',\ell}\right)
+    \right].
+    \label{eq:hp1_mixed_B_definition}
+\end{equation}
+This is the only term in Eq.~\eqref{eq:hp1_overlap_x_sum_first} that is not
+forced to vanish by the single-period cancellation.  The normalization by
+\(2^{n-1}R_sR_t\) removes the explicit system-size factor from the mixed double
+sum, so that different \(n\) and different dyadic scales can be compared on
+the same plot.
+Numerically, we observe a simple statistical law for this mixed contribution.
+For dyadic periods \(s=2^a u\) and \(t=2^a v\), with \(u,v\) odd and
+\(a=\nu_2(\gcd(s,t))\), the conditioned Monte Carlo estimate in
+Fig.~\ref{fig:hp1_mixed_B_statistical_law} is well described by
+\begin{equation}
+    B_{s,t}^{(n)}
+    \approx
+    \kappa_a\,\frac{2^a}{st}.
+    \label{eq:hp1_mixed_B_statistical_law}
+\end{equation}
+Thus Fig.~\ref{fig:hp1_mixed_B_statistical_law} supplies the empirical closure
+for the remaining mixed double sum: after the above normalization, its leading
+dependence is \(2^a/(st)\), up to the coefficient \(\kappa_a\).
+At the level of bit differences, an odd change in one period difference can be
+cancelled by the other difference, or two equal changes can combine into an even
+component, for example \(1+(-1)=0\), \(1+1=2\), and \((-1)+(-1)=-2\).
+These cancellations can remove the zero cosine factor, so the mixed
+\(\Omega\)-terms are not identically zero, even though they are numerically
+sparse for random off-diagonal indices.
+
+Finally, substituting the single-period cancellation
+Eq.~\eqref{eq:hp1_single_omega_vanishes} and the statistical law
+Eq.~\eqref{eq:hp1_mixed_B_statistical_law} into
+Eq.~\eqref{eq:hp1_overlap_x_sum_first}, together with the definition of
+\(B_{s,t}^{(n)}\) in Eq.~\eqref{eq:hp1_mixed_B_definition}, gives
+\begin{equation}
+    \sum_x \hpdist{s}(x)\hpdist{t}(x)
+    \approx
+    \frac{1}{2^n}
+    +
+    \kappa_a\,\frac{2^a}{st},
+    \qquad
+    a=\nu_2(\gcd(s,t)).
+    \label{eq:hp1_overlap_statistical_law}
+\end{equation}
+This is the overlap formula stated in Eq.~\eqref{eq:hp1_period_law_overlap_placeholder}.
+\end{proof}
+
+\section{\myqc-1 Chernoff Separation}
+\label{app:proof_theorem_3}
+The purpose of this section is to prove
+Theorem~\ref{thm:hp1_chernoff_poly_bound}, which states the local Chernoff
+bound for adjacent \myqc-1 period-recovery distributions.
+
+\begin{theoremrestatement}{thm:hp1_chernoff_poly_bound}{Local Chernoff bound of the \myqc-1 circuit}
+For \(r\ll 2^n\), the local Chernoff bound of the \myqc-1 circuit is
+\begin{equation}
+    \mathcal C(\hpdist{r},\hpdist{r+1})
+    \ge
+    \frac{1}{\operatorname{poly}(n)}.
+\end{equation}
+\end{theoremrestatement}
+
+\begin{proof}
+Set \(N=2^n\), \(P=\hpdist{r}\), and \(Q=\hpdist{r+1}\).  For any two
+probability laws \(P,Q\), let
+\[
+    B(P,Q):=\sum_x\sqrt{P(x)Q(x)},\qquad
+    H^2(P,Q):=1-B(P,Q),
+\]
+be the Bhattacharyya coefficient and the squared Hellinger distance.  Since
+the Chernoff minimum is no larger than its value at \(\alpha=1/2\),
+\begin{equation}
+    \mathcal C(P,Q)
+    =
+    -\ln\min_{0\le\alpha\le1}\sum_x P(x)^\alpha Q(x)^{1-\alpha}
+    \ge
+    -\ln B(P,Q)
+    =
+    -\ln\!\left(1-H^2(P,Q)\right)
+    \ge
+    H^2(P,Q).
+    \label{eq:chernoff_from_hellinger}
+\end{equation}
+Moreover, if
+\(\operatorname{TV}(P,Q)=\frac12\sum_x|P(x)-Q(x)|\), then
+\(\operatorname{TV}(P,Q)\le\sqrt{2}\,H(P,Q)\), while
+\(\operatorname{TV}(P,Q)\ge\frac12\|P-Q\|_2\).  Hence
+\begin{equation}
+    \mathcal C(P,Q)
+    \ge
+    \frac18\|P-Q\|_2^2 .
+    \label{eq:chernoff_from_l2_distance}
+\end{equation}
+
+It remains to estimate this \(L^2\) distance.  Applying
+Lemma~\ref{lem:hp1_period_law_overlap} to the three pairs
+\((s,t)=(r,r)\), \((r+1,r+1)\), and \((r,r+1)\) gives
+\begin{align}
+    \|P-Q\|_2^2
+    &=
+    \sum_x P(x)^2+\sum_x Q(x)^2-2\sum_xP(x)Q(x) \nonumber\\
+    &\approx
+    \frac{\kappa_{\nu_2(r)}2^{\nu_2(r)}}{r^2}
+    +
+    \frac{\kappa_{\nu_2(r+1)}2^{\nu_2(r+1)}}{(r+1)^2}
+    -
+    \frac{2\kappa_0}{r(r+1)}.
+    \label{eq:hp1_adjacent_l2_from_overlap}
+\end{align}
+Here the uniform terms \(1/N\) cancel.  Because adjacent integers are coprime,
+\(\nu_2(\gcd(r,r+1))=0\), which is why the mixed term carries the coefficient
+\(\kappa_0\).  The HP-1 period-law overlap in Lemma~\ref{lem:hp1_period_law_overlap}
+therefore gives the adjacent-period contrast
+\begin{equation}
+    \|P-Q\|_2^2
+    =
+    \Theta\!\left(\frac{1}{r^2}\right)
+    \label{eq:hp1_adjacent_l2_scale}
+\end{equation}
+in the local period window.
+
+Combining Eqs.~\eqref{eq:chernoff_from_l2_distance} and
+\eqref{eq:hp1_adjacent_l2_scale} yields
+\begin{equation}
+    \mathcal C(\hpdist{r},\hpdist{r+1})
+    \ge
+    \Theta\!\left(\frac{1}{r^2}\right).
+\end{equation}
+For the local inverse-polynomial period window \(r=\operatorname{poly}(n)\)
+with \(r\ll2^n\), this gives
+\[
+    \mathcal C(\hpdist{r},\hpdist{r+1})
+    \ge
+    \frac{1}{\operatorname{poly}(n)} ,
+\]
+as claimed.
 \end{proof}
 
 \section{Ln-linear growth fit for the numerical Fisher-information scan}
@@ -945,11 +1103,11 @@ We evaluate noise robustness using the previously trained $9$- and $10$-qubit \m
 
 The evaluation set holds out $3$ shifts for each candidate period and generates $8$ independent noisy redraws for each held-out shift. This yields $72\times 3\times 8=1728$ test examples for $9$ qubits and $90\times 3\times 8=2160$ test examples for $10$ qubits. To probe robustness after the shallow quantum transformation, we insert a single global depolarizing channel after the full \myqc{}-1 circuit and before measurement. At the probability level, this is implemented as
 \begin{equation}
-    \widetilde{\text{Pr}}_{\eta}(x|r,s)
+    \widetilde{\mathrm{Pr}}_{\eta}(x|r,s)
     =
-    (1-\eta)\text{Pr}(x|r,s) + \eta \frac{1}{2^n},
+    (1-\eta)\mathrm{Pr}(x|r,s) + \eta \frac{1}{2^n},
 \end{equation}
-where $\text{Pr}(x|r,s)$ is the ideal output distribution for period $r$ and shift $s$, and $\eta$ is the depolarizing strength. For each noisy distribution $\widetilde{\text{Pr}}_{\eta}$, we resample $1024n^2$ outcomes and feed the resulting bit-string batch into the fixed neural decoder. The sweep uses the values
+where $\mathrm{Pr}(x|r,s)$ is the ideal output distribution for period $r$ and shift $s$, and $\eta$ is the depolarizing strength. For each noisy distribution $\widetilde{\mathrm{Pr}}_{\eta}$, we resample $1024n^2$ outcomes and feed the resulting bit-string batch into the fixed neural decoder. The sweep uses the values
 \begin{equation}
     \eta\in\{1,\ 0.464,\ 0.215,\ 0.1,\ 0.0464,\ 0.0215,\ 0.01,\ 0.00464,\ 0.00215,\ 0.001\}.
 \end{equation}

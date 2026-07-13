@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scatter P(cos(pi/2 (C Delta)_a) = 0) versus nu_2((q'-q)s)."""
+"""Plot P(cos(pi/2 (C Delta)_a) = 0 or 1) versus nu_2((q'-q)s)."""
 
 from __future__ import annotations
 
@@ -39,18 +39,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--grid-y", type=int, default=520)
     parser.add_argument("--y-min", type=float, default=0.0)
     parser.add_argument("--y-max", type=float, default=0.55)
+    parser.add_argument("--metric", choices=("zero", "one"), default="zero")
+    parser.add_argument("--kappa", type=float, default=8.0)
     return parser.parse_args()
 
 
-def read_samples(path: Path) -> tuple[list[int], list[float]]:
+def read_samples(path: Path, metric: str) -> tuple[list[int], list[float]]:
     alphas: list[int] = []
-    p_zero: list[float] = []
+    probabilities: list[float] = []
+    column = "p_zero" if metric == "zero" else "p_one"
     with path.open(newline="") as handle:
         reader = csv.DictReader(handle)
         for row in reader:
             alphas.append(int(row["alpha"]))
-            p_zero.append(float(row["p_zero"]))
-    return alphas, p_zero
+            probabilities.append(float(row[column]))
+    return alphas, probabilities
 
 
 def gaussian_splat_density(
@@ -93,17 +96,35 @@ def gaussian_splat_density(
 
 def main() -> None:
     args = parse_args()
-    alphas, p_zero = read_samples(args.input)
-    plotted = [(alpha, value) for alpha, value in zip(alphas, p_zero) if alpha <= args.x_max]
+    alphas, probabilities = read_samples(args.input, args.metric)
+    plotted = [(alpha, value) for alpha, value in zip(alphas, probabilities) if alpha <= args.x_max]
     plot_alphas = [alpha for alpha, _ in plotted]
-    plot_p_zero = [value for _, value in plotted]
+    plot_probabilities = [value for _, value in plotted]
     xlim = (-0.5, args.x_max + 0.5)
     ylim = (args.y_min, args.y_max)
     formula_x = list(range(0, args.x_max + 1))
-    formula_y = [
-        0.25 - (alpha // 2 - (1 if alpha % 2 else 0)) / (2.0 * args.n)
-        for alpha in formula_x
-    ]
+    if args.metric == "zero":
+        formula_y = [
+            0.25 - (alpha // 2 - (1 if alpha % 2 else 0)) / (2.0 * args.n)
+            for alpha in formula_x
+        ]
+        ylabel = "Probability of a zero cosine factor"
+        model_label = (
+            r"$\frac{1}{4}-"
+            r"\frac{\lfloor\alpha/2\rfloor-\mathbf{1}_{\alpha\ {\rm odd}}}{2n}$"
+        )
+    else:
+        formula_y = [
+            0.25
+            + (alpha // 2) / (2.0 * args.n)
+            + max(0.0, ((alpha + 1) // 2) - args.kappa) / args.n
+            for alpha in formula_x
+        ]
+        ylabel = "Probability of a unit cosine factor"
+        model_label = (
+            r"$\frac{1}{4}+\frac{\lfloor\alpha/2\rfloor}{2n}"
+            r"+\frac{(\lceil\alpha/2\rceil-\kappa)_+}{n}$"
+        )
     sigma_y = [
         ((args.n / 2.0 - ((alpha + 1) // 2)) ** 0.5) / (2.0 * args.n)
         for alpha in formula_x
@@ -118,7 +139,7 @@ def main() -> None:
         )
         density = gaussian_splat_density(
             plot_alphas,
-            plot_p_zero,
+            plot_probabilities,
             xlim,
             ylim,
             args.grid_x,
@@ -140,7 +161,7 @@ def main() -> None:
     else:
         ax.scatter(
             plot_alphas,
-            plot_p_zero,
+            plot_probabilities,
             s=18,
             color="#2f6f9f",
             alpha=0.28,
@@ -153,7 +174,7 @@ def main() -> None:
         color="#c43c39",
         linestyle="--",
         linewidth=1.8,
-        label=r"$\frac{1}{4}-\frac{\lfloor\alpha/2\rfloor-\mathbf{1}_{\alpha\ {\rm odd}}}{2n}$",
+        label=model_label,
     )
     ax.plot(
         formula_x,
@@ -171,7 +192,7 @@ def main() -> None:
         linewidth=1.3,
     )
     ax.set_xlabel(r"$\nu_2((q'-q)s)$")
-    ax.set_ylabel("Probability of a zero cosine factor")
+    ax.set_ylabel(ylabel)
     if args.title:
         ax.set_title(args.title)
     ax.set_ylim(*ylim)
