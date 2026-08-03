@@ -1215,6 +1215,154 @@ The comparison with the QFT benchmark is unambiguous. Even after matching the sq
 
 This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}. The \myqc{} family circuits retain a clear exponential-in-$n$ growth trend in the $\fii_{\text{min}}$ over the sampled window, which is why the ln-linear fit works well, but they do not reproduce the QFT growth rate. Their advantage in the present setting is therefore not that they match the full QFT benchmark asymptotically, but that they retain a nontrivial and practically usable fraction of that information while remaining much shallower.
 
+\section{Decoder Model}
+The measurement distribution produced by an HP circuit depends on the hidden
+period.  For example, Fig.~\ref{fig:decoder_output_distributions} shows the
+output distributions for two different periods, \(r=3\) and \(r=5\).  The
+locations and weights of the prominent peaks change with \(r\), demonstrating
+that the samples retain information about the hidden generator.  Unlike the
+standard QFT distribution, however, these peaks do not exhibit a simple
+number-theoretic pattern that can be directly converted into a continued-
+fraction estimate.  The irregular structure makes a compact analytical decoder
+difficult to construct.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../../figs/vpq_dist.pdf}
+    \caption{\textbf{Period-dependent HP output distributions.} Output
+    probabilities for two hidden periods, \(r=3\) and \(r=5\).  The
+    period-dependent peak structure shows that the measurement samples retain
+    information about \(r\), while the irregular peak locations do not provide an
+    obvious closed-form decoding rule.}
+    \label{fig:decoder_output_distributions}
+\end{figure}
+
+An ideal generic decoder would be the maximum-likelihood estimator (MLE).  Let
+\(B_m=\{b_i\}_{i=1}^{m}\) denote \(m\) independent measurement outcomes, with
+\(b_i\in\{0,1\}^{n}\), and let \(P(b\mid r)\) be the output probability of the
+HP circuit for a candidate period \(r\).  The MLE is
+\begin{equation}
+    \widehat r_{\mathrm{ML}}
+    =
+    \underset{r\in\mathcal R}{\operatorname{arg\,max}}\;
+    \prod_{i=1}^{m}P(b_i\mid r)
+    =
+    \underset{r\in\mathcal R}{\operatorname{arg\,max}}\;
+    \sum_{i=1}^{m}\log P(b_i\mid r),
+    \label{eq:decoder_mle}
+\end{equation}
+where \(\mathcal R\) is the candidate-period set.  Under the usual regularity
+conditions for likelihood estimation, the Fisher information determines the
+local asymptotic precision of the estimator, so its inverse sets a local
+sample--precision scale~\cite{Paris2009,Kwon2026}.  For the discrete period
+problem, the global error exponent additionally depends on the separation
+between the full distributions \(P(\cdot\mid r)\) for different \(r\); therefore the DFI alone should not be interpreted as a proof of an achievable decoding error exponent.  The empirical MLE failure rates shown in
+Fig.~\ref{fig:decoder_mle} decrease rapidly as the number of samples increases, and are approximately exponential over the displayed range.  This observation provides a useful numerical benchmark for the amount of information available in the HP samples, but it is not an asymptotic theorem for all periods or circuit families.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../../figs/mle.pdf}
+    \caption{\textbf{Maximum-likelihood decoding benchmark.} Empirical failure
+    rate of the MLE as a function of the number of measurement samples for
+    \(n=8,9,10,\) and \(11\).  The rapid decrease in failure rate illustrates
+    the improvement obtained from additional samples in the tested regime.}
+    \label{fig:decoder_mle}
+\end{figure}
+
+The MLE is not the decoder used in the main numerical protocol.  Evaluating
+Eq.~\eqref{eq:decoder_mle} requires computing \(P(b_i\mid r)\) for every observed bit string and every candidate period.  A direct construction of the complete output distribution contains \(2^n\) probabilities and requires repeated circuit simulation, which is prohibitive in the regime of interest.  A specialized likelihood evaluation with lower cost is possible in principle, but its implementation and complexity are not established here.  We therefore replace the explicit likelihood calculation by a learned estimator that acts directly on the sampled bit strings.
+
+The decoder used in the \(18\)-qubit experiments is a weighted,
+permutation-invariant Deep Sets model
+\cite{zaheer2017deep,edwards2016towards}.  Let
+\(d_e=\max(8,n)\) and \(d=16n\).  For bit position \(j\), the measured value
+\(b_{ij}\) and its position have independently learned embeddings
+\(E_{\mathrm{val}}(b_{ij}),E_{\mathrm{pos}}(j)\in\mathbb R^{d_e}\).  Their sum
+is concatenated over the \(n\) positions, layer-normalized, and projected from
+\(nd_e\) to \(d\) dimensions, followed by layer normalization and a GELU
+activation.  This representation is processed by three residual MLP blocks.
+Each block has the pre-normalized form
+\begin{equation}
+    \mathcal B(h)
+    =h+D\!\left[W_2D\!\left(\operatorname{GELU}
+      \left(W_1\operatorname{LN}(h)+c_1\right)\right)+c_2\right],
+    \qquad
+    W_1:\mathbb R^d\to\mathbb R^{2d},\quad
+    W_2:\mathbb R^{2d}\to\mathbb R^d,
+    \label{eq:decoder_residual_block}
+\end{equation}
+where \(D\) denotes dropout.  The resulting shared map is denoted by
+\(\phi:\{0,1\}^n\to\mathbb R^d\).
+
+Repeated outcomes are stored once together with their counts.  If
+\(\{\widetilde b_u\}_{u=1}^{U}\) are the distinct observed strings and \(c_u\)
+are their multiplicities, the invariant representation is the count-weighted
+mean
+\begin{equation}
+    z(B_m)=\sum_{u=1}^{U}w_u\phi(\widetilde b_u),
+    \qquad
+    w_u=\frac{c_u}{\sum_{v=1}^{U}c_v}.
+    \label{eq:decoder_deep_sets}
+\end{equation}
+This is exactly the ordinary mean \(m^{-1}\sum_i\phi(b_i)\) without explicitly
+repeating identical strings; zero-weight padding permits batching sets with
+different numbers of distinct outcomes.  After another layer normalization,
+two more residual blocks of the form in
+Eq.~\eqref{eq:decoder_residual_block} act on \(z(B_m)\).  A final linear layer
+produces one logit for each candidate period.  In the reported model
+\(n=18\), so \(d_e=18\), \(nd_e=324\), \(d=288\), and the hidden dimension in
+each residual block is \(2d=576\).  The output classes are the \(510\) periods
+\(\mathcal R=\{2,\ldots,511\}\), and the complete network has \(1{,}909{,}230\)
+trainable parameters.
+
+The implemented scoring head is a multiclass classifier rather than an
+autoregressive sequence model.  Applying log-softmax to its \(510\) logits and
+sorting them gives the exact top-\(k\) candidates; the experiments retain
+\(k=10\) for subsequent classical verification.  Thus, the beam label in the
+schematic architecture refers only to retaining a short ranked list: no
+stepwise beam expansion or separately chosen beam width is used.  At inference,
+the protocol supplies \(m=1024n^2\) circuit measurements (\(331{,}776\) for
+\(n=18\)); count compression and Eq.~\eqref{eq:decoder_deep_sets} make the
+network input depend on the number of distinct outcomes rather than on storing
+all \(m\) strings separately.
+
+For training, cached HP-1 output distributions were constructed for every
+\(r\in\{2,\ldots,511\}\) and every subgroup shift \(s\in\{0,\ldots,r-1\}\).
+One shift per period was reserved before training, leaving \(130{,}305\)
+period--shift rows available for training.  Each data item was generated by
+drawing \(8192\) outcomes from one cached distribution and compressing them to
+distinct bit strings with empirical-frequency weights.  At each epoch, \(96\)
+periods were selected and \(1024\) training items were drawn; the mini-batch
+size was \(8\).  Validation used a fixed subset of \(512\) draws from the
+held-out shifts.
+
+The network was trained with AdamW using learning rate \(10^{-3}\), weight
+decay \(10^{-4}\), the default momentum parameters
+\((\beta_1,\beta_2)=(0.9,0.999)\), and cross-entropy loss with label smoothing
+\(0.02\).  All residual-block dropout probabilities were \(0.1\).  The random
+seed was \(7\), and CUDA training used bfloat16 autocasting.  The \(510\)-class
+run was initialized from a checkpoint trained on \(322\) candidate periods:
+all shape-compatible shared tensors and the classifier rows corresponding to
+overlapping periods were copied.  Checkpoints were selected by validation
+top-1 accuracy, with a minimum of \(300\) epochs and early-stopping patience
+\(250\).  Training stopped after epoch \(1919\); the selected checkpoint was
+epoch \(1669\), with validation loss \(0.4845\), top-1 accuracy \(0.9551\), and
+top-10 accuracy \(1.0000\).
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{../../figs/ml/ml_arch.pdf}
+    \caption{\textbf{Neural decoder architecture.} The HP circuit produces an
+    unordered set of measurement bit strings.  A shared feature map processes
+    every distinct bit string, the resulting features are aggregated by a
+    count-weighted mean, and a multiclass scoring head produces a ranked list of
+    candidate periods.}
+    \label{fig:decoder_architecture}
+\end{figure}
+
+The use of a neural decoder should be distinguished from an analytical decoding theorem.  The DFI characterizes the sensitivity of the HP output distribution to the hidden period and is therefore used here as an information-theoretic resolution scale~\cite{weimar2025fisher}.  Once the likelihood is replaced by a trained neural estimator, the DFI is not an asymptotically achieved bound for that estimator; the actual decoder performance must be established empirically through validation accuracy, top-\(k\) recovery, and the factorization tests.  In this sense, the neural network demonstrates that the information diagnosed by the DFI is practically accessible in the tested regime, while a general polynomial-cost
+decoding guarantee remains an open question.
+
 \section{Noise-robustness experiment details}
 \label{app:noise_robustness_details}
 We test noise robustness on the trained \(18\)-qubit \myqc-1 neural-decoder pipeline used for the period-recovery experiments. Both the learned circuit phases and the neural-network weights are kept fixed throughout the sweep. The periods are \(r\in\{2,\ldots,511\}\), giving \(510\) period-recovery instances, and the representative subgroup shift is fixed to \(s=0\). The decoder is the weighted Deep Sets model with a parameter-shared four-bit autoregressive head selected at epoch \(390\); its fixed noiseless validation top-1 and top-4 success rates are both \(1.0000\). For every period and noise strength, we draw \(1024n^2=331776\) measurement outcomes at \(n=18\) and retain up to the \(8192\) highest-frequency patterns, matching decoder training.

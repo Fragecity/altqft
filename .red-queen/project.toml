@@ -1,0 +1,12 @@
+schema_version = 1
+revision = 1
+
+[project]
+id = "RQ-01KY9WC313SV0SQB1VY9RQ2R41"
+name = "未命名项目"
+goal = ""
+created_at = "2026-07-24T10:57:37.827246975Z"
+updated_at = "2026-07-24T10:57:37.827246975Z"
+
+[settings]
+stale_after_minutes = 240
