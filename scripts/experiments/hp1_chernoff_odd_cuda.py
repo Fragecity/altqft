@@ -16,8 +16,10 @@ powers of two in the requested window are added explicitly.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import csv
 import math
+import multiprocessing as mp
 import time
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -30,7 +32,12 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from hp1_chernoff_mc_point_query import importance_estimate, parse_prefixes
+from hp1_chernoff_mc_point_query import (
+    bit_matrix_from_ints,
+    importance_estimate,
+    parse_prefixes,
+    sample_prefix_mixture,
+)
 
 
 @dataclass(frozen=True)
@@ -279,15 +286,68 @@ def logspace_periods(period_min: int, period_max: int, count: int) -> list[int]:
     return sorted(periods)
 
 
+def exact_logspace_periods(period_min: int, period_max: int, count: int) -> list[int]:
+    if count < 2:
+        raise ValueError("target period count must be at least 2")
+    if period_min < 1:
+        raise ValueError("period-min must be positive")
+    left = math.log2(period_min)
+    right = math.log2(period_max)
+    required = {period_min, period_max, *powers_of_two(period_min, period_max)}
+    if len(required) > count:
+        raise ValueError(
+            f"target period count {count} is smaller than the {len(required)} "
+            "required endpoint/power-of-two periods"
+        )
+
+    candidate_count = max(8 * count, count + 1024)
+    candidates = sorted(
+        {
+            min(period_max, max(period_min, int(round(2.0**exponent))))
+            for exponent in np.linspace(left, right, candidate_count, dtype=np.float64)
+        }
+        | required
+    )
+    optional = [period for period in candidates if period not in required]
+    needed = count - len(required)
+    if needed > len(optional):
+        raise ValueError("not enough distinct logspace periods to hit target count")
+
+    selected = set(required)
+    if needed > 0:
+        centers = np.linspace(0, len(optional) - 1, needed, dtype=np.float64)
+        used_optional: set[int] = set()
+        for center in centers:
+            base = int(round(float(center)))
+            for offset in range(len(optional)):
+                for candidate_index in (base - offset, base + offset):
+                    if not 0 <= candidate_index < len(optional):
+                        continue
+                    if candidate_index in used_optional:
+                        continue
+                    used_optional.add(candidate_index)
+                    selected.add(optional[candidate_index])
+                    break
+                else:
+                    continue
+                break
+    return sorted(selected)
+
+
 def resolve_periods(
     *,
     period_min: int,
     period_max: int,
     sampling: str,
     logspace_count: int,
+    target_period_count: int,
 ) -> list[int]:
     if period_min > period_max:
         raise ValueError("period-min must not exceed period-max")
+    if target_period_count:
+        if sampling != "logspace":
+            raise ValueError("--target-period-count is only supported for logspace sampling")
+        return exact_logspace_periods(period_min, period_max, target_period_count)
     if sampling == "logspace":
         return logspace_periods(period_min, period_max, logspace_count)
     if sampling == "odd":
@@ -409,6 +469,222 @@ def scan_periods_importance(
             flush=True,
         )
     return rows
+
+
+def build_hp1_phase_matrix_torch(nqubit: int, device: torch.device) -> Tensor:
+    phase = math.pi * torch.eye(nqubit, dtype=torch.float64, device=device)
+    for control in range(0, nqubit, 2):
+        for target in range(1, nqubit, 2):
+            phase[control, target] += math.pi / (2.0 ** abs(target - control))
+    return phase
+
+
+def support_bits_torch(
+    nqubit: int,
+    period: int,
+    support_count: int,
+    device: torch.device,
+) -> Tensor:
+    support_bits = bit_matrix_from_ints(
+        [q_value * period for q_value in range(support_count)],
+        nqubit,
+    )
+    return torch.as_tensor(support_bits.T, dtype=torch.float64, device=device)
+
+
+def probability_bits_torch(
+    x_bits: Tensor,
+    phase_matrix: Tensor,
+    nqubit: int,
+    period: int,
+    *,
+    chunk_size: int,
+    max_support_count: int | None,
+) -> tuple[Tensor, int]:
+    support_count = (((1 << nqubit) - 1) // period) + 1
+    if max_support_count is not None and support_count > max_support_count:
+        raise ValueError(
+            f"period {period} has support_count={support_count}, "
+            f"above max_support_count={max_support_count}"
+        )
+
+    support_bits = support_bits_torch(nqubit, period, support_count, x_bits.device)
+    phase_weights = phase_matrix @ support_bits
+    denominator = math.ldexp(float(support_count), nqubit)
+    chunk = chunk_size if chunk_size > 0 else x_bits.shape[0]
+    values: list[Tensor] = []
+    for start in range(0, x_bits.shape[0], chunk):
+        stop = min(start + chunk, x_bits.shape[0])
+        phases = x_bits[start:stop] @ phase_weights
+        amplitude_real = torch.cos(phases).sum(dim=1)
+        amplitude_imag = torch.sin(phases).sum(dim=1)
+        values.append((amplitude_real.square() + amplitude_imag.square()) / denominator)
+    return torch.cat(values), support_count
+
+
+def importance_estimate_torch(
+    nqubit: int,
+    period: int,
+    *,
+    sample_count: int,
+    seed: int,
+    chunk_size: int,
+    prefixes: tuple[int, ...],
+    uniform_weight: float,
+    max_support_count: int | None,
+    device: torch.device,
+) -> OddChernoffRow:
+    started = time.perf_counter()
+    x_bits_np, proposal_np, proposal = sample_prefix_mixture(
+        nqubit,
+        sample_count=sample_count,
+        rng=np.random.default_rng(seed),
+        prefixes=prefixes,
+        uniform_weight=uniform_weight,
+    )
+    with torch.inference_mode():
+        phase_matrix = build_hp1_phase_matrix_torch(nqubit, device)
+        x_bits = torch.as_tensor(x_bits_np, dtype=torch.float64, device=device)
+        proposal_probability = torch.as_tensor(proposal_np, dtype=torch.float64, device=device)
+        probability_p, support_count_p = probability_bits_torch(
+            x_bits,
+            phase_matrix,
+            nqubit,
+            period,
+            chunk_size=chunk_size,
+            max_support_count=max_support_count,
+        )
+        probability_q, support_count_q = probability_bits_torch(
+            x_bits,
+            phase_matrix,
+            nqubit,
+            period + 1,
+            chunk_size=chunk_size,
+            max_support_count=max_support_count,
+        )
+        samples = torch.sqrt(probability_p * probability_q) / proposal_probability
+        coefficient = float(samples.mean().item())
+        coefficient_se = float(samples.std(unbiased=True).item() / math.sqrt(sample_count))
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+
+    chernoff_half = -math.log(max(coefficient, np.finfo(np.float64).tiny))
+    chernoff_se = coefficient_se / max(coefficient, np.finfo(np.float64).tiny)
+    return OddChernoffRow(
+        n=nqubit,
+        r=period,
+        r_next=period + 1,
+        chernoff=None,
+        alpha_star=None,
+        chernoff_coeff=None,
+        chernoff_half=chernoff_half,
+        bhattacharyya_coeff=coefficient,
+        hellinger_squared=max(0.0, 1.0 - min(1.0, coefficient)),
+        l2_squared=math.nan,
+        l2_bound=math.nan,
+        tv=math.nan,
+        inverse_r_squared=1.0 / float(period * period),
+        seconds=time.perf_counter() - started,
+        method="mc-is-torch",
+        sample_count=sample_count,
+        chernoff_half_standard_error=chernoff_se,
+        support_count_r=support_count_p,
+        support_count_next=support_count_q,
+        proposal=proposal,
+    )
+
+
+def torch_importance_worker(task: tuple) -> OddChernoffRow:
+    (
+        nqubit,
+        period,
+        sample_count,
+        seed,
+        chunk_size,
+        prefixes,
+        uniform_weight,
+        max_support_count,
+        device_name,
+    ) = task
+    torch.set_num_threads(1)
+    device = torch.device(device_name)
+    if device.type == "cuda":
+        torch.cuda.set_device(device)
+    return importance_estimate_torch(
+        nqubit,
+        period,
+        sample_count=sample_count,
+        seed=seed,
+        chunk_size=chunk_size,
+        prefixes=prefixes,
+        uniform_weight=uniform_weight,
+        max_support_count=max_support_count,
+        device=device,
+    )
+
+
+def resolve_mc_devices(raw_devices: str) -> list[str]:
+    if raw_devices == "auto":
+        if torch.cuda.is_available():
+            return [f"cuda:{index}" for index in range(torch.cuda.device_count())]
+        return ["cpu"]
+    devices = [value.strip() for value in raw_devices.split(",") if value.strip()]
+    if not devices:
+        raise ValueError("expected at least one device")
+    resolved: list[str] = []
+    for value in devices:
+        resolved.append(value if ":" in value or value == "cpu" else f"cuda:{value}")
+    return resolved
+
+
+def scan_periods_importance_torch(
+    nqubit: int,
+    *,
+    periods: list[int],
+    sample_count: int,
+    seed: int,
+    chunk_size: int,
+    prefixes: tuple[int, ...],
+    uniform_weight: float,
+    max_support_count: int | None,
+    devices: list[str],
+) -> list[OddChernoffRow]:
+    tasks = [
+        (
+            nqubit,
+            period,
+            sample_count,
+            seed + period * 1000003 + sample_count,
+            chunk_size,
+            prefixes,
+            uniform_weight,
+            max_support_count,
+            devices[index % len(devices)],
+        )
+        for index, period in enumerate(periods)
+    ]
+    rows: list[OddChernoffRow] = []
+    started = time.perf_counter()
+    context = mp.get_context("spawn")
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=len(devices),
+        mp_context=context,
+    ) as executor:
+        futures = {executor.submit(torch_importance_worker, task): task[1] for task in tasks}
+        for index, future in enumerate(concurrent.futures.as_completed(futures), start=1):
+            row = future.result()
+            rows.append(row)
+            best_row = min(rows, key=lambda candidate: candidate.chernoff_half)
+            print(
+                f"{index:3d}/{len(periods):3d} r={row.r:<62d} "
+                f"R=({row.support_count_r},{row.support_count_next}) "
+                f"C_half={row.chernoff_half:.9f} "
+                f"se={row.chernoff_half_standard_error:.3g} "
+                f"best_r={best_row.r} seconds={row.seconds:.2f} "
+                f"elapsed={time.perf_counter() - started:.1f}",
+                flush=True,
+            )
+    return sorted(rows, key=lambda row: row.r)
 
 
 def write_csv(path: Path, rows: list[OddChernoffRow]) -> None:
@@ -594,6 +870,12 @@ def parse_args() -> argparse.Namespace:
         default=100,
         help="Number of 2^linspace samples before powers-of-two are merged in.",
     )
+    parser.add_argument(
+        "--target-period-count",
+        type=int,
+        default=0,
+        help="For logspace sampling, choose exactly this many r values while keeping powers of two.",
+    )
     parser.add_argument("--convention", choices=("appendix", "main"), default="appendix")
     parser.add_argument(
         "--method",
@@ -622,6 +904,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mc-sample-count", type=int, default=4096)
     parser.add_argument("--mc-seed", type=int, default=20260713)
     parser.add_argument("--mc-chunk-size", type=int, default=256)
+    parser.add_argument(
+        "--mc-backend",
+        choices=("numpy", "torch"),
+        default="numpy",
+        help="Backend for --method mc-is. torch can use CUDA and multiple devices.",
+    )
+    parser.add_argument(
+        "--mc-devices",
+        default="auto",
+        help="Comma-separated CUDA device ids/names for --mc-backend torch, e.g. 6,7.",
+    )
     parser.add_argument(
         "--mc-prefixes",
         default="auto",
@@ -667,6 +960,7 @@ def main() -> None:
         period_max=period_max,
         sampling=args.sampling,
         logspace_count=args.logspace_count,
+        target_period_count=args.target_period_count,
     )
     if args.method == "statevector":
         device = resolve_device(args.device, allow_cpu_fallback=args.allow_cpu_fallback)
@@ -694,18 +988,34 @@ def main() -> None:
             f"method=mc-is n={args.n} sampling={args.sampling} "
             f"period_count={len(periods)} sample_count={args.mc_sample_count} "
             f"chunk_size={args.mc_chunk_size} max_support_count={max_support_count} "
-            f"prefixes={prefixes} uniform_weight={uniform_weight}"
+            f"prefixes={prefixes} uniform_weight={uniform_weight} "
+            f"backend={args.mc_backend}"
         )
-        rows = scan_periods_importance(
-            args.n,
-            periods=periods,
-            sample_count=args.mc_sample_count,
-            seed=args.mc_seed,
-            chunk_size=args.mc_chunk_size,
-            prefixes=prefixes,
-            uniform_weight=uniform_weight,
-            max_support_count=max_support_count,
-        )
+        if args.mc_backend == "torch":
+            devices = resolve_mc_devices(args.mc_devices)
+            print(f"mc_devices={devices}")
+            rows = scan_periods_importance_torch(
+                args.n,
+                periods=periods,
+                sample_count=args.mc_sample_count,
+                seed=args.mc_seed,
+                chunk_size=args.mc_chunk_size,
+                prefixes=prefixes,
+                uniform_weight=uniform_weight,
+                max_support_count=max_support_count,
+                devices=devices,
+            )
+        else:
+            rows = scan_periods_importance(
+                args.n,
+                periods=periods,
+                sample_count=args.mc_sample_count,
+                seed=args.mc_seed,
+                chunk_size=args.mc_chunk_size,
+                prefixes=prefixes,
+                uniform_weight=uniform_weight,
+                max_support_count=max_support_count,
+            )
     write_csv(args.csv_output, rows)
     plot_rows(args.plot_output, rows, show_envelope_fits=args.show_envelope_fits)
     min_row = min(rows, key=lambda row: row.chernoff_half)

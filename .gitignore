@@ -14,7 +14,16 @@ wheels/
 data/
 model/*
 !model/README.md
+!model/period_recovery_distribution_18q_p2-511_nibble_ddp/
+model/period_recovery_distribution_18q_p2-511_nibble_ddp/*
+!model/period_recovery_distribution_18q_p2-511_nibble_ddp/selected.pt
 outputs/
 tmp/
 
-# paper
+# LaTeX build artifacts
+/doc/paper/*.aux
+/doc/paper/*.blg
+/doc/paper/*.fdb_latexmk
+/doc/paper/*.fls
+/doc/paper/*.log
+/doc/paper/*.out

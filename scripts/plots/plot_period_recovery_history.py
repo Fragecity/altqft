@@ -52,6 +52,12 @@ def parse_args() -> argparse.Namespace:
         default="val",
         help="Which split to plot. Defaults to validation metrics.",
     )
+    parser.add_argument(
+        "--max-epoch",
+        type=int,
+        default=None,
+        help="Plot only epochs up to this value and use it as the x-axis maximum.",
+    )
     return parser.parse_args()
 
 
@@ -66,6 +72,7 @@ def main() -> None:
         history_paths=args.history,
         output_path=first_output,
         split=str(args.split),
+        max_epoch=args.max_epoch,
     )
     output_paths = [output_path]
 
@@ -75,6 +82,7 @@ def main() -> None:
             history_paths=history_paths,
             output_path=next_output_path,
             split=str(args.split),
+            max_epoch=args.max_epoch,
         )
         output_paths.append(resolved_output_path)
 

@@ -5,7 +5,7 @@ import json
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import matplotlib
 import numpy as np
@@ -13,7 +13,10 @@ import torch
 from qiskit.quantum_info import Operator
 
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, ensure_optimized_ph1
-from altqft.nn.period_decoder import DeepSetPeriodPredictor
+from altqft.nn.period_decoder import (
+    DeepSetPeriodPredictor,
+    predictor_from_checkpoint,
+)
 from altqft.nn.period_recovery import (
     PeriodRecoveryDatasetArtifacts,
     PeriodRecoveryDatasetConfig,
@@ -68,7 +71,7 @@ class PeriodNoiseRecipe:
     ph1_learning_rate: float = 0.05
     ph1_log_interval: int = 10
     ph1_train_device: str = "cuda"
-    top_k: int = 10
+    top_k: int = 4
     batch_size: int = 8
     epochs: int = 60
     learning_rate: float = 1e-3
@@ -343,19 +346,13 @@ def _load_period_predictor(
     nqubit: int,
     device: torch.device,
 ) -> tuple[DeepSetPeriodPredictor, tuple[int, ...]]:
-    payload = torch.load(model_path, map_location="cpu")
-    candidate_periods = payload.get("candidate_periods")
-    state_dict = payload.get("state_dict")
-    if not isinstance(candidate_periods, list) or not all(isinstance(value, int) for value in candidate_periods):
-        raise ValueError(f"invalid candidate_periods in {model_path}")
-    if not isinstance(state_dict, dict):
-        raise ValueError(f"invalid state_dict in {model_path}")
-
-    model = DeepSetPeriodPredictor(nqubit, len(candidate_periods))
-    model.load_state_dict(cast(dict[str, torch.Tensor], state_dict))
+    payload = torch.load(model_path, map_location="cpu", weights_only=False)
+    if not isinstance(payload, dict):
+        raise ValueError(f"invalid checkpoint in {model_path}")
+    model, candidate_periods = predictor_from_checkpoint(payload, nqubit=nqubit)
     model.eval()
     model.to(device)
-    return model, tuple(int(value) for value in candidate_periods)
+    return model, candidate_periods
 
 
 def _noise_draw_seed(
@@ -462,8 +459,13 @@ def _evaluate_noise_sweep(
                         dtype=torch.float32,
                         non_blocking=non_blocking,
                     )
-                    predicted = model(batch).argmax(dim=1).detach().cpu().numpy()
-                    correct += int((predicted == labels).sum())
+                    predicted, _, _ = model.predict_topk_periods(
+                        batch,
+                        candidate_periods,
+                        1,
+                    )
+                    predicted_values = predicted[:, 0].detach().cpu().numpy()
+                    correct += int((predicted_values == labels).sum())
 
             accuracy = correct / float(total_examples)
             logger.info(

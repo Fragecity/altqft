@@ -20,9 +20,11 @@ from torch.utils.data import DataLoader, Dataset, TensorDataset
 from altqft.nn.model import OBJECTIVES
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact
 from altqft.nn.period_decoder import (
+    DECODER_TYPE,
+    DEFAULT_BEAM_WIDTH,
+    TOKEN_BITS,
     DeepSetPeriodPredictor,
-    decode_topk_class_indices as decode_topk_class_indices,
-    period_class_loss,
+    period_token_loss,
 )
 from altqft.nn.periods import build_period_range, period_range_artifact_suffix
 from altqft.nn.devices import resolve_compute_device
@@ -182,8 +184,10 @@ class PeriodRecoveryTrainConfig:
     def __post_init__(self) -> None:
         if self.nqubit < 2:
             raise ValueError("nqubit must be at least 2")
-        if self.top_k < 1:
-            raise ValueError("top_k must be positive")
+        if not 1 <= self.top_k <= DEFAULT_BEAM_WIDTH:
+            raise ValueError(
+                f"top_k must be between 1 and beam width {DEFAULT_BEAM_WIDTH}"
+            )
         if self.batch_size < 1:
             raise ValueError("batch_size must be positive")
         if self.epochs < 1:
@@ -368,6 +372,7 @@ def serialize_dataset_config(
         "stratify_periods": config.stratify_periods,
         "dataset_dir": str(config.dataset_dir),
         "candidate_periods": config.candidate_periods,
+        "label_encoding": "period",
         "exact_support": config.exact_support,
         "cache_mode": config.cache_mode,
         "pool_multiplier": config.pool_multiplier,
@@ -801,7 +806,6 @@ def _sample_split_payload(
     period_schedule: Sequence[int] | None = None,
 ) -> DatasetPayload:
     candidate_periods = config.candidate_periods
-    class_lookup = {period: index for index, period in enumerate(candidate_periods)}
     size = 1 << config.nqubit
     distribution_cache: dict[tuple[int, int], np.ndarray] = {}
     basis_bit_rows = _columns_to_bit_matrix(np.arange(size, dtype=np.int64), config.nqubit)
@@ -835,7 +839,7 @@ def _sample_split_payload(
             basis_bit_rows,
             rng,
         )
-        labels[sample_index] = class_lookup[period]
+        labels[sample_index] = period
         periods[sample_index] = period
         shifts[sample_index] = shift
 
@@ -952,7 +956,6 @@ def _generate_shift_pool_dataset(
 ) -> PeriodRecoveryDatasetArtifacts:
     config.cache_root.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(config.seed)
-    class_lookup = {period: index for index, period in enumerate(config.candidate_periods)}
     size = 1 << config.nqubit
     basis_bit_rows = _columns_to_bit_matrix(np.arange(size, dtype=np.int64), config.nqubit)
     cache_device = resolve_compute_device(config.cache_device)
@@ -987,7 +990,7 @@ def _generate_shift_pool_dataset(
         torch.save(
             {
                 "period": period,
-                "label": class_lookup[period],
+                "label": period,
                 "shifts": torch.arange(period, dtype=torch.long),
                 "bit_pools": torch.from_numpy(bit_pools),
             },
@@ -996,7 +999,7 @@ def _generate_shift_pool_dataset(
         shards.append(
             ShiftPoolShardInfo(
                 period=period,
-                label=class_lookup[period],
+                label=period,
                 path=shard_path.name,
                 train_shifts=train_shifts,
                 val_shifts=val_shifts,
@@ -1143,12 +1146,13 @@ def create_dataloader(
     )
 
 
-def topk_accuracy(logits: Tensor, labels: Tensor, k: int, *, num_classes: int) -> float:
-    if logits.ndim == 2:
-        topk_indices = logits.topk(min(k, num_classes), dim=1).indices
-    else:
-        topk_indices, _ = decode_topk_class_indices(logits, k, num_classes=num_classes)
-    correct = topk_indices.eq(labels.unsqueeze(1)).any(dim=1)
+def period_prediction_accuracy(
+    predicted_periods: Tensor,
+    periods: Tensor,
+    k: int,
+) -> float:
+    width = min(k, predicted_periods.shape[1])
+    correct = predicted_periods[:, :width].eq(periods.unsqueeze(1)).any(dim=1)
     return float(correct.to(torch.float32).mean().item())
 
 
@@ -1157,7 +1161,6 @@ def _evaluate_model(
     dataloader: DataLoader[tuple[Tensor, Tensor]],
     *,
     device: torch.device,
-    num_classes: int,
     top_k: int,
     label_smoothing: float,
 ) -> tuple[float, float, float]:
@@ -1168,20 +1171,30 @@ def _evaluate_model(
     total_items = 0
 
     with torch.inference_mode():
-        for bit_matrices, labels in dataloader:
-            bit_matrices, labels = move_batch_to_device(bit_matrices, labels, device)
+        for bit_matrices, periods in dataloader:
+            bit_matrices, periods = move_batch_to_device(bit_matrices, periods, device)
             with autocast_context(device):
-                logits = model(bit_matrices)
-                loss = period_class_loss(
-                    logits,
-                    labels,
+                pooled = model.pooled_features(bit_matrices)
+                token_logits = model.decode_teacher_forced(pooled, periods)
+                loss = period_token_loss(
+                    token_logits,
+                    periods,
                     label_smoothing=label_smoothing,
                 )
-            batch_size = int(labels.shape[0])
+                predicted_periods, _, _ = model.decode_topk_from_pooled_features(
+                    pooled,
+                    top_k,
+                )
+            batch_size = int(periods.shape[0])
             total_items += batch_size
             total_loss += float(loss.item()) * batch_size
-            total_top1 += topk_accuracy(logits, labels, 1, num_classes=num_classes) * batch_size
-            total_topk += topk_accuracy(logits, labels, top_k, num_classes=num_classes) * batch_size
+            total_top1 += (
+                period_prediction_accuracy(predicted_periods, periods, 1) * batch_size
+            )
+            total_topk += (
+                period_prediction_accuracy(predicted_periods, periods, top_k)
+                * batch_size
+            )
 
     if total_items == 0:
         raise RuntimeError("dataloader is empty")
@@ -1249,7 +1262,6 @@ def _train_period_recovery_epoch(
     train_dataset: CachedPeriodDataset | PoolBackedPeriodDataset,
     optimizer: Adam,
     device: torch.device,
-    num_classes: int,
     top_k: int,
     label_smoothing: float,
     epoch: int,
@@ -1264,24 +1276,35 @@ def _train_period_recovery_epoch(
     total_topk = 0.0
     total_items = 0
 
-    for bit_matrices, labels in train_loader:
-        bit_matrices, labels = move_batch_to_device(bit_matrices, labels, device)
+    for bit_matrices, periods in train_loader:
+        bit_matrices, periods = move_batch_to_device(bit_matrices, periods, device)
         optimizer.zero_grad(set_to_none=True)
         with autocast_context(device):
-            logits = model(bit_matrices)
-            loss = period_class_loss(
-                logits,
-                labels,
+            pooled = model.pooled_features(bit_matrices)
+            token_logits = model.decode_teacher_forced(pooled, periods)
+            loss = period_token_loss(
+                token_logits,
+                periods,
                 label_smoothing=label_smoothing,
             )
+            with torch.no_grad():
+                predicted_periods, _, _ = model.decode_topk_from_pooled_features(
+                    pooled.detach(),
+                    top_k,
+                )
         loss.backward()
         optimizer.step()
 
-        batch_items = int(labels.shape[0])
+        batch_items = int(periods.shape[0])
         total_items += batch_items
         total_loss += float(loss.item()) * batch_items
-        total_top1 += topk_accuracy(logits.detach(), labels, 1, num_classes=num_classes) * batch_items
-        total_topk += topk_accuracy(logits.detach(), labels, top_k, num_classes=num_classes) * batch_items
+        total_top1 += (
+            period_prediction_accuracy(predicted_periods, periods, 1) * batch_items
+        )
+        total_topk += (
+            period_prediction_accuracy(predicted_periods, periods, top_k)
+            * batch_items
+        )
 
     if total_items == 0:
         raise RuntimeError('train dataloader is empty')
@@ -1304,7 +1327,14 @@ def _save_period_recovery_checkpoint(
         {
             'state_dict': best_checkpoint.state_dict,
             'candidate_periods': candidate_periods,
+            'period_min': model.period_min,
+            'period_max': model.period_max,
             'bit_width': model.bit_width,
+            'token_bits': TOKEN_BITS,
+            'token_count': model.token_count,
+            'beam_width': model.beam_width,
+            'decoder_type': DECODER_TYPE,
+            'model_architecture': model.architecture,
             'num_periods': model.num_periods,
             'selected_epoch': best_checkpoint.result.epoch,
             'config': serialize_train_config(config),
@@ -1360,14 +1390,16 @@ def train_period_recovery(
     model = DeepSetPeriodPredictor(
         config.nqubit,
         len(candidate_periods),
+        period_min=candidate_periods[0],
+        period_max=candidate_periods[-1],
         dropout=config.dropout,
+        beam_width=DEFAULT_BEAM_WIDTH,
     ).to(device)
     optimizer = Adam(
         model.parameters(),
         lr=config.learning_rate,
         weight_decay=config.weight_decay,
     )
-    num_classes = len(candidate_periods)
 
     history: list[PeriodRecoveryEpochResult] = []
     best_checkpoint: PeriodRecoveryCheckpoint | None = None
@@ -1379,7 +1411,6 @@ def train_period_recovery(
             train_dataset=train_dataset,
             optimizer=optimizer,
             device=device,
-            num_classes=num_classes,
             top_k=config.top_k,
             label_smoothing=config.label_smoothing,
             epoch=epoch,
@@ -1389,7 +1420,6 @@ def train_period_recovery(
             model,
             val_loader,
             device=device,
-            num_classes=num_classes,
             top_k=config.top_k,
             label_smoothing=config.label_smoothing,
         )

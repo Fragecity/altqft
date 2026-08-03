@@ -254,7 +254,8 @@ def _recover_factors_from_order(
         if 1 < factor < N and N % factor == 0:
             other_factor = N // factor
             if 1 < other_factor < N:
-                factors = tuple(sorted((factor, other_factor)))
+                smaller, larger = sorted((factor, other_factor))
+                factors = (smaller, larger)
                 return factors, f"success factors={factors}"
 
     return None, f"gcd recovery was trivial ({factor_minus}, {factor_plus})"
@@ -327,7 +328,8 @@ def _result_from_counts(config: ShorConfig, counts: CountDict) -> ShorResult:
 def run_shor(config: ShorConfig) -> ShorResult:
     gcd_value = math.gcd(config.a, config.N)
     if 1 < gcd_value < config.N:
-        factors = tuple(sorted((gcd_value, config.N // gcd_value)))
+        smaller, larger = sorted((gcd_value, config.N // gcd_value))
+        factors = (smaller, larger)
         return ShorResult(
             success=True,
             factors=factors,

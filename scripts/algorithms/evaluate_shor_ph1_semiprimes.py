@@ -14,7 +14,7 @@ DEFAULT_START = 11
 DEFAULT_STOP = 120
 DEFAULT_NQUBIT = 11
 DEFAULT_MEASUREMENT_COUNT = 32_768
-DEFAULT_TOP_K = 10
+DEFAULT_TOP_K = 4
 DEFAULT_SEED = 7
 DEFAULT_FALLBACK_A = 13
 
@@ -163,7 +163,8 @@ def factors_from_order(a: int, modulus: int, order: int) -> tuple[int, int] | No
     left = math.gcd(half_power - 1, modulus)
     right = math.gcd(half_power + 1, modulus)
     if 1 < left < modulus and 1 < right < modulus:
-        return tuple(sorted((left, right)))
+        smaller, larger = sorted((left, right))
+        return smaller, larger
     return None
 
 
@@ -211,7 +212,8 @@ def order_finding_semiprimes(
         factors = prime_factors_with_multiplicity(N)
         if len(factors) != 2:
             continue
-        expected_factors = tuple(sorted((factors[0], factors[1])))
+        smaller, larger = sorted((factors[0], factors[1]))
+        expected_factors = (smaller, larger)
         selection = choose_coprime_order_finding_a(
             N,
             expected_factors,
@@ -255,10 +257,11 @@ def load_semiprime_cases(path: Path) -> tuple[list[SemiprimeCase], list[int], li
         ):
             raise ValueError(f"invalid prime_factors in {path}: {item!r}")
         order = item.get("order")
+        smaller, larger = sorted((int(factors[0]), int(factors[1])))
         cases.append(
             SemiprimeCase(
                 N=int(item["N"]),
-                prime_factors=tuple(sorted((int(factors[0]), int(factors[1])))),
+                prime_factors=(smaller, larger),
                 a=int(item["a"]),
                 order=int(order) if order is not None else None,
                 used_default_a=bool(item.get("used_default_a", False)),

@@ -11,7 +11,6 @@ DEFAULT_HISTORY_DIR = Path("data")
 DEFAULT_FIGURE_DIR = Path("figs/recover")
 DEFAULT_OUTPUT_SUFFIX = ".svg"
 DEFAULT_COMBINED_NQUBITS = (9, 10, 11)
-DEFAULT_MAX_EPOCH = 0
 TITLE_FONT_SIZE = 24
 LABEL_FONT_SIZE = 21
 LEGEND_FONT_SIZE = 21
@@ -110,7 +109,11 @@ def resolve_output_path(
 def build_metric_series(
     payload: dict[str, Any],
     split: str,
+    max_epoch: int | None = None,
 ) -> tuple[list[int], list[float], list[float], list[float], int]:
+    if max_epoch is not None and max_epoch < 1:
+        raise ValueError("max_epoch must be at least 1")
+
     history = payload["history"]
     config = payload.get("config", {})
     if not isinstance(config, dict):
@@ -154,9 +157,9 @@ def build_metric_series(
         top1_values.append(float(top1))
         topk_values.append(float(topk))
 
-    if DEFAULT_MAX_EPOCH > 0:
+    if max_epoch is not None:
         selected_indices = [
-            index for index, epoch in enumerate(epochs) if epoch <= DEFAULT_MAX_EPOCH
+            index for index, epoch in enumerate(epochs) if epoch <= max_epoch
         ]
         epochs = [epochs[index] for index in selected_indices]
         losses = [losses[index] for index in selected_indices]
@@ -189,6 +192,7 @@ def plot_history(
     histories: Sequence[tuple[Path, dict[str, Any]]],
     output_path: Path,
     split: str,
+    max_epoch: int | None = None,
 ) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -200,6 +204,7 @@ def plot_history(
         epochs, losses, top1_values, topk_values, top_k = build_metric_series(
             payload,
             split,
+            max_epoch,
         )
         nqubit, run_label = resolve_nqubit_label(payload, history_path)
         palette = (
@@ -236,6 +241,8 @@ def plot_history(
 
     ax_loss.set_xlabel("Epoch", fontsize=LABEL_FONT_SIZE)
     ax_loss.set_ylabel("Loss", fontsize=LABEL_FONT_SIZE)
+    if max_epoch is not None:
+        ax_loss.set_xlim(0, max_epoch)
     ax_acc.set_ylabel("Accuracy", fontsize=LABEL_FONT_SIZE)
     ax_acc.set_ylim(0.0, 1.0)
     loss_ymin, loss_ymax = ax_loss.get_ylim()
@@ -264,6 +271,7 @@ def plot_period_recovery_history(
     history_paths: Sequence[Path] | None = None,
     output_path: Path | None = None,
     split: str = "val",
+    max_epoch: int | None = None,
 ) -> tuple[list[Path], Path]:
     resolved_history_paths = resolve_history_paths(history_paths)
     histories = [
@@ -279,5 +287,6 @@ def plot_period_recovery_history(
         histories=histories,
         output_path=resolved_output_path,
         split=split,
+        max_epoch=max_epoch,
     )
     return resolved_history_paths, resolved_output_path

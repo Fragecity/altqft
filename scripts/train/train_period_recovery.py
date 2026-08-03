@@ -13,7 +13,7 @@ from altqft.nn.period_recovery import (
 )
 
 DEFAULT_NQUBIT = 10
-DEFAULT_TOP_K = 3
+DEFAULT_TOP_K = 4
 DEFAULT_BATCH_SIZE = 16
 DEFAULT_EPOCHS = 300
 DEFAULT_NUM_TRAIN_SAMPLES = 1440
@@ -75,7 +75,11 @@ def parse_args() -> argparse.Namespace:
         help="Number of validation bitmatrices to generate.",
     )
     parser.add_argument(
-        "--top-k", type=int, default=DEFAULT_TOP_K, help="Top-k metric to track."
+        "--top-k",
+        type=int,
+        choices=range(1, 5),
+        default=DEFAULT_TOP_K,
+        help="Top-k metric to track; the 4-bit decoder retains four beams.",
     )
     parser.add_argument(
         "--batch-size", type=int, default=DEFAULT_BATCH_SIZE, help="Batch size."

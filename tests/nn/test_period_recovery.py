@@ -3,16 +3,17 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
+import pytest
 import torch
 
 from altqft.circuits.HPgenerators import HP1_parametrized
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, phase_artifact_is_current
 from altqft.nn.period_decoder import (
     DeepSetPeriodPredictor,
-    compact_label_bit_width,
-    decode_topk_periods,
-    period_bit_loss,
-    period_class_loss,
+    TOKEN_CLASSES,
+    period_token_loss,
+    predictor_from_checkpoint,
+    periods_to_tokens,
 )
 from altqft.nn.period_recovery import (
     PoolBackedPeriodDataset,
@@ -22,7 +23,6 @@ from altqft.nn.period_recovery import (
     load_cached_dataset,
     load_shift_pool_manifest,
     summarize_bitmatrix_dataset,
-    topk_accuracy,
     train_period_recovery,
 )
 from altqft.nn.periods import build_default_period_range
@@ -115,8 +115,10 @@ def test_generate_period_recovery_dataset_caches_expected_tensors(tmp_path: Path
     assert cached_train.periods.shape == (4,)
     assert cached_train.shifts.shape == (4,)
     assert cached_train.candidate_periods.tolist() == build_default_period_range(4)
-    assert cached_train.labels.min().item() >= 0
-    assert cached_train.labels.max().item() < len(cached_train.candidate_periods)
+    assert torch.equal(cached_train.labels, cached_train.periods)
+    assert set(cached_train.labels.tolist()).issubset(
+        set(cached_train.candidate_periods.tolist())
+    )
     assert cached_val.bit_matrices.shape == (2, 32, 4)
     assert set(cached_val.periods.tolist()).issubset(set(cached_train.periods.tolist()))
 
@@ -189,6 +191,29 @@ def test_train_period_recovery_runs_end_to_end_for_4q(tmp_path: Path) -> None:
     assert artifacts.last_epoch <= train_config.epochs
     assert 0.0 <= artifacts.selected_val_top1 <= 1.0
     assert 0.0 <= artifacts.selected_val_topk <= 1.0
+    checkpoint = torch.load(artifacts.model_path, map_location="cpu", weights_only=False)
+    assert checkpoint["decoder_type"] == "nibble"
+    assert checkpoint["token_bits"] == 4
+    assert checkpoint["beam_width"] == 4
+    assert checkpoint["state_dict"]["token_classifier.weight"].shape[0] == 16
+    assert "classifier.weight" not in checkpoint["state_dict"]
+    loaded_model, loaded_periods = predictor_from_checkpoint(checkpoint, nqubit=4)
+    assert loaded_model.token_count == 1
+    assert loaded_periods == tuple(build_default_period_range(4))
+
+
+def test_checkpoint_loader_rejects_removed_class_decoder() -> None:
+    with pytest.raises(ValueError, match="decoder_type"):
+        predictor_from_checkpoint(
+            {
+                "candidate_periods": [2, 3],
+                "state_dict": {},
+                "decoder_type": "class",
+                "token_bits": 4,
+                "model_architecture": "weighted",
+            },
+            nqubit=2,
+        )
 
 
 def test_generate_shift_pool_cache_writes_manifest_and_shards(tmp_path: Path) -> None:
@@ -259,6 +284,7 @@ def test_pool_backed_dataset_returns_expected_shapes_and_metadata(tmp_path: Path
     assert sample_bits.shape == (16, 4)
     assert sample_bits.dtype == torch.int8
     assert sample_label.dtype == torch.long
+    assert sample_label.item() == train_dataset.describe_index(0).period
     assert len(train_dataset) == 6
     assert len(val_dataset) == len(manifest.candidate_periods) * 2
     assert 0 <= val_entry.shift < val_entry.period
@@ -348,13 +374,19 @@ def test_deepset_accepts_measurement_prefixes_from_cached_dataset(tmp_path: Path
 
     dataset_artifacts = generate_period_recovery_dataset(config, artifact, regenerate=True)
     cached_train = load_cached_dataset(dataset_artifacts.train_path)
-    model = DeepSetPeriodPredictor(nqubit=4, num_periods=int(cached_train.candidate_periods.numel()))
+    candidate_periods = cached_train.candidate_periods.tolist()
+    model = DeepSetPeriodPredictor(
+        nqubit=4,
+        num_periods=len(candidate_periods),
+        period_min=candidate_periods[0],
+        period_max=candidate_periods[-1],
+    )
     inputs = cached_train.bit_matrices[:3]
 
     for measurement_count in (4, 8, 16):
         logits = model(inputs[:, :measurement_count, :])
-        assert logits.shape == (3, int(cached_train.candidate_periods.numel()))
-        assert torch.isfinite(logits).all()
+        assert logits.shape == (3, model.token_count, TOKEN_CLASSES)
+        assert torch.isfinite(logits).any(dim=-1).all()
 
 
 def test_train_period_recovery_runs_with_shift_pool_dataset(tmp_path: Path) -> None:
@@ -407,73 +439,76 @@ def test_train_period_recovery_runs_with_shift_pool_dataset(tmp_path: Path) -> N
     assert artifacts.selected_epoch >= 1
 
 
-def test_deepset_model_returns_expected_class_logits_shape() -> None:
-    num_periods = len(build_default_period_range(4))
-    model = DeepSetPeriodPredictor(nqubit=4, num_periods=num_periods)
+def test_deepset_model_returns_four_bit_token_logits() -> None:
+    candidate_periods = build_default_period_range(4)
+    model = DeepSetPeriodPredictor(
+        nqubit=4,
+        num_periods=len(candidate_periods),
+        period_min=candidate_periods[0],
+        period_max=candidate_periods[-1],
+    )
     inputs = torch.randint(0, 2, (3, 8, 4), dtype=torch.int8)
-    class_logits = model(inputs)
-    loss = period_class_loss(class_logits, torch.tensor([0, 1, 2]))
+    periods = torch.tensor([2, 7, 15])
+    token_logits = model(inputs, target_periods=periods)
+    loss = period_token_loss(token_logits, periods)
 
-    assert model.bit_width == compact_label_bit_width(num_periods)
-    assert class_logits.shape == (3, num_periods)
+    assert model.bit_width == 4
+    assert model.beam_width == 4
+    assert token_logits.shape == (3, 1, 16)
+    assert model.token_classifier.out_features == 16
+    assert not hasattr(model, "classifier")
     assert torch.isfinite(loss)
 
 
-def test_period_bit_loss_accepts_bitwise_logits() -> None:
-    bit_logits = torch.tensor(
-        [
-            [[5.0, 0.0], [4.0, 0.0]],
-            [[4.0, 2.0], [3.0, 2.0]],
-            [[4.0, 2.0], [4.0, 3.0]],
-        ]
+def test_periods_are_encoded_as_direct_four_bit_tokens() -> None:
+    periods = torch.tensor([2, 15, 16, 255])
+
+    tokens = periods_to_tokens(periods, token_count=2)
+
+    assert tokens.tolist() == [[0, 2], [0, 15], [1, 0], [15, 15]]
+
+
+def test_nibble_decoder_parameter_count_does_not_depend_on_period_count() -> None:
+    small_range_model = DeepSetPeriodPredictor(
+        nqubit=8,
+        num_periods=14,
+        period_min=2,
+        period_max=15,
+    )
+    large_range_model = DeepSetPeriodPredictor(
+        nqubit=8,
+        num_periods=254,
+        period_min=2,
+        period_max=255,
     )
 
-    loss = period_bit_loss(bit_logits, torch.tensor([0, 1, 2]))
-
-    assert torch.isfinite(loss)
-
-
-def test_topk_accuracy_counts_hits_in_top_k() -> None:
-    bit_logits = torch.tensor(
-        [
-            [[5.0, 0.0], [4.0, 0.0]],
-            [[4.0, 2.0], [3.0, 2.0]],
-            [[4.0, 2.0], [4.0, 3.0]],
-        ]
+    small_parameter_count = sum(
+        parameter.numel() for parameter in small_range_model.parameters()
     )
-    labels = torch.tensor([0, 1, 2], dtype=torch.long)
-
-    assert math.isclose(topk_accuracy(bit_logits, labels, 1, num_classes=4), 1 / 3, rel_tol=1e-6)
-    assert math.isclose(topk_accuracy(bit_logits, labels, 2, num_classes=4), 2 / 3, rel_tol=1e-6)
-
-
-def test_topk_accuracy_supports_class_logits() -> None:
-    class_logits = torch.tensor(
-        [
-            [5.0, 0.0, -1.0, -2.0],
-            [0.0, 4.0, 3.0, -1.0],
-            [0.0, -1.0, 5.0, 4.0],
-        ]
-    )
-    labels = torch.tensor([0, 1, 3], dtype=torch.long)
-
-    assert math.isclose(topk_accuracy(class_logits, labels, 1, num_classes=4), 2 / 3, rel_tol=1e-6)
-    assert math.isclose(topk_accuracy(class_logits, labels, 2, num_classes=4), 1.0, rel_tol=1e-6)
-
-
-def test_decode_topk_periods_prunes_invalid_bit_patterns() -> None:
-    candidate_periods = [4, 5, 6, 7, 8]
-    bit_logits = torch.tensor(
-        [
-            [[0.0, 5.0], [0.0, 5.0], [0.0, 5.0]],
-        ]
+    large_parameter_count = sum(
+        parameter.numel() for parameter in large_range_model.parameters()
     )
 
-    top_periods, top_bits, top_scores = decode_topk_periods(bit_logits, candidate_periods, k=3)
+    assert small_parameter_count == large_parameter_count
 
-    assert top_periods.shape == (1, 3)
-    assert top_bits.shape == (1, 3, compact_label_bit_width(len(candidate_periods)))
-    assert top_scores.shape == (1, 3)
-    assert top_periods[0, 0].item() == 7
-    assert top_bits[0, 0].tolist() == [0, 1, 1]
-    assert set(top_periods[0].tolist()).issubset(candidate_periods)
+
+def test_nibble_beam_keeps_four_period_prefixes() -> None:
+    model = DeepSetPeriodPredictor(
+        nqubit=8,
+        num_periods=254,
+        period_min=2,
+        period_max=255,
+        beam_width=4,
+    )
+    inputs = torch.randint(0, 2, (2, 8, 8), dtype=torch.int8)
+
+    periods, bits, scores = model.predict_topk_periods(
+        inputs,
+        range(2, 256),
+        k=4,
+    )
+
+    assert periods.shape == (2, 4)
+    assert bits.shape == (2, 4, 8)
+    assert scores.shape == (2, 4)
+    assert ((2 <= periods) & (periods <= 255)).all()

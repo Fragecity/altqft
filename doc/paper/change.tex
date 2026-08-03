@@ -233,22 +233,22 @@ The proposed \myqc~circuit family preserves an exponential growth trend of DFI o
     \includegraphics[width=\columnwidth]{shor_ph1_18q_p18-511_foundk_paper.pdf}
     \caption{\label{fig:recovery_pipeline}
     \textbf{Numerical simulation shows successful Shor factoring via \myqc-1 and neural net post-processing.}
-    (a) Validation loss, top-1 accuracy, and top-10 accuracy for neural-network period recovery on an 18-qubit instance.
+    (a) Validation loss, top-1 accuracy, and top-4 accuracy for neural-network period recovery on an 18-qubit instance.
     (b) Shor-type factorization on 18-qubit semiprime instances with \(N=225001,\ldots,254999\). Colour indicates the minimum number \(k\) of HP-\(1\)-based guesses needed for successful factorization, and grey entries indicate cases where no valid base $a$ yields a detectable period within the chosen bound.
 }
 \end{figure}
 
 \section{Efficient neural network for classical post-processing}To avoid the exponential costs associated with processing full probability distributions, we employ a poly($n$) Deep Sets neural network \cite{zaheer2017deep, edwards2016towards} to predict the hidden subgroup generator directly from the raw measurement outcomes $\{b_i\}$. The input data is generated using the optimized \myqc-1 circuit evaluated in Fig.~\ref{fig:fi_scaling}. 
 
-The outcomes are fed into a shared feature map \(\phi\), which maps each bitstring \(b_i\) to a feature vector within 2 linear layers and $16n$ feature dimension. The feature vectors are then summed to form an aggregated, permutation-invariant representation $\sum_i\phi(b_i)$. Subsequently, a beam-search decoder \cite{sutskever2014sequence, wiseman2016sequence} performs a top-$k$ search to rank candidate periods. We use polynomial samples $m = 1024n^2$ to train the neural net. This architecture avoids exponential sample-space computations and outputs a ranked list of candidate generators for classical verification.
+The outcomes are fed into a shared feature map \(\phi\), which maps each bitstring \(b_i\) to a feature vector within 2 linear layers and $16n$ feature dimension. The feature vectors are then summed to form an aggregated, permutation-invariant representation $\sum_i\phi(b_i)$. This representation conditions a parameter-shared autoregressive decoder for the binary expansion of the generator. At each decoding step the network emits 16 logits for the next four-bit block and globally retains the four highest-scoring prefixes in a beam search \cite{sutskever2014sequence, wiseman2016sequence}. Thus the decoder uses at most $\lceil n/4\rceil$ steps and has no output layer indexed by all candidate generators. We use polynomial samples $m = 1024n^2$ to train the neural net. The network size and beam-decoding cost are polynomial in $n$, and the resulting ranked list is passed to classical verification.
 
 \section{Replacing \texorpdfstring{$\mathcal{O}(n^2)$}{O(n2)} QFT with \texorpdfstring{$\mathcal{O}(n)$}{O(n)}\myqc{}-1 in Shor's Algorithm}We evaluate the optimized \myqc{}-1 circuit in classical numerical simulations of Shor's algorithm for factoring with neural net classical post-processing. Shor's algorithm seeks the generator $r$ satisfying $a^r \equiv 1 \pmod{N}$. We select the base $a$ such that $1 \le r \le 2^{n/2}$, ensuring resolvability by the $n$-qubit register. We consider factoring 18-qubit semiprime instances with \(N=225001,\ldots,254999\).
 
-The neural net trained successfully. As shown in Fig.~\ref{fig:recovery_pipeline}(a), the neural network achieves rapid convergence when trained on an 18-qubit instance. Both the top-1 (correct period ranked first) and top-10 accuracies increase swiftly within a few epochs.
+The neural net trained successfully. As shown in Fig.~\ref{fig:recovery_pipeline}(a), the neural network achieves rapid convergence when trained on an 18-qubit instance. Both the top-1 (correct period ranked first) and top-4 accuracies increase swiftly within a few epochs.
 
 The combined HP-1 and neural net protocol recovers the subgroup generator in the tested instances. As illustrated in Fig.~\ref{fig:recovery_pipeline}(b), each composite integer is colored by the minimum number of guesses $k$. Most solved instances are solved on the first attempt ($k=1$), and the remaining solved instances require $k=2$. 
 
-Fig.~\ref{fig:gate_noise_accuracy} reports the 18-qubit gate-level Pauli-noise sweep: top-1 accuracy drops from \(0.9059\) at \(10^{-3}\) to \(0.1412\) at \(10^{-1.5}\). Details are in Appendix~\ref{app:noise_robustness_details}.
+Fig.~\ref{fig:gate_noise_accuracy} reports the 18-qubit gate-level Pauli-noise sweep with the four-bit autoregressive decoder: the top-1 success rate drops from \(0.9627\) at \(10^{-3}\) to \(0.1314\) at \(10^{-1.5}\). Details are in Appendix~\ref{app:noise_robustness_details}.
 
 \section{Summary and outlook}We propose a hardware-efficient framework for solving the HSP by shallow, shift-invariant \myqc{}-1 circuits with a polynomial-scaling neural network. To verify the scalability of this protocol, we analyzed the growth model of the DFI. Finally, we evaluated our protocol on Shor's algorithm. The numerical simulations demonstrate that our approach successfully finds the hidden subgroup with high accuracy and remains robust against moderate depolarizing noise.
 

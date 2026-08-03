@@ -32,3 +32,30 @@ def test_build_metric_series_uses_configured_top_k_suffix() -> None:
     assert top1_values == [0.1, 0.2]
     assert topk_values == [0.3, 0.4]
     assert top_k == 10
+
+
+def test_build_metric_series_limits_max_epoch() -> None:
+    payload = {
+        "config": {"top_k": 4},
+        "history": [
+            {
+                "epoch": epoch,
+                "val_loss": 1.0 / epoch,
+                "val_top1": 0.1 * epoch,
+                "val_top4": 0.2 * epoch,
+            }
+            for epoch in range(1, 4)
+        ],
+    }
+
+    epochs, losses, top1_values, topk_values, top_k = build_metric_series(
+        payload,
+        "val",
+        max_epoch=2,
+    )
+
+    assert epochs == [1, 2]
+    assert losses == [1.0, 0.5]
+    assert top1_values == [0.1, 0.2]
+    assert topk_values == [0.2, 0.4]
+    assert top_k == 4

@@ -3,14 +3,16 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
 
 import numpy as np
 import torch
 from qiskit.quantum_info import Statevector
 
 from altqft.nn.optimized_ph1 import OptimizedPH1Artifact, ensure_optimized_ph1
-from altqft.nn.period_decoder import DeepSetPeriodPredictor
+from altqft.nn.period_decoder import (
+    DeepSetPeriodPredictor,
+    predictor_from_checkpoint,
+)
 from altqft.nn.periods import build_period_range, period_range_artifact_suffix
 from altqft.nn.process_qc import _apply_circuit_state
 
@@ -23,7 +25,7 @@ class PH1ShorConfig:
     period_min: int = 2
     period_max: int | None = None
     measurement_count: int = 16_384
-    top_k: int = 3
+    top_k: int = 4
     seed: int = 7
     model_dir: Path = Path("model")
     data_dir: Path = Path("data")
@@ -89,50 +91,53 @@ def _period_recovery_run_name(config: PH1ShorConfig) -> str:
     return base_name
 
 
+def _checkpoint_in_directory(directory: Path) -> Path | None:
+    for filename in ("selected.pt", "best.pt"):
+        checkpoint = directory / filename
+        if checkpoint.exists():
+            return checkpoint
+    return None
+
+
+def _matching_distribution_checkpoint(root: Path, prefix: str) -> Path | None:
+    for filename in ("selected.pt", "best.pt"):
+        matches = sorted(root.glob(f"{prefix}*/{filename}"))
+        if matches:
+            return matches[-1]
+    return None
+
+
 def _period_model_path(config: PH1ShorConfig) -> Path:
-    preferred_root = _artifact_root(config.model_dir, config.prefer_smoke_artifacts)
-    preferred = preferred_root / f"{_period_recovery_run_name(config)}.pt"
-    if preferred.exists():
-        return preferred
-    distribution_best = (
-        preferred_root / f"period_recovery_distribution_{config.nqubit}q"
+    distribution_stem = (
+        f"period_recovery_distribution_{config.nqubit}q"
         f"{period_range_artifact_suffix(config.nqubit, config.candidate_periods)}"
     )
-    if config.variant_tag:
-        distribution_best = Path(f"{distribution_best}_{config.variant_tag}")
-    distribution_best = distribution_best / "best.pt"
-    if distribution_best.exists():
-        return distribution_best
-    distribution_prefix = (
-        f"period_recovery_distribution_{config.nqubit}q"
-        f"{period_range_artifact_suffix(config.nqubit, config.candidate_periods)}_"
+    distribution_prefix = f"{distribution_stem}_"
+    roots = (
+        _artifact_root(config.model_dir, config.prefer_smoke_artifacts),
+        config.model_dir,
+        config.model_dir / "smoke",
     )
-    matching_distribution_best = sorted(
-        preferred_root.glob(f"{distribution_prefix}*/best.pt")
-    )
-    if matching_distribution_best:
-        return matching_distribution_best[-1]
-    fallback_roots = [config.model_dir, config.model_dir / "smoke"]
-    for root in fallback_roots:
-        candidate = root / f"{_period_recovery_run_name(config)}.pt"
-        if candidate.exists():
-            return candidate
-        distribution_candidate = (
-            root / f"period_recovery_distribution_{config.nqubit}q"
-            f"{period_range_artifact_suffix(config.nqubit, config.candidate_periods)}"
-        )
+    for root in dict.fromkeys(roots):
+        direct_checkpoint = root / f"{_period_recovery_run_name(config)}.pt"
+        if direct_checkpoint.exists():
+            return direct_checkpoint
+
+        distribution_directory = root / distribution_stem
         if config.variant_tag:
-            distribution_candidate = Path(f"{distribution_candidate}_{config.variant_tag}")
-        distribution_candidate = distribution_candidate / "best.pt"
-        if distribution_candidate.exists():
-            return distribution_candidate
-        matching_distribution_candidate = sorted(
-            root.glob(f"{distribution_prefix}*/best.pt")
-        )
-        if matching_distribution_candidate:
-            return matching_distribution_candidate[-1]
+            distribution_directory = Path(
+                f"{distribution_directory}_{config.variant_tag}"
+            )
+        checkpoint = _checkpoint_in_directory(distribution_directory)
+        if checkpoint is not None:
+            return checkpoint
+
+        checkpoint = _matching_distribution_checkpoint(root, distribution_prefix)
+        if checkpoint is not None:
+            return checkpoint
     raise FileNotFoundError(
-        f"no period recovery checkpoint found for {config.nqubit} qubits and period_range={list(config.candidate_periods)}"
+        f"no period recovery checkpoint found for {config.nqubit} qubits and "
+        f"period_range={list(config.candidate_periods)}"
     )
 
 
@@ -141,30 +146,14 @@ def _load_period_recovery_model(
 ) -> tuple[DeepSetPeriodPredictor, tuple[int, ...], Path]:
     checkpoint_path = _period_model_path(config)
     payload = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
-    candidate_periods = payload.get("candidate_periods")
-    state_dict = payload.get("state_dict")
-    if not isinstance(candidate_periods, list) or not all(
-        isinstance(value, int) for value in candidate_periods
-    ):
-        raise ValueError(f"invalid candidate_periods in {checkpoint_path}")
-    if not isinstance(state_dict, dict):
-        raise ValueError(f"invalid state_dict in {checkpoint_path}")
-
-    model_architecture = payload.get("model_architecture")
-    if model_architecture not in {"legacy", "weighted"}:
-        model_architecture = (
-            "weighted"
-            if any(str(key).startswith("bit_value_embedding") for key in state_dict)
-            else "legacy"
-        )
-    model = DeepSetPeriodPredictor(
-        config.nqubit,
-        len(candidate_periods),
-        architecture=cast(str, model_architecture),
+    if not isinstance(payload, dict):
+        raise ValueError(f"invalid checkpoint in {checkpoint_path}")
+    model, candidate_periods = predictor_from_checkpoint(
+        payload,
+        nqubit=config.nqubit,
     )
-    model.load_state_dict(cast(dict[str, torch.Tensor], state_dict))
     model.eval()
-    return model, tuple(candidate_periods), checkpoint_path
+    return model, candidate_periods, checkpoint_path
 
 
 def _modular_exponentiation_outputs(config: PH1ShorConfig) -> np.ndarray:
@@ -253,7 +242,8 @@ def _recover_factors_from_period(
     left = math.gcd(half_power - 1, N)
     right = math.gcd(half_power + 1, N)
     if 1 < left < N and 1 < right < N:
-        return tuple(sorted((left, right)))
+        smaller, larger = sorted((left, right))
+        return smaller, larger
     return None
 
 
