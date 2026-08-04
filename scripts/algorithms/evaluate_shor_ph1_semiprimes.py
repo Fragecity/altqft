@@ -14,6 +14,7 @@ DEFAULT_START = 11
 DEFAULT_STOP = 120
 DEFAULT_NQUBIT = 11
 DEFAULT_MEASUREMENT_COUNT = 32_768
+DEFAULT_MAX_PATTERNS = 8_192
 DEFAULT_TOP_K = 4
 DEFAULT_SEED = 7
 DEFAULT_FALLBACK_A = 13
@@ -63,6 +64,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=int,
         default=DEFAULT_MEASUREMENT_COUNT,
         help="PH1 computational-basis samples per case.",
+    )
+    parser.add_argument(
+        "--max-patterns",
+        type=int,
+        default=DEFAULT_MAX_PATTERNS,
+        help="Retain the largest sampled count patterns, matching decoder training.",
     )
     parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help="How many model-ranked periods to test.")
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="Shared RNG seed.")
@@ -342,6 +349,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"period_max={resolved_period_max} "
         f"candidate_period_count={len(candidate_periods)} "
         f"measurement_count={args.measurement_count} "
+        f"max_patterns={args.max_patterns} "
         f"top_k={args.top_k} "
         f"seed={args.seed} "
         f"default_a={args.default_a} "
@@ -398,6 +406,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 period_min=resolved_period_min,
                 period_max=resolved_period_max,
                 measurement_count=int(args.measurement_count),
+                max_patterns=int(args.max_patterns),
                 top_k=int(args.top_k),
                 seed=int(args.seed),
                 model_dir=Path(args.model_dir),
@@ -481,6 +490,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                         "period_min": resolved_period_min,
                         "period_max": resolved_period_max,
                         "measurement_count": int(args.measurement_count),
+                        "max_patterns": int(args.max_patterns),
                         "top_k": int(args.top_k),
                         "seed": int(args.seed),
                         "selection_source": selection_source,

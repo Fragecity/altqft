@@ -25,6 +25,7 @@ class PH1ShorConfig:
     period_min: int = 2
     period_max: int | None = None
     measurement_count: int = 16_384
+    max_patterns: int = 8_192
     top_k: int = 4
     seed: int = 7
     model_dir: Path = Path("model")
@@ -47,6 +48,8 @@ class PH1ShorConfig:
             raise ValueError("nqubit must be at least 2")
         if self.measurement_count < 1:
             raise ValueError("measurement_count must be positive")
+        if self.max_patterns < 1:
+            raise ValueError("max_patterns must be positive")
         if self.top_k < 1:
             raise ValueError("top_k must be positive")
         if self.N > 1 << self.nqubit:
@@ -222,8 +225,21 @@ def _sample_ph1_bitmatrix(
     return ((columns[:, None] >> bit_positions) & 1).astype(np.int8)
 
 
-def _compress_bitmatrix_counts(bitmatrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _compress_bitmatrix_counts(
+    bitmatrix: np.ndarray,
+    *,
+    max_patterns: int,
+) -> tuple[np.ndarray, np.ndarray]:
     patterns, counts = np.unique(bitmatrix, axis=0, return_counts=True)
+    if patterns.shape[0] > max_patterns:
+        # Match the decoder training pipeline: retain the largest count patterns.
+        _, selected = torch.topk(
+            torch.from_numpy(counts),
+            k=max_patterns,
+        )
+        selected_indices = selected.numpy()
+        patterns = patterns[selected_indices]
+        counts = counts[selected_indices]
     weights = counts.astype(np.float32)
     return patterns.astype(np.int8, copy=False), weights
 
@@ -302,7 +318,10 @@ def run_shor_with_ph1(config: PH1ShorConfig) -> PH1ShorResult:
     )
     bitmatrix = _sample_ph1_bitmatrix(config, collapsed_state, optimized_ph1)
 
-    compressed_bits, sample_weights = _compress_bitmatrix_counts(bitmatrix)
+    compressed_bits, sample_weights = _compress_bitmatrix_counts(
+        bitmatrix,
+        max_patterns=config.max_patterns,
+    )
     inputs = torch.from_numpy(compressed_bits).unsqueeze(0)
     weights = torch.from_numpy(sample_weights).unsqueeze(0)
     with torch.inference_mode():

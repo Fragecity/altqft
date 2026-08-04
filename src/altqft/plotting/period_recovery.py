@@ -12,9 +12,9 @@ DEFAULT_FIGURE_DIR = Path("figs/recover")
 DEFAULT_OUTPUT_SUFFIX = ".svg"
 DEFAULT_COMBINED_NQUBITS = (9, 10, 11)
 TITLE_FONT_SIZE = 24
-LABEL_FONT_SIZE = 21
-LEGEND_FONT_SIZE = 21
-TICK_FONT_SIZE = 18
+LABEL_FONT_SIZE = 23.5
+LEGEND_FONT_SIZE = 23.5
+TICK_FONT_SIZE = 20
 GROUP_COLORS: dict[int, dict[str, str]] = {
     9: {
         "loss": "#1d4ed8",
@@ -217,7 +217,7 @@ def plot_history(
             epochs,
             losses,
             color=palette["loss"],
-            linewidth=2.2,
+            linewidth=2.8,
             linestyle=METRIC_LINESTYLES["loss"],
             label=f"{run_label} loss",
         )[0]
@@ -225,7 +225,7 @@ def plot_history(
             epochs,
             top1_values,
             color=palette["top1"],
-            linewidth=2.0,
+            linewidth=2.6,
             linestyle=METRIC_LINESTYLES["top1"],
             label=f"{run_label} top1 accuracy",
         )[0]
@@ -233,7 +233,7 @@ def plot_history(
             epochs,
             topk_values,
             color=palette["topk"],
-            linewidth=2.0,
+            linewidth=2.6,
             linestyle=METRIC_LINESTYLES["topk"],
             label=f"{run_label} top{top_k} accuracy",
         )[0]

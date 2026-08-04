@@ -8,21 +8,27 @@
     "rows": 56,
     "figure_width": 7.2,
     "figure_height": 3.15,
-    "header_font_size": 8.4,
-    "tick_font_size": 6.8,
-    "legend_font_size": 7.4,
+    "header_font_size": 16.8,
+    "tick_font_size": 13.6,
+    "legend_font_size": 14.8,
     "source_results": "data/shor_ph1_18q_p18-511_semiprimes_100000-280000_results_grouped.json",
     "source_selection": "data/shor_ph1_18q_p18-511_semiprimes_100000-280000_a.json",
     "legend_anchor_y": -0.095,
     "show_header": false,
-    "top_margin": 0.28
+    "top_margin": 0.28,
+    "decoder": "four-bit autoregressive nibble decoder",
+    "decoder_checkpoint": "model/period_recovery_distribution_18q_p2-511_nibble_ddp/selected.pt",
+    "decoder_beam_width": 4,
+    "measurement_count": 331776,
+    "max_patterns": 8192,
+    "evaluation_preprocessing": "top-count pattern truncation, matching decoder training",
+    "evaluation_grouping": "true-period and sampled-support-shift groups"
   },
   "summary": {
     "total_cells": 6405,
     "found": 4641,
     "found_k_counts": {
-      "1": 3590,
-      "2": 1051
+      "1": 4641
     },
     "no_suitable_a": 1764,
     "failed": 0
@@ -116,7 +122,7 @@
     {
       "N": 225073,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225083,
@@ -136,7 +142,7 @@
     {
       "N": 225097,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225101,
@@ -176,12 +182,12 @@
     {
       "N": 225123,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225139,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225142,
@@ -211,7 +217,7 @@
     {
       "N": 225173,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225178,
@@ -226,7 +232,7 @@
     {
       "N": 225187,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225191,
@@ -281,7 +287,7 @@
     {
       "N": 225247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225249,
@@ -296,7 +302,7 @@
     {
       "N": 225259,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225265,
@@ -461,17 +467,17 @@
     {
       "N": 225433,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225439,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225443,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225447,
@@ -481,7 +487,7 @@
     {
       "N": 225451,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225469,
@@ -506,7 +512,7 @@
     {
       "N": 225483,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225487,
@@ -541,7 +547,7 @@
     {
       "N": 225517,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225518,
@@ -561,7 +567,7 @@
     {
       "N": 225541,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225542,
@@ -571,7 +577,7 @@
     {
       "N": 225543,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225551,
@@ -591,17 +597,17 @@
     {
       "N": 225559,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225563,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225571,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225574,
@@ -636,12 +642,12 @@
     {
       "N": 225599,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225605,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225614,
@@ -651,7 +657,7 @@
     {
       "N": 225623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225627,
@@ -676,7 +682,7 @@
     {
       "N": 225647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225651,
@@ -691,7 +697,7 @@
     {
       "N": 225655,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225659,
@@ -731,7 +737,7 @@
     {
       "N": 225681,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225685,
@@ -806,12 +812,12 @@
     {
       "N": 225761,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225763,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225773,
@@ -821,7 +827,7 @@
     {
       "N": 225787,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225791,
@@ -871,7 +877,7 @@
     {
       "N": 225827,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225831,
@@ -881,7 +887,7 @@
     {
       "N": 225833,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225838,
@@ -901,7 +907,7 @@
     {
       "N": 225851,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225853,
@@ -921,7 +927,7 @@
     {
       "N": 225863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225867,
@@ -1001,17 +1007,17 @@
     {
       "N": 225937,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225947,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225955,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 225958,
@@ -1076,7 +1082,7 @@
     {
       "N": 226019,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226022,
@@ -1096,7 +1102,7 @@
     {
       "N": 226039,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226041,
@@ -1226,12 +1232,12 @@
     {
       "N": 226139,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226147,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226153,
@@ -1301,12 +1307,12 @@
     {
       "N": 226203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226207,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226209,
@@ -1321,7 +1327,7 @@
     {
       "N": 226213,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226221,
@@ -1336,7 +1342,7 @@
     {
       "N": 226223,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226234,
@@ -1351,7 +1357,7 @@
     {
       "N": 226243,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226246,
@@ -1361,7 +1367,7 @@
     {
       "N": 226247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226249,
@@ -1391,7 +1397,7 @@
     {
       "N": 226273,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226277,
@@ -1401,7 +1407,7 @@
     {
       "N": 226279,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226286,
@@ -1516,7 +1522,7 @@
     {
       "N": 226351,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226354,
@@ -1526,12 +1532,12 @@
     {
       "N": 226361,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226363,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226378,
@@ -1541,7 +1547,7 @@
     {
       "N": 226387,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226399,
@@ -1551,7 +1557,7 @@
     {
       "N": 226405,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226411,
@@ -1561,7 +1567,7 @@
     {
       "N": 226417,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226418,
@@ -1696,7 +1702,7 @@
     {
       "N": 226543,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226558,
@@ -1716,7 +1722,7 @@
     {
       "N": 226563,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226573,
@@ -1776,7 +1782,7 @@
     {
       "N": 226603,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226607,
@@ -1796,12 +1802,12 @@
     {
       "N": 226623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226627,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226639,
@@ -1831,7 +1837,7 @@
     {
       "N": 226667,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226671,
@@ -1871,7 +1877,7 @@
     {
       "N": 226705,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226711,
@@ -1941,7 +1947,7 @@
     {
       "N": 226747,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226749,
@@ -1976,12 +1982,12 @@
     {
       "N": 226771,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226781,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226801,
@@ -2041,7 +2047,7 @@
     {
       "N": 226859,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226861,
@@ -2116,7 +2122,7 @@
     {
       "N": 226923,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226927,
@@ -2151,7 +2157,7 @@
     {
       "N": 226951,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226957,
@@ -2176,7 +2182,7 @@
     {
       "N": 226973,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 226977,
@@ -2236,7 +2242,7 @@
     {
       "N": 227023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227026,
@@ -2261,7 +2267,7 @@
     {
       "N": 227039,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227041,
@@ -2281,7 +2287,7 @@
     {
       "N": 227051,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227057,
@@ -2326,12 +2332,12 @@
     {
       "N": 227083,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227087,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227101,
@@ -2366,7 +2372,7 @@
     {
       "N": 227123,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227127,
@@ -2391,7 +2397,7 @@
     {
       "N": 227163,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227165,
@@ -2471,7 +2477,7 @@
     {
       "N": 227243,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227246,
@@ -2496,7 +2502,7 @@
     {
       "N": 227287,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227291,
@@ -2546,7 +2552,7 @@
     {
       "N": 227323,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227327,
@@ -2556,7 +2562,7 @@
     {
       "N": 227329,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227333,
@@ -2611,12 +2617,12 @@
     {
       "N": 227383,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227389,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227391,
@@ -2631,7 +2637,7 @@
     {
       "N": 227405,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227411,
@@ -2646,7 +2652,7 @@
     {
       "N": 227417,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227429,
@@ -2686,7 +2692,7 @@
     {
       "N": 227455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227461,
@@ -2701,12 +2707,12 @@
     {
       "N": 227463,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227477,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227479,
@@ -2726,7 +2732,7 @@
     {
       "N": 227491,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227498,
@@ -2741,7 +2747,7 @@
     {
       "N": 227503,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227515,
@@ -2836,7 +2842,7 @@
     {
       "N": 227623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227638,
@@ -2851,7 +2857,7 @@
     {
       "N": 227641,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227649,
@@ -2881,7 +2887,7 @@
     {
       "N": 227683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227686,
@@ -2906,7 +2912,7 @@
     {
       "N": 227713,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227717,
@@ -3026,7 +3032,7 @@
     {
       "N": 227807,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227811,
@@ -3046,12 +3052,12 @@
     {
       "N": 227819,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227823,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227831,
@@ -3066,12 +3072,12 @@
     {
       "N": 227837,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227839,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227842,
@@ -3091,7 +3097,7 @@
     {
       "N": 227863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227866,
@@ -3111,7 +3117,7 @@
     {
       "N": 227887,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227891,
@@ -3126,7 +3132,7 @@
     {
       "N": 227897,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227901,
@@ -3146,7 +3152,7 @@
     {
       "N": 227917,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227921,
@@ -3166,12 +3172,12 @@
     {
       "N": 227927,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227933,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227935,
@@ -3201,7 +3207,7 @@
     {
       "N": 227945,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227949,
@@ -3216,7 +3222,7 @@
     {
       "N": 227963,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 227966,
@@ -3271,7 +3277,7 @@
     {
       "N": 228003,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228007,
@@ -3326,7 +3332,7 @@
     {
       "N": 228047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228053,
@@ -3346,7 +3352,7 @@
     {
       "N": 228071,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228073,
@@ -3356,7 +3362,7 @@
     {
       "N": 228079,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228082,
@@ -3446,7 +3452,7 @@
     {
       "N": 228157,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228161,
@@ -3471,7 +3477,7 @@
     {
       "N": 228169,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228173,
@@ -3491,7 +3497,7 @@
     {
       "N": 228205,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228209,
@@ -3516,7 +3522,7 @@
     {
       "N": 228227,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228229,
@@ -3531,12 +3537,12 @@
     {
       "N": 228239,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228243,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228263,
@@ -3561,7 +3567,7 @@
     {
       "N": 228283,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228286,
@@ -3616,7 +3622,7 @@
     {
       "N": 228329,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228334,
@@ -3636,7 +3642,7 @@
     {
       "N": 228347,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228349,
@@ -3711,7 +3717,7 @@
     {
       "N": 228407,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228413,
@@ -3736,7 +3742,7 @@
     {
       "N": 228439,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228441,
@@ -3756,7 +3762,7 @@
     {
       "N": 228455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228458,
@@ -3801,12 +3807,12 @@
     {
       "N": 228493,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228497,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228499,
@@ -3836,7 +3842,7 @@
     {
       "N": 228533,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228535,
@@ -3856,7 +3862,7 @@
     {
       "N": 228553,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228554,
@@ -3916,7 +3922,7 @@
     {
       "N": 228643,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228649,
@@ -3946,7 +3952,7 @@
     {
       "N": 228667,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228671,
@@ -3961,7 +3967,7 @@
     {
       "N": 228679,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228685,
@@ -3976,7 +3982,7 @@
     {
       "N": 228691,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228693,
@@ -3991,7 +3997,7 @@
     {
       "N": 228719,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228721,
@@ -4031,7 +4037,7 @@
     {
       "N": 228755,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228759,
@@ -4046,12 +4052,12 @@
     {
       "N": 228763,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228769,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228777,
@@ -4066,7 +4072,7 @@
     {
       "N": 228783,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228785,
@@ -4096,7 +4102,7 @@
     {
       "N": 228815,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228817,
@@ -4231,12 +4237,12 @@
     {
       "N": 228967,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228971,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228973,
@@ -4251,7 +4257,7 @@
     {
       "N": 228979,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 228986,
@@ -4291,7 +4297,7 @@
     {
       "N": 229039,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229043,
@@ -4331,7 +4337,7 @@
     {
       "N": 229087,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229091,
@@ -4356,7 +4362,7 @@
     {
       "N": 229105,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229106,
@@ -4386,7 +4392,7 @@
     {
       "N": 229129,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229135,
@@ -4431,7 +4437,7 @@
     {
       "N": 229183,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229186,
@@ -4476,7 +4482,7 @@
     {
       "N": 229231,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229234,
@@ -4496,12 +4502,12 @@
     {
       "N": 229259,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229263,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229265,
@@ -4586,7 +4592,7 @@
     {
       "N": 229323,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229331,
@@ -4601,7 +4607,7 @@
     {
       "N": 229339,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229342,
@@ -4636,7 +4642,7 @@
     {
       "N": 229367,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229378,
@@ -4666,7 +4672,7 @@
     {
       "N": 229391,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229397,
@@ -4686,7 +4692,7 @@
     {
       "N": 229421,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229426,
@@ -4696,7 +4702,7 @@
     {
       "N": 229427,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229429,
@@ -4716,7 +4722,7 @@
     {
       "N": 229443,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229447,
@@ -4851,7 +4857,7 @@
     {
       "N": 229573,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229579,
@@ -4876,12 +4882,12 @@
     {
       "N": 229603,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229607,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229611,
@@ -4901,7 +4907,7 @@
     {
       "N": 229623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229629,
@@ -4916,7 +4922,7 @@
     {
       "N": 229643,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229651,
@@ -4956,12 +4962,12 @@
     {
       "N": 229673,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229694,
@@ -5031,7 +5037,7 @@
     {
       "N": 229787,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229791,
@@ -5096,12 +5102,12 @@
     {
       "N": 229853,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229855,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229861,
@@ -5111,7 +5117,7 @@
     {
       "N": 229867,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229871,
@@ -5171,7 +5177,7 @@
     {
       "N": 229909,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229913,
@@ -5241,7 +5247,7 @@
     {
       "N": 229987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 229991,
@@ -5306,7 +5312,7 @@
     {
       "N": 230039,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230042,
@@ -5351,7 +5357,7 @@
     {
       "N": 230105,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230114,
@@ -5361,7 +5367,7 @@
     {
       "N": 230119,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230122,
@@ -5376,7 +5382,7 @@
     {
       "N": 230131,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230134,
@@ -5431,7 +5437,7 @@
     {
       "N": 230183,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230191,
@@ -5466,7 +5472,7 @@
     {
       "N": 230219,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230234,
@@ -5496,7 +5502,7 @@
     {
       "N": 230255,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230259,
@@ -5531,7 +5537,7 @@
     {
       "N": 230287,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230302,
@@ -5581,7 +5587,7 @@
     {
       "N": 230343,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230359,
@@ -5616,7 +5622,7 @@
     {
       "N": 230381,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230401,
@@ -5631,7 +5637,7 @@
     {
       "N": 230403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230407,
@@ -5661,7 +5667,7 @@
     {
       "N": 230423,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230429,
@@ -5686,7 +5692,7 @@
     {
       "N": 230455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230457,
@@ -5776,7 +5782,7 @@
     {
       "N": 230519,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230521,
@@ -5801,7 +5807,7 @@
     {
       "N": 230543,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230549,
@@ -5831,7 +5837,7 @@
     {
       "N": 230579,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230581,
@@ -5856,7 +5862,7 @@
     {
       "N": 230599,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230602,
@@ -5891,12 +5897,12 @@
     {
       "N": 230623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230627,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230638,
@@ -5966,7 +5972,7 @@
     {
       "N": 230689,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230699,
@@ -5976,7 +5982,7 @@
     {
       "N": 230701,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230705,
@@ -6061,7 +6067,7 @@
     {
       "N": 230791,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230797,
@@ -6081,7 +6087,7 @@
     {
       "N": 230803,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230809,
@@ -6146,7 +6152,7 @@
     {
       "N": 230883,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230887,
@@ -6161,7 +6167,7 @@
     {
       "N": 230893,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230897,
@@ -6226,7 +6232,7 @@
     {
       "N": 230947,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230951,
@@ -6236,12 +6242,12 @@
     {
       "N": 230957,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230963,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 230973,
@@ -6286,7 +6292,7 @@
     {
       "N": 231011,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231026,
@@ -6431,7 +6437,7 @@
     {
       "N": 231143,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231145,
@@ -6466,7 +6472,7 @@
     {
       "N": 231167,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231178,
@@ -6491,7 +6497,7 @@
     {
       "N": 231187,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231191,
@@ -6511,7 +6517,7 @@
     {
       "N": 231199,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231202,
@@ -6541,7 +6547,7 @@
     {
       "N": 231221,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231226,
@@ -6571,12 +6577,12 @@
     {
       "N": 231243,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231253,
@@ -6601,7 +6607,7 @@
     {
       "N": 231263,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231274,
@@ -6616,17 +6622,17 @@
     {
       "N": 231281,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231283,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231303,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231305,
@@ -6671,7 +6677,7 @@
     {
       "N": 231355,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231358,
@@ -6691,7 +6697,7 @@
     {
       "N": 231373,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231377,
@@ -6701,7 +6707,7 @@
     {
       "N": 231383,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231386,
@@ -6726,7 +6732,7 @@
     {
       "N": 231403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231411,
@@ -6741,7 +6747,7 @@
     {
       "N": 231423,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231437,
@@ -6756,7 +6762,7 @@
     {
       "N": 231457,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231459,
@@ -6771,7 +6777,7 @@
     {
       "N": 231467,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231482,
@@ -6786,7 +6792,7 @@
     {
       "N": 231491,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231497,
@@ -6811,7 +6817,7 @@
     {
       "N": 231505,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231509,
@@ -6851,7 +6857,7 @@
     {
       "N": 231527,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231535,
@@ -6921,12 +6927,12 @@
     {
       "N": 231593,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231603,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231614,
@@ -6936,7 +6942,7 @@
     {
       "N": 231617,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231619,
@@ -7006,7 +7012,7 @@
     {
       "N": 231683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231685,
@@ -7021,7 +7027,7 @@
     {
       "N": 231691,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231697,
@@ -7036,7 +7042,7 @@
     {
       "N": 231703,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231706,
@@ -7151,7 +7157,7 @@
     {
       "N": 231767,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231769,
@@ -7171,12 +7177,12 @@
     {
       "N": 231783,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231787,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231789,
@@ -7191,7 +7197,7 @@
     {
       "N": 231793,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231797,
@@ -7221,7 +7227,7 @@
     {
       "N": 231811,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231817,
@@ -7231,7 +7237,7 @@
     {
       "N": 231833,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231837,
@@ -7276,12 +7282,12 @@
     {
       "N": 231883,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231887,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231899,
@@ -7291,7 +7297,7 @@
     {
       "N": 231905,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231907,
@@ -7301,7 +7307,7 @@
     {
       "N": 231911,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231926,
@@ -7316,7 +7322,7 @@
     {
       "N": 231937,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231941,
@@ -7366,12 +7372,12 @@
     {
       "N": 231979,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231983,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 231989,
@@ -7391,7 +7397,7 @@
     {
       "N": 231997,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232009,
@@ -7411,7 +7417,7 @@
     {
       "N": 232019,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232021,
@@ -7426,7 +7432,7 @@
     {
       "N": 232031,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232033,
@@ -7461,7 +7467,7 @@
     {
       "N": 232055,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232057,
@@ -7476,7 +7482,7 @@
     {
       "N": 232063,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232069,
@@ -7516,7 +7522,7 @@
     {
       "N": 232111,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232121,
@@ -7526,7 +7532,7 @@
     {
       "N": 232127,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232131,
@@ -7671,7 +7677,7 @@
     {
       "N": 232255,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232257,
@@ -7691,7 +7697,7 @@
     {
       "N": 232267,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232273,
@@ -7766,7 +7772,7 @@
     {
       "N": 232331,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232334,
@@ -7786,7 +7792,7 @@
     {
       "N": 232343,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232354,
@@ -7796,7 +7802,7 @@
     {
       "N": 232355,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232361,
@@ -7831,7 +7837,7 @@
     {
       "N": 232387,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232393,
@@ -7871,7 +7877,7 @@
     {
       "N": 232429,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232431,
@@ -7891,17 +7897,17 @@
     {
       "N": 232447,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232453,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232467,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232469,
@@ -7931,7 +7937,7 @@
     {
       "N": 232483,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232486,
@@ -7966,7 +7972,7 @@
     {
       "N": 232517,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232527,
@@ -8021,7 +8027,7 @@
     {
       "N": 232555,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232558,
@@ -8041,7 +8047,7 @@
     {
       "N": 232563,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232573,
@@ -8066,7 +8072,7 @@
     {
       "N": 232583,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232586,
@@ -8111,7 +8117,7 @@
     {
       "N": 232639,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232647,
@@ -8136,7 +8142,7 @@
     {
       "N": 232657,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232658,
@@ -8206,12 +8212,12 @@
     {
       "N": 232723,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232727,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232729,
@@ -8241,7 +8247,7 @@
     {
       "N": 232747,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232759,
@@ -8286,7 +8292,7 @@
     {
       "N": 232787,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232789,
@@ -8361,7 +8367,7 @@
     {
       "N": 232863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232865,
@@ -8371,12 +8377,12 @@
     {
       "N": 232867,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232873,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232874,
@@ -8386,7 +8392,7 @@
     {
       "N": 232879,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232886,
@@ -8421,7 +8427,7 @@
     {
       "N": 232923,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232927,
@@ -8466,7 +8472,7 @@
     {
       "N": 232955,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232966,
@@ -8481,7 +8487,7 @@
     {
       "N": 232973,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 232977,
@@ -8511,12 +8517,12 @@
     {
       "N": 232999,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233003,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233005,
@@ -8551,7 +8557,7 @@
     {
       "N": 233027,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233029,
@@ -8576,12 +8582,12 @@
     {
       "N": 233043,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233053,
@@ -8641,12 +8647,12 @@
     {
       "N": 233081,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233087,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233095,
@@ -8691,7 +8697,7 @@
     {
       "N": 233123,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233131,
@@ -8751,7 +8757,7 @@
     {
       "N": 233179,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233186,
@@ -8776,7 +8782,7 @@
     {
       "N": 233203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233207,
@@ -8786,7 +8792,7 @@
     {
       "N": 233209,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233213,
@@ -8821,7 +8827,7 @@
     {
       "N": 233243,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233245,
@@ -8836,7 +8842,7 @@
     {
       "N": 233257,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233263,
@@ -8846,7 +8852,7 @@
     {
       "N": 233269,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233273,
@@ -8921,7 +8927,7 @@
     {
       "N": 233333,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233339,
@@ -8981,7 +8987,7 @@
     {
       "N": 233399,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233401,
@@ -8991,7 +8997,7 @@
     {
       "N": 233403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233405,
@@ -9001,12 +9007,12 @@
     {
       "N": 233411,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233413,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233414,
@@ -9021,7 +9027,7 @@
     {
       "N": 233431,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233435,
@@ -9056,7 +9062,7 @@
     {
       "N": 233455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233459,
@@ -9161,7 +9167,7 @@
     {
       "N": 233539,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233543,
@@ -9241,7 +9247,7 @@
     {
       "N": 233623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233627,
@@ -9271,7 +9277,7 @@
     {
       "N": 233647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233654,
@@ -9366,7 +9372,7 @@
     {
       "N": 233741,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233749,
@@ -9376,12 +9382,12 @@
     {
       "N": 233753,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233755,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233762,
@@ -9391,12 +9397,12 @@
     {
       "N": 233767,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233771,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233773,
@@ -9416,7 +9422,7 @@
     {
       "N": 233789,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233791,
@@ -9441,12 +9447,12 @@
     {
       "N": 233809,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233813,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233819,
@@ -9501,7 +9507,7 @@
     {
       "N": 233855,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233857,
@@ -9526,7 +9532,7 @@
     {
       "N": 233867,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233869,
@@ -9586,7 +9592,7 @@
     {
       "N": 233929,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233931,
@@ -9621,7 +9627,7 @@
     {
       "N": 233959,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233962,
@@ -9631,7 +9637,7 @@
     {
       "N": 233963,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 233971,
@@ -9666,7 +9672,7 @@
     {
       "N": 233999,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234001,
@@ -9676,12 +9682,12 @@
     {
       "N": 234011,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234019,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234021,
@@ -9696,7 +9702,7 @@
     {
       "N": 234035,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234037,
@@ -9731,12 +9737,12 @@
     {
       "N": 234053,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234055,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234071,
@@ -9756,7 +9762,7 @@
     {
       "N": 234079,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234082,
@@ -9811,12 +9817,12 @@
     {
       "N": 234123,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234127,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234133,
@@ -9846,17 +9852,17 @@
     {
       "N": 234151,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234155,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234163,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234169,
@@ -9891,7 +9897,7 @@
     {
       "N": 234227,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234229,
@@ -9946,7 +9952,7 @@
     {
       "N": 234277,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234283,
@@ -9956,12 +9962,12 @@
     {
       "N": 234303,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234305,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234307,
@@ -9971,7 +9977,7 @@
     {
       "N": 234313,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234326,
@@ -10001,7 +10007,7 @@
     {
       "N": 234349,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234353,
@@ -10011,7 +10017,7 @@
     {
       "N": 234359,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234363,
@@ -10021,7 +10027,7 @@
     {
       "N": 234371,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234373,
@@ -10056,7 +10062,7 @@
     {
       "N": 234397,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234401,
@@ -10161,7 +10167,7 @@
     {
       "N": 234487,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234489,
@@ -10176,7 +10182,7 @@
     {
       "N": 234497,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234501,
@@ -10191,12 +10197,12 @@
     {
       "N": 234503,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234505,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234509,
@@ -10341,12 +10347,12 @@
     {
       "N": 234647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234649,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234658,
@@ -10366,7 +10372,7 @@
     {
       "N": 234667,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234671,
@@ -10381,7 +10387,7 @@
     {
       "N": 234679,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234687,
@@ -10431,7 +10437,7 @@
     {
       "N": 234723,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234731,
@@ -10441,7 +10447,7 @@
     {
       "N": 234739,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234742,
@@ -10456,7 +10462,7 @@
     {
       "N": 234751,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234757,
@@ -10466,7 +10472,7 @@
     {
       "N": 234763,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234767,
@@ -10576,7 +10582,7 @@
     {
       "N": 234887,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234901,
@@ -10591,7 +10597,7 @@
     {
       "N": 234911,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234919,
@@ -10626,7 +10632,7 @@
     {
       "N": 234943,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 234951,
@@ -10691,7 +10697,7 @@
     {
       "N": 235023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235031,
@@ -10731,12 +10737,12 @@
     {
       "N": 235063,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235067,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235073,
@@ -10801,7 +10807,7 @@
     {
       "N": 235127,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235129,
@@ -10831,12 +10837,12 @@
     {
       "N": 235147,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235153,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235154,
@@ -10881,7 +10887,7 @@
     {
       "N": 235203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235205,
@@ -10891,7 +10897,7 @@
     {
       "N": 235207,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235213,
@@ -10901,12 +10907,12 @@
     {
       "N": 235217,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235219,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235223,
@@ -10931,7 +10937,7 @@
     {
       "N": 235247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235253,
@@ -10941,12 +10947,12 @@
     {
       "N": 235255,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235259,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235261,
@@ -10991,7 +10997,7 @@
     {
       "N": 235297,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235301,
@@ -11056,7 +11062,7 @@
     {
       "N": 235351,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235357,
@@ -11081,12 +11087,12 @@
     {
       "N": 235367,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235373,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235379,
@@ -11096,12 +11102,12 @@
     {
       "N": 235381,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235387,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235393,
@@ -11136,7 +11142,7 @@
     {
       "N": 235411,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235418,
@@ -11181,7 +11187,7 @@
     {
       "N": 235453,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235454,
@@ -11191,7 +11197,7 @@
     {
       "N": 235457,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235459,
@@ -11236,7 +11242,7 @@
     {
       "N": 235487,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235491,
@@ -11311,7 +11317,7 @@
     {
       "N": 235555,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235558,
@@ -11331,7 +11337,7 @@
     {
       "N": 235573,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235574,
@@ -11406,12 +11412,12 @@
     {
       "N": 235623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235633,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235639,
@@ -11421,7 +11427,7 @@
     {
       "N": 235643,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235645,
@@ -11496,7 +11502,7 @@
     {
       "N": 235703,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235707,
@@ -11506,7 +11512,7 @@
     {
       "N": 235709,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235713,
@@ -11571,7 +11577,7 @@
     {
       "N": 235759,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235762,
@@ -11581,7 +11587,7 @@
     {
       "N": 235763,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235766,
@@ -11601,7 +11607,7 @@
     {
       "N": 235777,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235778,
@@ -11716,7 +11722,7 @@
     {
       "N": 235903,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235909,
@@ -11801,7 +11807,7 @@
     {
       "N": 235969,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235978,
@@ -11821,7 +11827,7 @@
     {
       "N": 235987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 235991,
@@ -11866,7 +11872,7 @@
     {
       "N": 236047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236051,
@@ -11881,7 +11887,7 @@
     {
       "N": 236059,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236066,
@@ -11921,7 +11927,7 @@
     {
       "N": 236099,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236101,
@@ -11936,7 +11942,7 @@
     {
       "N": 236105,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236114,
@@ -11991,7 +11997,7 @@
     {
       "N": 236163,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236173,
@@ -12026,7 +12032,7 @@
     {
       "N": 236191,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236197,
@@ -12061,12 +12067,12 @@
     {
       "N": 236237,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236239,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236243,
@@ -12076,7 +12082,7 @@
     {
       "N": 236251,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236254,
@@ -12101,7 +12107,7 @@
     {
       "N": 236267,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236273,
@@ -12121,7 +12127,7 @@
     {
       "N": 236291,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236294,
@@ -12131,7 +12137,7 @@
     {
       "N": 236299,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236303,
@@ -12151,7 +12157,7 @@
     {
       "N": 236317,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236326,
@@ -12176,7 +12182,7 @@
     {
       "N": 236343,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236345,
@@ -12206,7 +12212,7 @@
     {
       "N": 236359,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236361,
@@ -12271,7 +12277,7 @@
     {
       "N": 236413,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236419,
@@ -12321,7 +12327,7 @@
     {
       "N": 236459,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236465,
@@ -12341,7 +12347,7 @@
     {
       "N": 236483,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236485,
@@ -12366,7 +12372,7 @@
     {
       "N": 236497,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236498,
@@ -12426,7 +12432,7 @@
     {
       "N": 236543,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236545,
@@ -12501,12 +12507,12 @@
     {
       "N": 236597,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236603,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236617,
@@ -12541,7 +12547,7 @@
     {
       "N": 236657,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236661,
@@ -12561,12 +12567,12 @@
     {
       "N": 236669,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236671,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236677,
@@ -12591,7 +12597,7 @@
     {
       "N": 236687,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236689,
@@ -12606,7 +12612,7 @@
     {
       "N": 236703,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236711,
@@ -12621,7 +12627,7 @@
     {
       "N": 236731,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236738,
@@ -12631,12 +12637,12 @@
     {
       "N": 236741,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236743,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236746,
@@ -12651,7 +12657,7 @@
     {
       "N": 236755,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236757,
@@ -12676,7 +12682,7 @@
     {
       "N": 236777,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236787,
@@ -12741,12 +12747,12 @@
     {
       "N": 236823,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236827,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236833,
@@ -12796,12 +12802,12 @@
     {
       "N": 236903,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236905,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236906,
@@ -12821,7 +12827,7 @@
     {
       "N": 236923,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236926,
@@ -12881,7 +12887,7 @@
     {
       "N": 236959,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236967,
@@ -12911,7 +12917,7 @@
     {
       "N": 236989,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 236999,
@@ -12931,7 +12937,7 @@
     {
       "N": 237023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237029,
@@ -12956,7 +12962,7 @@
     {
       "N": 237047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237049,
@@ -12976,7 +12982,7 @@
     {
       "N": 237079,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237085,
@@ -13016,7 +13022,7 @@
     {
       "N": 237103,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237109,
@@ -13036,17 +13042,17 @@
     {
       "N": 237119,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237121,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237127,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237129,
@@ -13141,7 +13147,7 @@
     {
       "N": 237227,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237229,
@@ -13156,7 +13162,7 @@
     {
       "N": 237239,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237241,
@@ -13171,7 +13177,7 @@
     {
       "N": 237247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237251,
@@ -13186,7 +13192,7 @@
     {
       "N": 237259,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237261,
@@ -13196,7 +13202,7 @@
     {
       "N": 237263,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237266,
@@ -13216,7 +13222,7 @@
     {
       "N": 237299,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237309,
@@ -13271,7 +13277,7 @@
     {
       "N": 237347,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237353,
@@ -13311,7 +13317,7 @@
     {
       "N": 237383,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237389,
@@ -13331,7 +13337,7 @@
     {
       "N": 237403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237407,
@@ -13356,12 +13362,12 @@
     {
       "N": 237427,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237431,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237434,
@@ -13396,7 +13402,7 @@
     {
       "N": 237451,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237453,
@@ -13406,7 +13412,7 @@
     {
       "N": 237455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237457,
@@ -13426,7 +13432,7 @@
     {
       "N": 237463,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237469,
@@ -13446,7 +13452,7 @@
     {
       "N": 237479,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237485,
@@ -13456,7 +13462,7 @@
     {
       "N": 237493,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237494,
@@ -13481,7 +13487,7 @@
     {
       "N": 237505,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237511,
@@ -13526,7 +13532,7 @@
     {
       "N": 237543,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237551,
@@ -13576,12 +13582,12 @@
     {
       "N": 237583,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237587,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237589,
@@ -13661,7 +13667,7 @@
     {
       "N": 237647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237649,
@@ -13701,7 +13707,7 @@
     {
       "N": 237687,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237693,
@@ -13731,7 +13737,7 @@
     {
       "N": 237719,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237721,
@@ -13746,12 +13752,12 @@
     {
       "N": 237723,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237727,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237731,
@@ -13766,7 +13772,7 @@
     {
       "N": 237743,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237746,
@@ -13811,12 +13817,12 @@
     {
       "N": 237787,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237793,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237794,
@@ -13891,7 +13897,7 @@
     {
       "N": 237841,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237845,
@@ -13916,7 +13922,7 @@
     {
       "N": 237863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237869,
@@ -13936,17 +13942,17 @@
     {
       "N": 237893,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237903,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237905,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237907,
@@ -13956,7 +13962,7 @@
     {
       "N": 237913,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237927,
@@ -13996,7 +14002,7 @@
     {
       "N": 237955,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 237957,
@@ -14051,7 +14057,7 @@
     {
       "N": 238043,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238045,
@@ -14071,7 +14077,7 @@
     {
       "N": 238057,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238061,
@@ -14086,7 +14092,7 @@
     {
       "N": 238067,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238069,
@@ -14106,7 +14112,7 @@
     {
       "N": 238087,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238094,
@@ -14116,7 +14122,7 @@
     {
       "N": 238097,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238101,
@@ -14126,7 +14132,7 @@
     {
       "N": 238111,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238114,
@@ -14171,7 +14177,7 @@
     {
       "N": 238139,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238145,
@@ -14206,7 +14212,7 @@
     {
       "N": 238187,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238191,
@@ -14216,7 +14222,7 @@
     {
       "N": 238193,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238195,
@@ -14256,7 +14262,7 @@
     {
       "N": 238219,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238231,
@@ -14301,7 +14307,7 @@
     {
       "N": 238271,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238273,
@@ -14371,7 +14377,7 @@
     {
       "N": 238333,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238346,
@@ -14456,7 +14462,7 @@
     {
       "N": 238427,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238429,
@@ -14466,12 +14472,12 @@
     {
       "N": 238433,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238443,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238453,
@@ -14551,7 +14557,7 @@
     {
       "N": 238517,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238523,
@@ -14571,22 +14577,22 @@
     {
       "N": 238543,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238549,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238555,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238559,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238561,
@@ -14601,7 +14607,7 @@
     {
       "N": 238571,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238577,
@@ -14676,7 +14682,7 @@
     {
       "N": 238631,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238633,
@@ -14701,7 +14707,7 @@
     {
       "N": 238661,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238669,
@@ -14731,7 +14737,7 @@
     {
       "N": 238699,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238705,
@@ -14741,7 +14747,7 @@
     {
       "N": 238711,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238715,
@@ -14826,12 +14832,12 @@
     {
       "N": 238803,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238807,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238811,
@@ -14851,7 +14857,7 @@
     {
       "N": 238823,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238827,
@@ -14881,7 +14887,7 @@
     {
       "N": 238843,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238858,
@@ -14896,12 +14902,12 @@
     {
       "N": 238863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238867,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238871,
@@ -14961,12 +14967,12 @@
     {
       "N": 238907,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238913,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238927,
@@ -14981,7 +14987,7 @@
     {
       "N": 238937,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238951,
@@ -15036,7 +15042,7 @@
     {
       "N": 238987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 238993,
@@ -15116,7 +15122,7 @@
     {
       "N": 239059,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239061,
@@ -15156,7 +15162,7 @@
     {
       "N": 239093,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239095,
@@ -15191,7 +15197,7 @@
     {
       "N": 239107,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239111,
@@ -15241,7 +15247,7 @@
     {
       "N": 239159,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239161,
@@ -15281,12 +15287,12 @@
     {
       "N": 239203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239207,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239209,
@@ -15296,7 +15302,7 @@
     {
       "N": 239213,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239215,
@@ -15306,7 +15312,7 @@
     {
       "N": 239219,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239222,
@@ -15316,7 +15322,7 @@
     {
       "N": 239227,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239234,
@@ -15376,7 +15382,7 @@
     {
       "N": 239303,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239306,
@@ -15411,7 +15417,7 @@
     {
       "N": 239327,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239331,
@@ -15471,7 +15477,7 @@
     {
       "N": 239377,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239378,
@@ -15486,7 +15492,7 @@
     {
       "N": 239399,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239401,
@@ -15501,7 +15507,7 @@
     {
       "N": 239403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239405,
@@ -15566,7 +15572,7 @@
     {
       "N": 239471,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239474,
@@ -15586,7 +15592,7 @@
     {
       "N": 239483,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239487,
@@ -15616,7 +15622,7 @@
     {
       "N": 239503,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239507,
@@ -15641,7 +15647,7 @@
     {
       "N": 239523,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239529,
@@ -15671,7 +15677,7 @@
     {
       "N": 239549,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239551,
@@ -15681,12 +15687,12 @@
     {
       "N": 239555,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239563,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239566,
@@ -15701,7 +15707,7 @@
     {
       "N": 239583,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239585,
@@ -15816,7 +15822,7 @@
     {
       "N": 239669,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239677,
@@ -15831,7 +15837,7 @@
     {
       "N": 239693,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239695,
@@ -15851,7 +15857,7 @@
     {
       "N": 239703,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239707,
@@ -15891,7 +15897,7 @@
     {
       "N": 239747,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239749,
@@ -15901,7 +15907,7 @@
     {
       "N": 239755,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239759,
@@ -15946,7 +15952,7 @@
     {
       "N": 239791,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239797,
@@ -15961,7 +15967,7 @@
     {
       "N": 239809,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239813,
@@ -15991,7 +15997,7 @@
     {
       "N": 239827,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239829,
@@ -16076,7 +16082,7 @@
     {
       "N": 239905,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239906,
@@ -16111,7 +16117,7 @@
     {
       "N": 239927,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239937,
@@ -16186,7 +16192,7 @@
     {
       "N": 239993,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 239997,
@@ -16216,7 +16222,7 @@
     {
       "N": 240031,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240034,
@@ -16231,12 +16237,12 @@
     {
       "N": 240063,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240067,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240077,
@@ -16281,7 +16287,7 @@
     {
       "N": 240107,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240115,
@@ -16316,7 +16322,7 @@
     {
       "N": 240137,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240145,
@@ -16356,7 +16362,7 @@
     {
       "N": 240181,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240182,
@@ -16381,7 +16387,7 @@
     {
       "N": 240199,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240206,
@@ -16406,7 +16412,7 @@
     {
       "N": 240223,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240229,
@@ -16426,7 +16432,7 @@
     {
       "N": 240239,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240242,
@@ -16441,12 +16447,12 @@
     {
       "N": 240251,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240253,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240269,
@@ -16456,7 +16462,7 @@
     {
       "N": 240277,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240289,
@@ -16476,12 +16482,12 @@
     {
       "N": 240301,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240307,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240311,
@@ -16531,7 +16537,7 @@
     {
       "N": 240343,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240359,
@@ -16571,7 +16577,7 @@
     {
       "N": 240391,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240395,
@@ -16586,7 +16592,7 @@
     {
       "N": 240403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240407,
@@ -16616,7 +16622,7 @@
     {
       "N": 240423,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240431,
@@ -16626,7 +16632,7 @@
     {
       "N": 240439,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240441,
@@ -16656,7 +16662,7 @@
     {
       "N": 240455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240457,
@@ -16676,7 +16682,7 @@
     {
       "N": 240467,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240469,
@@ -16686,7 +16692,7 @@
     {
       "N": 240481,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240493,
@@ -16731,7 +16737,7 @@
     {
       "N": 240527,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240529,
@@ -16761,12 +16767,12 @@
     {
       "N": 240547,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240553,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240554,
@@ -16836,12 +16842,12 @@
     {
       "N": 240601,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240605,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240613,
@@ -16851,7 +16857,7 @@
     {
       "N": 240619,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240621,
@@ -16886,12 +16892,12 @@
     {
       "N": 240655,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240661,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240662,
@@ -16901,7 +16907,7 @@
     {
       "N": 240663,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240667,
@@ -16911,12 +16917,12 @@
     {
       "N": 240679,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240689,
@@ -16926,7 +16932,7 @@
     {
       "N": 240691,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240693,
@@ -16996,12 +17002,12 @@
     {
       "N": 240767,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240773,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240782,
@@ -17041,7 +17047,7 @@
     {
       "N": 240803,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240809,
@@ -17056,12 +17062,12 @@
     {
       "N": 240817,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240819,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240821,
@@ -17071,7 +17077,7 @@
     {
       "N": 240823,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240826,
@@ -17091,7 +17097,7 @@
     {
       "N": 240847,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240854,
@@ -17171,7 +17177,7 @@
     {
       "N": 240947,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 240949,
@@ -17226,7 +17232,7 @@
     {
       "N": 241001,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241003,
@@ -17251,7 +17257,7 @@
     {
       "N": 241019,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241021,
@@ -17266,7 +17272,7 @@
     {
       "N": 241023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241033,
@@ -17276,7 +17282,7 @@
     {
       "N": 241039,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241041,
@@ -17336,7 +17342,7 @@
     {
       "N": 241105,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241107,
@@ -17351,7 +17357,7 @@
     {
       "N": 241121,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241123,
@@ -17376,7 +17382,7 @@
     {
       "N": 241147,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241151,
@@ -17391,7 +17397,7 @@
     {
       "N": 241159,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241161,
@@ -17446,7 +17452,7 @@
     {
       "N": 241219,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241221,
@@ -17456,7 +17462,7 @@
     {
       "N": 241223,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241231,
@@ -17471,7 +17477,7 @@
     {
       "N": 241237,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241238,
@@ -17496,7 +17502,7 @@
     {
       "N": 241279,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241282,
@@ -17516,7 +17522,7 @@
     {
       "N": 241289,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241294,
@@ -17541,7 +17547,7 @@
     {
       "N": 241307,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241322,
@@ -17581,7 +17587,7 @@
     {
       "N": 241355,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241357,
@@ -17591,7 +17597,7 @@
     {
       "N": 241369,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241373,
@@ -17606,7 +17612,7 @@
     {
       "N": 241379,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241381,
@@ -17636,7 +17642,7 @@
     {
       "N": 241405,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241409,
@@ -17691,7 +17697,7 @@
     {
       "N": 241459,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241467,
@@ -17746,7 +17752,7 @@
     {
       "N": 241507,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241519,
@@ -17756,7 +17762,7 @@
     {
       "N": 241523,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241526,
@@ -17791,7 +17797,7 @@
     {
       "N": 241555,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241558,
@@ -17831,7 +17837,7 @@
     {
       "N": 241583,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241591,
@@ -17916,7 +17922,7 @@
     {
       "N": 241693,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241694,
@@ -17966,7 +17972,7 @@
     {
       "N": 241733,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241741,
@@ -17981,12 +17987,12 @@
     {
       "N": 241747,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241751,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241754,
@@ -18016,7 +18022,7 @@
     {
       "N": 241777,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241778,
@@ -18076,7 +18082,7 @@
     {
       "N": 241837,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241838,
@@ -18086,7 +18092,7 @@
     {
       "N": 241841,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241843,
@@ -18106,7 +18112,7 @@
     {
       "N": 241855,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241858,
@@ -18116,7 +18122,7 @@
     {
       "N": 241863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241874,
@@ -18171,7 +18177,7 @@
     {
       "N": 241933,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241949,
@@ -18211,7 +18217,7 @@
     {
       "N": 241987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 241991,
@@ -18226,7 +18232,7 @@
     {
       "N": 241999,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242002,
@@ -18256,7 +18262,7 @@
     {
       "N": 242023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242026,
@@ -18301,7 +18307,7 @@
     {
       "N": 242043,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242045,
@@ -18356,7 +18362,7 @@
     {
       "N": 242103,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242107,
@@ -18416,7 +18422,7 @@
     {
       "N": 242143,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242149,
@@ -18526,7 +18532,7 @@
     {
       "N": 242267,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242278,
@@ -18541,7 +18547,7 @@
     {
       "N": 242283,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242287,
@@ -18566,7 +18572,7 @@
     {
       "N": 242299,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242302,
@@ -18606,12 +18612,12 @@
     {
       "N": 242323,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242327,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242331,
@@ -18696,12 +18702,12 @@
     {
       "N": 242405,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242407,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242409,
@@ -18736,7 +18742,7 @@
     {
       "N": 242455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242457,
@@ -18781,12 +18787,12 @@
     {
       "N": 242503,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242507,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242513,
@@ -18851,7 +18857,7 @@
     {
       "N": 242563,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242566,
@@ -18876,7 +18882,7 @@
     {
       "N": 242587,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242589,
@@ -18886,7 +18892,7 @@
     {
       "N": 242593,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242615,
@@ -18901,7 +18907,7 @@
     {
       "N": 242623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242626,
@@ -18986,7 +18992,7 @@
     {
       "N": 242699,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242701,
@@ -19001,7 +19007,7 @@
     {
       "N": 242705,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242707,
@@ -19026,7 +19032,7 @@
     {
       "N": 242723,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242727,
@@ -19086,7 +19092,7 @@
     {
       "N": 242777,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242783,
@@ -19111,7 +19117,7 @@
     {
       "N": 242803,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242806,
@@ -19176,7 +19182,7 @@
     {
       "N": 242855,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242857,
@@ -19291,7 +19297,7 @@
     {
       "N": 242959,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242965,
@@ -19306,7 +19312,7 @@
     {
       "N": 242969,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242974,
@@ -19321,7 +19327,7 @@
     {
       "N": 242983,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 242986,
@@ -19356,7 +19362,7 @@
     {
       "N": 243007,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243013,
@@ -19376,7 +19382,7 @@
     {
       "N": 243023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243029,
@@ -19411,7 +19417,7 @@
     {
       "N": 243047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243051,
@@ -19426,7 +19432,7 @@
     {
       "N": 243055,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243057,
@@ -19436,7 +19442,7 @@
     {
       "N": 243059,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243062,
@@ -19451,7 +19457,7 @@
     {
       "N": 243071,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243079,
@@ -19491,7 +19497,7 @@
     {
       "N": 243113,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243115,
@@ -19506,7 +19512,7 @@
     {
       "N": 243123,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243127,
@@ -19581,7 +19587,7 @@
     {
       "N": 243199,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243211,
@@ -19646,7 +19652,7 @@
     {
       "N": 243247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243249,
@@ -19716,7 +19722,7 @@
     {
       "N": 243303,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243305,
@@ -19726,7 +19732,7 @@
     {
       "N": 243307,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243313,
@@ -19746,7 +19752,7 @@
     {
       "N": 243329,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243337,
@@ -19836,7 +19842,7 @@
     {
       "N": 243407,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243413,
@@ -19846,7 +19852,7 @@
     {
       "N": 243419,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243422,
@@ -19866,7 +19872,7 @@
     {
       "N": 243443,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243449,
@@ -19881,17 +19887,17 @@
     {
       "N": 243457,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243463,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243467,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243471,
@@ -19911,7 +19917,7 @@
     {
       "N": 243493,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243497,
@@ -19921,17 +19927,17 @@
     {
       "N": 243499,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243503,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243511,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243519,
@@ -19971,7 +19977,7 @@
     {
       "N": 243563,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243569,
@@ -20021,7 +20027,7 @@
     {
       "N": 243619,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243637,
@@ -20046,7 +20052,7 @@
     {
       "N": 243655,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243659,
@@ -20076,7 +20082,7 @@
     {
       "N": 243683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243686,
@@ -20116,7 +20122,7 @@
     {
       "N": 243727,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243731,
@@ -20146,7 +20152,7 @@
     {
       "N": 243743,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243749,
@@ -20161,7 +20167,7 @@
     {
       "N": 243755,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243757,
@@ -20201,17 +20207,17 @@
     {
       "N": 243791,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243797,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243805,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243811,
@@ -20231,7 +20237,7 @@
     {
       "N": 243823,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243833,
@@ -20256,12 +20262,12 @@
     {
       "N": 243843,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243847,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243849,
@@ -20301,12 +20307,12 @@
     {
       "N": 243887,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243895,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243897,
@@ -20341,7 +20347,7 @@
     {
       "N": 243907,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243913,
@@ -20356,7 +20362,7 @@
     {
       "N": 243923,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243926,
@@ -20391,7 +20397,7 @@
     {
       "N": 243949,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 243959,
@@ -20436,7 +20442,7 @@
     {
       "N": 244019,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244022,
@@ -20456,7 +20462,7 @@
     {
       "N": 244037,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244039,
@@ -20506,12 +20512,12 @@
     {
       "N": 244061,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244063,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244066,
@@ -20521,12 +20527,12 @@
     {
       "N": 244067,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244073,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244077,
@@ -20541,7 +20547,7 @@
     {
       "N": 244079,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244081,
@@ -20576,7 +20582,7 @@
     {
       "N": 244105,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244106,
@@ -20596,7 +20602,7 @@
     {
       "N": 244117,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244119,
@@ -20606,12 +20612,12 @@
     {
       "N": 244123,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244133,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244138,
@@ -20646,12 +20652,12 @@
     {
       "N": 244183,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244187,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244193,
@@ -20666,12 +20672,12 @@
     {
       "N": 244201,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244207,
@@ -20731,7 +20737,7 @@
     {
       "N": 244263,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244267,
@@ -20876,7 +20882,7 @@
     {
       "N": 244417,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244418,
@@ -20891,7 +20897,7 @@
     {
       "N": 244427,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244433,
@@ -20941,7 +20947,7 @@
     {
       "N": 244499,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244501,
@@ -20961,7 +20967,7 @@
     {
       "N": 244519,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244523,
@@ -21091,7 +21097,7 @@
     {
       "N": 244649,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244653,
@@ -21161,7 +21167,7 @@
     {
       "N": 244723,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244726,
@@ -21171,7 +21177,7 @@
     {
       "N": 244727,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244735,
@@ -21196,7 +21202,7 @@
     {
       "N": 244765,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244771,
@@ -21221,7 +21227,7 @@
     {
       "N": 244793,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244798,
@@ -21291,17 +21297,17 @@
     {
       "N": 244867,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244879,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244883,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244886,
@@ -21346,7 +21352,7 @@
     {
       "N": 244913,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244919,
@@ -21361,7 +21367,7 @@
     {
       "N": 244931,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244941,
@@ -21396,7 +21402,7 @@
     {
       "N": 244955,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244961,
@@ -21436,7 +21442,7 @@
     {
       "N": 244987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 244991,
@@ -21466,7 +21472,7 @@
     {
       "N": 245003,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245006,
@@ -21521,7 +21527,7 @@
     {
       "N": 245047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245053,
@@ -21536,7 +21542,7 @@
     {
       "N": 245059,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245066,
@@ -21581,7 +21587,7 @@
     {
       "N": 245103,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245109,
@@ -21626,7 +21632,7 @@
     {
       "N": 245143,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245153,
@@ -21636,7 +21642,7 @@
     {
       "N": 245155,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245158,
@@ -21646,7 +21652,7 @@
     {
       "N": 245159,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245161,
@@ -21731,7 +21737,7 @@
     {
       "N": 245221,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245222,
@@ -21741,7 +21747,7 @@
     {
       "N": 245227,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245233,
@@ -21756,12 +21762,12 @@
     {
       "N": 245239,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245243,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245247,
@@ -21776,17 +21782,17 @@
     {
       "N": 245263,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245281,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245283,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245285,
@@ -21831,7 +21837,7 @@
     {
       "N": 245327,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245333,
@@ -21916,7 +21922,7 @@
     {
       "N": 245405,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245413,
@@ -21971,7 +21977,7 @@
     {
       "N": 245467,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245482,
@@ -22001,7 +22007,7 @@
     {
       "N": 245503,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245506,
@@ -22011,7 +22017,7 @@
     {
       "N": 245507,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245515,
@@ -22061,7 +22067,7 @@
     {
       "N": 245567,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245569,
@@ -22081,7 +22087,7 @@
     {
       "N": 245579,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245581,
@@ -22141,7 +22147,7 @@
     {
       "N": 245647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245649,
@@ -22221,7 +22227,7 @@
     {
       "N": 245731,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245734,
@@ -22321,7 +22327,7 @@
     {
       "N": 245809,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245811,
@@ -22356,12 +22362,12 @@
     {
       "N": 245837,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245839,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245842,
@@ -22371,7 +22377,7 @@
     {
       "N": 245843,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245845,
@@ -22381,7 +22387,7 @@
     {
       "N": 245855,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245857,
@@ -22431,7 +22437,7 @@
     {
       "N": 245887,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245893,
@@ -22476,7 +22482,7 @@
     {
       "N": 245923,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245926,
@@ -22531,7 +22537,7 @@
     {
       "N": 245987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 245995,
@@ -22546,7 +22552,7 @@
     {
       "N": 246005,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246009,
@@ -22601,12 +22607,12 @@
     {
       "N": 246043,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246053,
@@ -22616,17 +22622,17 @@
     {
       "N": 246055,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246059,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246061,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246062,
@@ -22636,7 +22642,7 @@
     {
       "N": 246063,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246067,
@@ -22711,7 +22717,7 @@
     {
       "N": 246137,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246139,
@@ -22771,7 +22777,7 @@
     {
       "N": 246191,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246197,
@@ -22781,7 +22787,7 @@
     {
       "N": 246199,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246201,
@@ -22851,7 +22857,7 @@
     {
       "N": 246287,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246293,
@@ -22861,7 +22867,7 @@
     {
       "N": 246299,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246301,
@@ -22871,7 +22877,7 @@
     {
       "N": 246305,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246307,
@@ -22916,7 +22922,7 @@
     {
       "N": 246367,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246373,
@@ -22971,7 +22977,7 @@
     {
       "N": 246407,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246409,
@@ -22991,12 +22997,12 @@
     {
       "N": 246419,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246423,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246427,
@@ -23016,7 +23022,7 @@
     {
       "N": 246437,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246443,
@@ -23026,7 +23032,7 @@
     {
       "N": 246451,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246457,
@@ -23086,12 +23092,12 @@
     {
       "N": 246499,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246503,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246513,
@@ -23106,7 +23112,7 @@
     {
       "N": 246529,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246535,
@@ -23121,12 +23127,12 @@
     {
       "N": 246541,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246547,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246549,
@@ -23141,12 +23147,12 @@
     {
       "N": 246553,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246559,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246567,
@@ -23211,7 +23217,7 @@
     {
       "N": 246647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246649,
@@ -23226,7 +23232,7 @@
     {
       "N": 246655,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246657,
@@ -23281,7 +23287,7 @@
     {
       "N": 246723,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246727,
@@ -23331,7 +23337,7 @@
     {
       "N": 246763,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246767,
@@ -23411,7 +23417,7 @@
     {
       "N": 246851,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246853,
@@ -23431,7 +23437,7 @@
     {
       "N": 246863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246866,
@@ -23486,7 +23492,7 @@
     {
       "N": 246903,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246914,
@@ -23516,7 +23522,7 @@
     {
       "N": 246955,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246958,
@@ -23546,7 +23552,7 @@
     {
       "N": 246983,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246986,
@@ -23556,7 +23562,7 @@
     {
       "N": 246989,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 246991,
@@ -23586,7 +23592,7 @@
     {
       "N": 247013,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247017,
@@ -23661,7 +23667,7 @@
     {
       "N": 247083,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247085,
@@ -23696,7 +23702,7 @@
     {
       "N": 247109,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247111,
@@ -23721,7 +23727,7 @@
     {
       "N": 247127,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247129,
@@ -23746,7 +23752,7 @@
     {
       "N": 247147,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247153,
@@ -23761,7 +23767,7 @@
     {
       "N": 247159,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247161,
@@ -23811,17 +23817,17 @@
     {
       "N": 247187,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247189,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247199,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247202,
@@ -23841,7 +23847,7 @@
     {
       "N": 247213,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247217,
@@ -23881,7 +23887,7 @@
     {
       "N": 247255,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247261,
@@ -23896,12 +23902,12 @@
     {
       "N": 247263,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247267,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247274,
@@ -23926,7 +23932,7 @@
     {
       "N": 247291,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247295,
@@ -23976,7 +23982,7 @@
     {
       "N": 247327,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247333,
@@ -23996,7 +24002,7 @@
     {
       "N": 247367,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247371,
@@ -24031,12 +24037,12 @@
     {
       "N": 247403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247405,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247407,
@@ -24056,7 +24062,7 @@
     {
       "N": 247417,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247427,
@@ -24071,12 +24077,12 @@
     {
       "N": 247441,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247447,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247449,
@@ -24086,7 +24092,7 @@
     {
       "N": 247453,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247454,
@@ -24096,7 +24102,7 @@
     {
       "N": 247459,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247461,
@@ -24131,7 +24137,7 @@
     {
       "N": 247477,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247479,
@@ -24146,7 +24152,7 @@
     {
       "N": 247483,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247487,
@@ -24181,7 +24187,7 @@
     {
       "N": 247517,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247521,
@@ -24196,7 +24202,7 @@
     {
       "N": 247537,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247541,
@@ -24211,7 +24217,7 @@
     {
       "N": 247561,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247567,
@@ -24301,7 +24307,7 @@
     {
       "N": 247655,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247657,
@@ -24321,7 +24327,7 @@
     {
       "N": 247663,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247666,
@@ -24331,7 +24337,7 @@
     {
       "N": 247667,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247669,
@@ -24351,7 +24357,7 @@
     {
       "N": 247683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247685,
@@ -24426,7 +24432,7 @@
     {
       "N": 247763,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247773,
@@ -24466,12 +24472,12 @@
     {
       "N": 247803,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247807,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247817,
@@ -24531,7 +24537,7 @@
     {
       "N": 247859,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247861,
@@ -24546,7 +24552,7 @@
     {
       "N": 247867,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247882,
@@ -24586,7 +24592,7 @@
     {
       "N": 247927,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247931,
@@ -24616,7 +24622,7 @@
     {
       "N": 247951,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247953,
@@ -24636,7 +24642,7 @@
     {
       "N": 247963,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247966,
@@ -24646,7 +24652,7 @@
     {
       "N": 247967,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 247971,
@@ -24711,7 +24717,7 @@
     {
       "N": 248039,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248042,
@@ -24721,7 +24727,7 @@
     {
       "N": 248047,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248053,
@@ -24756,7 +24762,7 @@
     {
       "N": 248107,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248111,
@@ -24806,7 +24812,7 @@
     {
       "N": 248163,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248165,
@@ -24821,7 +24827,7 @@
     {
       "N": 248173,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248174,
@@ -24861,12 +24867,12 @@
     {
       "N": 248207,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248219,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248221,
@@ -24931,7 +24937,7 @@
     {
       "N": 248279,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248281,
@@ -25001,7 +25007,7 @@
     {
       "N": 248343,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248345,
@@ -25011,7 +25017,7 @@
     {
       "N": 248359,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248361,
@@ -25106,12 +25112,12 @@
     {
       "N": 248449,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248453,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248459,
@@ -25131,7 +25137,7 @@
     {
       "N": 248471,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248485,
@@ -25141,7 +25147,7 @@
     {
       "N": 248491,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248494,
@@ -25181,7 +25187,7 @@
     {
       "N": 248527,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248531,
@@ -25211,12 +25217,12 @@
     {
       "N": 248555,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248557,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248563,
@@ -25226,7 +25232,7 @@
     {
       "N": 248573,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248581,
@@ -25271,7 +25277,7 @@
     {
       "N": 248623,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248629,
@@ -25286,12 +25292,12 @@
     {
       "N": 248647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248649,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248659,
@@ -25426,7 +25432,7 @@
     {
       "N": 248743,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248747,
@@ -25486,22 +25492,22 @@
     {
       "N": 248819,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248831,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248833,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248849,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248854,
@@ -25611,7 +25617,7 @@
     {
       "N": 248953,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 248954,
@@ -25656,7 +25662,7 @@
     {
       "N": 248993,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249001,
@@ -25666,12 +25672,12 @@
     {
       "N": 249005,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249007,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249009,
@@ -25711,7 +25717,7 @@
     {
       "N": 249031,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249035,
@@ -25736,7 +25742,7 @@
     {
       "N": 249055,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249058,
@@ -25776,7 +25782,7 @@
     {
       "N": 249083,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249086,
@@ -25801,7 +25807,7 @@
     {
       "N": 249115,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249119,
@@ -25851,7 +25857,7 @@
     {
       "N": 249155,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249161,
@@ -25861,7 +25867,7 @@
     {
       "N": 249163,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249167,
@@ -25896,7 +25902,7 @@
     {
       "N": 249191,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249202,
@@ -25931,7 +25937,7 @@
     {
       "N": 249239,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249241,
@@ -25941,7 +25947,7 @@
     {
       "N": 249247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249251,
@@ -25996,7 +26002,7 @@
     {
       "N": 249289,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249299,
@@ -26006,7 +26012,7 @@
     {
       "N": 249303,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249313,
@@ -26021,7 +26027,7 @@
     {
       "N": 249323,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249331,
@@ -26041,7 +26047,7 @@
     {
       "N": 249349,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249351,
@@ -26051,12 +26057,12 @@
     {
       "N": 249353,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249355,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249358,
@@ -26066,7 +26072,7 @@
     {
       "N": 249359,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249371,
@@ -26141,12 +26147,12 @@
     {
       "N": 249443,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249461,
@@ -26221,12 +26227,12 @@
     {
       "N": 249547,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249551,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249553,
@@ -26241,7 +26247,7 @@
     {
       "N": 249559,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249562,
@@ -26331,7 +26337,7 @@
     {
       "N": 249643,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249646,
@@ -26341,12 +26347,12 @@
     {
       "N": 249649,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249653,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249657,
@@ -26361,17 +26367,17 @@
     {
       "N": 249663,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249667,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249673,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249681,
@@ -26396,7 +26402,7 @@
     {
       "N": 249693,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249694,
@@ -26431,7 +26437,7 @@
     {
       "N": 249707,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249709,
@@ -26451,7 +26457,7 @@
     {
       "N": 249731,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249739,
@@ -26461,7 +26467,7 @@
     {
       "N": 249743,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249751,
@@ -26491,7 +26497,7 @@
     {
       "N": 249773,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249785,
@@ -26516,7 +26522,7 @@
     {
       "N": 249799,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249801,
@@ -26526,7 +26532,7 @@
     {
       "N": 249803,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249807,
@@ -26566,7 +26572,7 @@
     {
       "N": 249839,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249841,
@@ -26626,7 +26632,7 @@
     {
       "N": 249919,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249929,
@@ -26636,7 +26642,7 @@
     {
       "N": 249931,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249933,
@@ -26656,7 +26662,7 @@
     {
       "N": 249955,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 249958,
@@ -26711,7 +26717,7 @@
     {
       "N": 250003,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250006,
@@ -26741,7 +26747,7 @@
     {
       "N": 250039,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250058,
@@ -26791,7 +26797,7 @@
     {
       "N": 250105,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250106,
@@ -26836,12 +26842,12 @@
     {
       "N": 250139,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250141,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250149,
@@ -26851,7 +26857,7 @@
     {
       "N": 250151,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250157,
@@ -26876,7 +26882,7 @@
     {
       "N": 250177,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250181,
@@ -26916,7 +26922,7 @@
     {
       "N": 250203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250207,
@@ -26926,7 +26932,7 @@
     {
       "N": 250213,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250214,
@@ -26936,7 +26942,7 @@
     {
       "N": 250219,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250221,
@@ -26986,7 +26992,7 @@
     {
       "N": 250247,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250249,
@@ -27001,7 +27007,7 @@
     {
       "N": 250255,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250261,
@@ -27066,7 +27072,7 @@
     {
       "N": 250303,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250309,
@@ -27186,7 +27192,7 @@
     {
       "N": 250399,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250402,
@@ -27216,7 +27222,7 @@
     {
       "N": 250427,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250429,
@@ -27256,7 +27262,7 @@
     {
       "N": 250459,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250462,
@@ -27306,7 +27312,7 @@
     {
       "N": 250505,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250507,
@@ -27316,7 +27322,7 @@
     {
       "N": 250511,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250513,
@@ -27356,7 +27362,7 @@
     {
       "N": 250547,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250549,
@@ -27371,7 +27377,7 @@
     {
       "N": 250555,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250559,
@@ -27421,7 +27427,7 @@
     {
       "N": 250597,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250598,
@@ -27431,7 +27437,7 @@
     {
       "N": 250603,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250606,
@@ -27441,7 +27447,7 @@
     {
       "N": 250607,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250609,
@@ -27476,7 +27482,7 @@
     {
       "N": 250633,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250637,
@@ -27541,7 +27547,7 @@
     {
       "N": 250683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250689,
@@ -27601,7 +27607,7 @@
     {
       "N": 250759,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250763,
@@ -27626,7 +27632,7 @@
     {
       "N": 250771,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250773,
@@ -27681,7 +27687,7 @@
     {
       "N": 250843,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250846,
@@ -27691,7 +27697,7 @@
     {
       "N": 250847,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250849,
@@ -27716,7 +27722,7 @@
     {
       "N": 250863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250873,
@@ -27736,7 +27742,7 @@
     {
       "N": 250883,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250885,
@@ -27776,7 +27782,7 @@
     {
       "N": 250913,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250917,
@@ -27791,17 +27797,17 @@
     {
       "N": 250923,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250927,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250931,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250942,
@@ -27826,7 +27832,7 @@
     {
       "N": 250973,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250981,
@@ -27836,7 +27842,7 @@
     {
       "N": 250987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 250989,
@@ -27881,7 +27887,7 @@
     {
       "N": 251023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251029,
@@ -27936,7 +27942,7 @@
     {
       "N": 251093,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251101,
@@ -27961,7 +27967,7 @@
     {
       "N": 251107,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251113,
@@ -28006,7 +28012,7 @@
     {
       "N": 251155,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251157,
@@ -28086,7 +28092,7 @@
     {
       "N": 251269,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251278,
@@ -28101,7 +28107,7 @@
     {
       "N": 251281,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251282,
@@ -28111,7 +28117,7 @@
     {
       "N": 251283,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251293,
@@ -28121,7 +28127,7 @@
     {
       "N": 251299,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251302,
@@ -28161,7 +28167,7 @@
     {
       "N": 251327,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251329,
@@ -28196,7 +28202,7 @@
     {
       "N": 251357,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251365,
@@ -28216,7 +28222,7 @@
     {
       "N": 251371,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251373,
@@ -28236,7 +28242,7 @@
     {
       "N": 251383,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251386,
@@ -28246,7 +28252,7 @@
     {
       "N": 251399,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251401,
@@ -28256,7 +28262,7 @@
     {
       "N": 251411,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251414,
@@ -28271,7 +28277,7 @@
     {
       "N": 251423,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251434,
@@ -28301,12 +28307,12 @@
     {
       "N": 251453,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251461,
@@ -28446,12 +28452,12 @@
     {
       "N": 251599,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251605,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251606,
@@ -28461,7 +28467,7 @@
     {
       "N": 251607,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251619,
@@ -28476,7 +28482,7 @@
     {
       "N": 251627,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251633,
@@ -28496,7 +28502,7 @@
     {
       "N": 251647,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251657,
@@ -28506,7 +28512,7 @@
     {
       "N": 251659,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251665,
@@ -28536,7 +28542,7 @@
     {
       "N": 251705,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251709,
@@ -28556,7 +28562,7 @@
     {
       "N": 251723,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251726,
@@ -28591,12 +28597,12 @@
     {
       "N": 251747,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251749,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251759,
@@ -28606,7 +28612,7 @@
     {
       "N": 251763,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251767,
@@ -28656,7 +28662,7 @@
     {
       "N": 251803,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251813,
@@ -28676,7 +28682,7 @@
     {
       "N": 251819,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251821,
@@ -28706,7 +28712,7 @@
     {
       "N": 251849,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251851,
@@ -28726,7 +28732,7 @@
     {
       "N": 251863,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251866,
@@ -28736,7 +28742,7 @@
     {
       "N": 251869,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251881,
@@ -28756,7 +28762,7 @@
     {
       "N": 251891,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251899,
@@ -28771,7 +28777,7 @@
     {
       "N": 251911,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251915,
@@ -28821,12 +28827,12 @@
     {
       "N": 251953,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251957,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251961,
@@ -28851,12 +28857,12 @@
     {
       "N": 251987,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251989,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 251993,
@@ -28876,7 +28882,7 @@
     {
       "N": 252019,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252022,
@@ -28886,7 +28892,7 @@
     {
       "N": 252023,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252026,
@@ -28941,7 +28947,7 @@
     {
       "N": 252055,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252059,
@@ -28986,7 +28992,7 @@
     {
       "N": 252083,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252085,
@@ -29021,7 +29027,7 @@
     {
       "N": 252113,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252115,
@@ -29036,12 +29042,12 @@
     {
       "N": 252127,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252131,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252134,
@@ -29071,7 +29077,7 @@
     {
       "N": 252167,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252177,
@@ -29081,7 +29087,7 @@
     {
       "N": 252179,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252183,
@@ -29091,7 +29097,7 @@
     {
       "N": 252191,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252194,
@@ -29206,17 +29212,17 @@
     {
       "N": 252305,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252307,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252311,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252331,
@@ -29236,7 +29242,7 @@
     {
       "N": 252347,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252349,
@@ -29256,7 +29262,7 @@
     {
       "N": 252363,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252367,
@@ -29301,7 +29307,7 @@
     {
       "N": 252403,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252407,
@@ -29326,7 +29332,7 @@
     {
       "N": 252427,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252429,
@@ -29376,7 +29382,7 @@
     {
       "N": 252479,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252482,
@@ -29461,12 +29467,12 @@
     {
       "N": 252543,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252547,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252551,
@@ -29486,7 +29492,7 @@
     {
       "N": 252571,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252573,
@@ -29596,7 +29602,7 @@
     {
       "N": 252663,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252669,
@@ -29631,7 +29637,7 @@
     {
       "N": 252683,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252687,
@@ -29651,7 +29657,7 @@
     {
       "N": 252697,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252698,
@@ -29666,7 +29672,7 @@
     {
       "N": 252703,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252715,
@@ -29716,7 +29722,7 @@
     {
       "N": 252755,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252763,
@@ -29766,7 +29772,7 @@
     {
       "N": 252809,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252811,
@@ -29816,7 +29822,7 @@
     {
       "N": 252883,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252886,
@@ -29836,7 +29842,7 @@
     {
       "N": 252907,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252914,
@@ -29861,7 +29867,7 @@
     {
       "N": 252923,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252935,
@@ -29906,7 +29912,7 @@
     {
       "N": 252955,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252957,
@@ -29951,7 +29957,7 @@
     {
       "N": 252991,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 252995,
@@ -29986,7 +29992,7 @@
     {
       "N": 253021,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253027,
@@ -30066,7 +30072,7 @@
     {
       "N": 253087,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253091,
@@ -30076,7 +30082,7 @@
     {
       "N": 253093,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253094,
@@ -30111,17 +30117,17 @@
     {
       "N": 253123,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253127,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253129,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253131,
@@ -30141,7 +30147,7 @@
     {
       "N": 253147,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253151,
@@ -30151,7 +30157,7 @@
     {
       "N": 253163,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253166,
@@ -30181,7 +30187,7 @@
     {
       "N": 253187,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253189,
@@ -30211,7 +30217,7 @@
     {
       "N": 253203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253213,
@@ -30241,7 +30247,7 @@
     {
       "N": 253223,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253226,
@@ -30251,7 +30257,7 @@
     {
       "N": 253231,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253235,
@@ -30276,7 +30282,7 @@
     {
       "N": 253255,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253259,
@@ -30326,7 +30332,7 @@
     {
       "N": 253291,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253293,
@@ -30336,7 +30342,7 @@
     {
       "N": 253297,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253301,
@@ -30366,7 +30372,7 @@
     {
       "N": 253319,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253329,
@@ -30376,7 +30382,7 @@
     {
       "N": 253333,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253337,
@@ -30446,7 +30452,7 @@
     {
       "N": 253411,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253415,
@@ -30476,7 +30482,7 @@
     {
       "N": 253443,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253451,
@@ -30521,7 +30527,7 @@
     {
       "N": 253489,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253497,
@@ -30551,7 +30557,7 @@
     {
       "N": 253513,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253514,
@@ -30606,7 +30612,7 @@
     {
       "N": 253563,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253569,
@@ -30621,17 +30627,17 @@
     {
       "N": 253577,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253579,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253583,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253591,
@@ -30671,7 +30677,7 @@
     {
       "N": 253627,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253646,
@@ -30711,7 +30717,7 @@
     {
       "N": 253687,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253691,
@@ -30741,7 +30747,7 @@
     {
       "N": 253705,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253709,
@@ -30776,7 +30782,7 @@
     {
       "N": 253739,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253753,
@@ -30896,7 +30902,7 @@
     {
       "N": 253891,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 253893,
@@ -31016,7 +31022,7 @@
     {
       "N": 254033,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254051,
@@ -31051,7 +31057,7 @@
     {
       "N": 254069,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254073,
@@ -31066,7 +31072,7 @@
     {
       "N": 254077,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254081,
@@ -31106,12 +31112,12 @@
     {
       "N": 254103,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254105,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254117,
@@ -31166,7 +31172,7 @@
     {
       "N": 254159,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254162,
@@ -31181,7 +31187,7 @@
     {
       "N": 254167,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254171,
@@ -31216,7 +31222,7 @@
     {
       "N": 254203,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254206,
@@ -31241,7 +31247,7 @@
     {
       "N": 254237,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254239,
@@ -31261,7 +31267,7 @@
     {
       "N": 254251,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254253,
@@ -31271,7 +31277,7 @@
     {
       "N": 254263,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254266,
@@ -31301,7 +31307,7 @@
     {
       "N": 254283,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254285,
@@ -31311,7 +31317,7 @@
     {
       "N": 254287,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254297,
@@ -31336,7 +31342,7 @@
     {
       "N": 254323,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254326,
@@ -31346,7 +31352,7 @@
     {
       "N": 254327,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254333,
@@ -31356,7 +31362,7 @@
     {
       "N": 254335,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254339,
@@ -31416,7 +31422,7 @@
     {
       "N": 254387,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254393,
@@ -31446,7 +31452,7 @@
     {
       "N": 254423,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254427,
@@ -31476,17 +31482,17 @@
     {
       "N": 254453,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254455,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254459,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254465,
@@ -31526,7 +31532,7 @@
     {
       "N": 254483,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254494,
@@ -31576,7 +31582,7 @@
     {
       "N": 254539,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254542,
@@ -31706,7 +31712,7 @@
     {
       "N": 254629,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254633,
@@ -31831,7 +31837,7 @@
     {
       "N": 254755,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254757,
@@ -31851,7 +31857,7 @@
     {
       "N": 254767,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254785,
@@ -31921,12 +31927,12 @@
     {
       "N": 254851,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254855,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254861,
@@ -31936,7 +31942,7 @@
     {
       "N": 254867,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254883,
@@ -31951,7 +31957,7 @@
     {
       "N": 254897,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254901,
@@ -31961,7 +31967,7 @@
     {
       "N": 254903,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254906,
@@ -32011,12 +32017,12 @@
     {
       "N": 254953,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254957,
       "status": "found",
-      "found_k": 2
+      "found_k": 1
     },
     {
       "N": 254962,

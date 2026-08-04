@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch, Rectangle
+from matplotlib.colors import to_rgba
+from matplotlib.patches import Patch
 
 
 DEFAULT_INPUT_PATH = Path(
@@ -19,12 +20,15 @@ DEFAULT_OUTPUT_STEM = Path(
 )
 DEFAULT_FORMATS = ("svg", "pdf")
 BACKGROUND = "#ffffff"
+# Pastel greens for publication, paired with a darker cool gray for contrast.
 FOUND_K_COLORS = {
-    1: "#0b5d2a",
-    2: "#2f7d3b",
+    1: "#9bcfa4",
+    2: "#aed8ad",
+    3: "#c0dfa5",
+    4: "#d0e6b0",
 }
-NO_SUITABLE_A_COLOR = "#9aa3ad"
-FAILED_COLOR = "#d95f02"
+NO_SUITABLE_A_COLOR = "#8c96a1"
+FAILED_COLOR = "#c98d68"
 LABEL_COLOR = "#222222"
 
 
@@ -131,19 +135,22 @@ def draw_overview(
     fig.patch.set_facecolor(BACKGROUND)
     ax.set_facecolor(BACKGROUND)
 
+    # Categorical heatmap: each semiprime is one cell, with no grid edges.
+    image = [
+        [to_rgba(BACKGROUND) for _ in range(columns)]
+        for _ in range(rows)
+    ]
     for index, cell in enumerate(cells):
         column = index // rows
         row = index % rows
-        ax.add_patch(
-            Rectangle(
-                (column, rows - row - 1),
-                1.0,
-                1.0,
-                facecolor=cell_color(cell),
-                edgecolor=BACKGROUND,
-                linewidth=0.08,
-            )
-        )
+        image[rows - row - 1][column] = to_rgba(cell_color(cell))
+    ax.imshow(
+        image,
+        origin="lower",
+        extent=(0, columns, 0, rows),
+        interpolation="none",
+        aspect="auto",
+    )
 
     found_k_counts = {
         int(k): int(v) for k, v in payload.summary.get("found_k_counts", {}).items()
