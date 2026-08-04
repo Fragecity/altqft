@@ -240,10 +240,10 @@ def plot_history(
         legend_lines.extend((loss_line, top1_line, topk_line))
 
     ax_loss.set_xlabel("Epoch", fontsize=LABEL_FONT_SIZE)
-    ax_loss.set_ylabel("Loss", fontsize=LABEL_FONT_SIZE)
+    ax_loss.set_ylabel("Loss", fontsize=LABEL_FONT_SIZE, labelpad=4)
     if max_epoch is not None:
         ax_loss.set_xlim(0, max_epoch)
-    ax_acc.set_ylabel("Accuracy", fontsize=LABEL_FONT_SIZE)
+    ax_acc.set_ylabel("Accuracy", fontsize=LABEL_FONT_SIZE, labelpad=4)
     ax_acc.set_ylim(0.0, 1.0)
     loss_ymin, loss_ymax = ax_loss.get_ylim()
     acc_ymin, acc_ymax = ax_acc.get_ylim()
@@ -258,6 +258,7 @@ def plot_history(
         legend_lines,
         labels,
         loc="center right",
+        bbox_to_anchor=(0.933, 0.5),
         fontsize=LEGEND_FONT_SIZE,
         frameon=False,
     )

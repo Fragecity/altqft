@@ -4,9 +4,7 @@
 \appendix
 \setcounter{secnumdepth}{1}
 
-\makeatletter
-\@ifundefined{lemma}{\newtheorem{lemma}{Lemma}}{}
-\makeatother
+\newtheorem{lemma}{Lemma}
 \newenvironment{theoremrestatement}[2]{%
     \begin{trivlist}
     \item[\hskip\labelsep\bfseries Theorem~\ref{#1} (#2).]\itshape
@@ -88,7 +86,7 @@ A direct measurement in the computational basis is uninformative. Indeed, using 
 \end{equation}
 For fixed $c$, the map $v \mapsto c+v$ is a bijection from $V$ to the coset $c+V$. Therefore the sum $\sum_{v \in V} \delta_{g,c+v}$ equals $1$ when $g \in c+V$ and equals $0$ when $g \notin c+V$. Hence
 \begin{equation}
-    \mathrm{Pr}[g\,|\,c,V] = |\langle g|c+V\rangle|^2 =
+    \Pr[g\,|\,c,V] = |\langle g|c+V\rangle|^2 =
     \begin{cases}
         1/|V|,& g\in c+V,\\
         0,& g\notin c+V,
@@ -96,7 +94,7 @@ For fixed $c$, the map $v \mapsto c+v$ is a bijection from $V$ to the coset $c+V
 \end{equation}
 so the observed element is uniform on the unknown coset. Averaging over uniformly random cosets gives the marginal distribution
 \begin{equation}
-    \mathrm{Pr}[g]=\frac{1}{|G|},
+    \Pr[g]=\frac{1}{|G|},
 \end{equation}
 which contains no direct information about the hidden subgroup $V$.
 
@@ -116,7 +114,7 @@ By the orthogonality of group characters, the sum $\sum_{v \in V} \chi_y(v)$ eva
 \end{equation}
 Measuring this state in the computational basis gives the probability of observing an outcome $y \in V^\perp$:
 \begin{equation}
-    \mathrm{Pr}[y] = \left| \sqrt{\frac{|V|}{|G|}} \chi_y(c) \right|^2 = \frac{|V|}{|G|} |\chi_y(c)|^2 = \frac{|V|}{|G|}.
+    \Pr[y] = \left| \sqrt{\frac{|V|}{|G|}} \chi_y(c) \right|^2 = \frac{|V|}{|G|} |\chi_y(c)|^2 = \frac{|V|}{|G|}.
 \end{equation}
 Crucially, because $|\chi_y(c)|^2 = 1$ for all group characters, the resulting measurement distribution is uniformly distributed over $V^\perp$ and is strictly independent of the random coset representative $c$. This shift invariance is the fundamental property that allows the extraction of subgroup information by effectively removing the unknown shift at the probability level.
 
@@ -150,7 +148,7 @@ F_G|c+V\rangle
 \end{equation}
 The Fourier-basis measurement distribution is therefore
 \begin{equation}
-\mathrm{Pr}(\chi\,\mid\,c,V)=
+\text{Pr}(\chi\,\mid\,c,V)=
 \begin{cases}
 |V|/|G|,& \chi\in V^\perp,\\
 0,& \chi\notin V^\perp,
@@ -235,9 +233,9 @@ To determine how this restricts the matrix elements of $U$, we can examine the t
 \label{app:HPk are sinv}
  This appendix aims to rigorously prove that the \myqc-$L$ circuit family satisfies the shift-invariance property. Establishing this theorem is of significant practical importance: it fundamentally guarantees that the output statistics obtained from this shallow circuit structure can be reliably used for the classical post-processing reconstruction of the hidden subgroup.
 
-\begin{theoremrestatement}{thm:hp_circuits_are_sinv}{restated}
+\begin{restatedtheorem}
 The \myqc-$L$ circuit is shift-invariant over $\mathbb{Z}_{2^n}$.
-\end{theoremrestatement}
+\end{restatedtheorem}
 
 The core strategy of the proof is as follows: First, we explicitly calculate the sequential effect of each layer of the \myqc-$L$ circuit on the initial basis state, deriving the analytical expression of the final quantum state. Next, we obtain the corresponding probability amplitudes by calculating the matrix elements of this output state in the computational basis. Finally, we compute the squared modulus of these amplitudes over the subgroup $V$ and its coset $c+V$ respectively, using algebraic simplification to factor out a pure phase factor related to the coset representative $c$. Because the modulus of this pure phase factor is strictly $1$, it naturally cancels out when calculating the measurement probabilities, thereby rigorously proving mathematically that the output probability distribution is completely independent of random shifts.
 
@@ -435,10 +433,10 @@ Equivalently, the measurement data have the form
 where each star denotes an unbiased bit.
 Therefore, the classical post-processing only needs to identify the leftmost bit position that ever evaluates to $1$ across all $m$ samples. This single position $j^*$ uniquely determines $p$, and hence determines the subgroup $V=\langle 2^p\rangle$.
 
-The sample complexity only scales with \(\ln(1/\epsilon)\).
+The sample complexity is logarithmic in the number of qubits.
 Under this leftmost-$1$ decoding strategy, the algorithm only fails if the most significant free bit (at position $n-p+1$) is measured as $0$ in all $m$ independent samples.
 Because this specific bit is uniformly random, the probability of it being zero $m$ times in a row is exactly $2^{-m}$.
-Thus $m\ge \left\lceil \ln(1/\epsilon)/\ln 2\right\rceil$ samples are sufficient for Algorithm~\ref{alg:transversal_hadamard_sampling} to perfectly identify the hidden subgroup $V$ with probability at least $1-\epsilon$. This tight bound elegantly removes the union-bound dependence on $n$, yielding an optimized sample complexity.
+Thus $m\ge \lceil \log_2(1/\epsilon)\rceil$ samples are sufficient for Algorithm~\ref{alg:transversal_hadamard_sampling} to perfectly identify the hidden subgroup $V$ with probability at least $1-\epsilon$. This tight bound elegantly removes the union-bound dependence on $n$, yielding an optimized sample complexity.
 
 \section{Fisher information for subgroup-generator estimation}
 \label{app:qft_fisher_information}
@@ -476,7 +474,7 @@ and therefore
 \end{equation}
 The corresponding measurement probability is
 \begin{equation}
-    \mathrm{Pr}(k|r)
+    \Pr(k|r)
     =
     \frac{1}{R2^n}
     \left|
@@ -646,6 +644,7 @@ In the continuum approximation, the Fisher-information calculation reduces to a 
     \end{equation}
     This proves the lemma.
 \end{proof}
+
 
 \begin{lemma}[HP-1 period-law overlap]
 \label{lem:hp1_period_law_overlap}
@@ -820,7 +819,7 @@ of summation, and substituting the \(x\)-sum kernel explicitly gives
 	\end{align}
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=0.8\columnwidth]{hp1_mixed_B_rescaled_n200_a0_150_100pairs_k001_conditioned.pdf}
+    \includegraphics[width=0.8\columnwidth]{fig/hp1_sumPP.pdf}
     \caption{\label{fig:hp1_mixed_B_statistical_law}
     Conditioned Monte Carlo estimate of \(B_{s,t}^{(n)}\) for fixed-phase
     \myqc-1 at \(n=200\).  For each \(a=0,\ldots,150\), \(100\) dyadic
@@ -1160,32 +1159,31 @@ into the constants gives the stated ln-linear exponential form
 for constants \(k\) and \(b\).
 \end{proof}
 
-\section{Ln-linear growth fit for the numerical Fisher-information scan}
-\label{app:fi_ln_linear_growth}
-The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. For the finite-size numerical plot, we use the square-root boundary proxy \(2 \leq r \leq \lfloor2^{n/2}\rfloor\), matching the period scale used in the recovery experiments. The relevant QFT comparator is therefore the worst case within this dynamically scaled finite window rather than a single fixed value of \(r\).
 
-The leading term in Lemma~\ref{thm:qft_fisher_information} is monotone in \(R\), and in the sampled regime \(R \approx 2^n/r\). Consequently, the smallest QFT Fisher information inside the scan window is attained near the largest sampled period. Substituting \(r_{\max}(n) = \lfloor 2^{n/2}\rfloor\) yields the window-matched estimate
+
+\section{Log-linear growth fit for the numerical Fisher-information}
+\label{app:fi_log_linear_growth}
+The fixed-$r$ QFT benchmark derived above clarifies the dominant scaling mechanism, but Fig.~\ref{fig:fi_scaling} probes a slightly different quantity. There, the vertical axis is the minimum discrete Fisher information over the period window used in the numerical scan. To ensure the asymptotic condition $1 \ll r \ll 2^n$ is strictly maintained as the system scales, the numerical scan uses the polynomial period window $2 \leq r \leq n^2$. The relevant QFT comparator is therefore the worst case within this dynamically scaled window rather than a single fixed value of $r$.
+
+The leading term in Lemma~\ref{thm:qft_fisher_information} is monotone in $R$, and in the sampled regime $R \approx 2^n/r$. Consequently, the smallest QFT Fisher information inside the scan window is attained near the largest sampled period. Substituting $r_{\max}(n) = n^2$ yields the window-matched estimate
 \begin{equation}
     \fii_{\mathrm{QFT,min}}(n)
     \approx
-    \frac{4\pi^2}{9}
-    \left[
-    \left\lfloor \frac{2^n}{\lfloor 2^{n/2}\rfloor} \right\rfloor^2
-    -1
-    \right]
-    \asymp
-    \frac{4\pi^2}{9}2^n .
+    \frac{4\pi^2}{9}\left( \left\lfloor \frac{2^n}{n^2} \right\rfloor^2 - 1 \right).
 \end{equation}
-If one keeps only the dominant exponential factor, the natural-ln growth becomes
+If one keeps only the dominant exponential factor, the logarithmic growth becomes
 \begin{equation}
     \ln \fii_{\mathrm{QFT,min}}(n)
     =
-     n\ln{2} + \mathcal{O}(1).
+     2n\ln{2}-4\ln n + \mathcal{O}(1).
 \end{equation}
-Thus, the asymptotic QFT exponent under this square-root period scaling is \(k_{\mathrm{QFT},\infty}=\ln 2\).
+Thus, the asymptotic QFT exponent under this polynomial period scaling approaches $k_{\mathrm{QFT},\infty}=2\ln 2$, with a finite-window reduction from the $-4\ln n$ term.
 
-This observation suggests a simple diagnostic for the numerical data in Fig.~\ref{fig:fi_scaling}. If the plotted curves retain a stable exponential dependence on the qubit count over the sampled window, then the transformed data should be well approximated by a straight line in \(n\) on the natural-log scale.
-We therefore perform ordinary least-squares fits to the ln-transformed mean values of each curve shown in Fig.~\ref{fig:fi_scaling}. Table~\ref{tab:fi_ln_regression_results} summarizes the fitted exponents; we do not repeat the transformed plot because it carries the same point set as Fig.~\ref{fig:fi_scaling}.
+This observation suggests a simple diagnostic for the numerical data in Fig.~\ref{fig:fi_scaling}. If the plotted curves retain a stable exponential dependence on the qubit count over the sampled window, then the transformed data should be well approximated by
+\begin{equation}
+    \ln \fii_{\min}(n)=kn+b.
+\end{equation}
+We therefore perform ordinary least-squares fits to the log-transformed mean values of each curve shown in Fig.~\ref{fig:fi_scaling}. Table~\ref{tab:fi_log_regression_results} summarizes the fitted exponents; we do not repeat the transformed plot because it carries the same point set as Fig.~\ref{fig:fi_scaling}.
 
 \begin{table}[h]
     \centering
@@ -1199,23 +1197,27 @@ We therefore perform ordinary least-squares fits to the ln-transformed mean valu
         \myqc-$L$ random with phase & $7$--$18$ & $0.352$ & $[0.336,\,0.367]$ & $0.996$ \\
         \hline
     \end{tabular}
-    \caption{\label{tab:fi_ln_regression_results} Effective exponents obtained from straight-line natural-log fits applied to the numerical Fisher-information curves in Fig.~\ref{fig:fi_scaling}.}
+    \caption{\label{tab:fi_log_regression_results} Effective exponents obtained from the log-linear model $\ln \fii_{\min}(n)=kn+b$ applied to the numerical Fisher-information curves in Fig.~\ref{fig:fi_scaling}.}
 \end{table}
 
-\begin{figure*}[t]
-    \centering
-    \includegraphics[width=0.78\textwidth]{../../figs/gate_noise_accuracy.pdf}
-    \caption{\textbf{Gate-level noise robustness.} Top-1 period-recovery success rate of the fixed 18-qubit \myqc-1 four-bit autoregressive decoder under stochastic Pauli errors inserted after every Hadamard and controlled-phase gate. The sweep evaluates \(510\) periods, averages four noisy-circuit trajectories per period, and uses \(331776=1024n^2\) samples at \(n=18\).}
-    \label{fig:gate_noise_accuracy}
-\end{figure*}
+The fitted lines account for most of the log-scale variance across the sampled window. The coefficient of determination ($R^2$) ranges from $0.972$ to $0.997$, the log-space root-mean-square residual lies between $0.075$ and $0.217$, and every fitted slope ($k$) is significantly positive with a $p$-value $\leq 4.6\times 10^{-9}$. In that sense, a linear regression on $\ln I_{\min}$ is justified as a finite-window descriptive model for these curves. At the same time, the fitted slope $k$ should be interpreted as an effective exponent on the restricted range $n=7,\dots,18$ (where $n$ is the number of qubits), not as a claim about the ultimate asymptotic law.
 
-The fitted lines account for most of the ln-scale variance across the sampled window. The coefficient of determination ($R^2$) ranges from $0.972$ to $0.997$, the ln-space root-mean-square residual lies between $0.075$ and $0.217$, and every fitted slope ($k$) is significantly positive with a $p$-value $\leq 4.6\times 10^{-9}$. In that sense, a linear regression on $\ln I_{\min}$ is justified as a finite-window descriptive model for these curves. At the same time, the fitted slope $k$ should be interpreted as an effective exponent on the restricted range $n=7,\dots,18$ (where $n$ is the number of qubits), not as a claim about the ultimate asymptotic law.
+The comparison with the QFT benchmark is unambiguous. Even after matching the period window used in the numerical scan, the QFT reference fit remains much steeper, with $k_{\mathrm{QFT,win}}=1.089$ and $R^2=0.999$. The empirical circuit families therefore grow substantially more slowly: their fitted exponents occupy $32\%$--$37\%$ of the window-matched QFT slope, and $25\%$--$29\%$ of the asymptotic QFT exponent $2\ln 2$. Among the plotted families, the random-layer \myqc{} circuit has the largest point estimate, near $k=0.398$, followed by the shared optimized \myqc-1 circuit, near $k=0.379$.
 
-The comparison with the QFT benchmark is unambiguous. Even after matching the square-root period window used in the numerical scan, the QFT reference fit remains steeper, with \(k_{\mathrm{QFT,win}}=0.695\) and \(R^2=1.000\) over \(n=7,\ldots,18\). The empirical circuit families therefore grow more slowly: their fitted exponents occupy about \(51\%\)--\(57\%\) of the window-matched QFT slope and of the asymptotic QFT exponent \(\ln 2\). Among the plotted families, the random-layer \myqc{} circuit has the largest point estimate, near \(k=0.398\), followed by the shared optimized \myqc-1 circuit, near \(k=0.379\).
-
-This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}. The \myqc{} family circuits retain a clear exponential-in-$n$ growth trend in the $\fii_{\text{min}}$ over the sampled window, which is why the ln-linear fit works well, but they do not reproduce the QFT growth rate. Their advantage in the present setting is therefore not that they match the full QFT benchmark asymptotically, but that they retain a nontrivial and practically usable fraction of that information while remaining much shallower.
+This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}. The \myqc{} family circuits retain a clear exponential-in-$n$ growth trend in the $\fii_{\text{min}}$ over the sampled window, which is why the log-linear fit works well, but they do not reproduce the QFT growth rate. Their advantage in the present setting is therefore not that they match the full QFT benchmark asymptotically, but that they retain a nontrivial and practically usable fraction of that information while remaining much shallower.
 
 \section{Decoder Model}
+\label{sec:AppendixDecoder}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{fig/vpq_dist.pdf}
+    \caption{\textbf{Period-dependent HP output distributions.} Output
+    probabilities for two hidden periods, \(r=3\) and \(r=5\).  The
+    period-dependent peak structure shows that the measurement samples retain
+    information about \(r\), while the irregular peak locations do not provide an
+    obvious closed-form decoding rule.}
+    \label{fig:decoder_output_distributions}
+\end{figure}
 The measurement distribution produced by an HP circuit depends on the hidden
 period.  For example, Fig.~\ref{fig:decoder_output_distributions} shows the
 output distributions for two different periods, \(r=3\) and \(r=5\).  The
@@ -1226,29 +1228,20 @@ number-theoretic pattern that can be directly converted into a continued-
 fraction estimate.  The irregular structure makes a compact analytical decoder
 difficult to construct.
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.9\linewidth]{../../figs/vpq_dist.pdf}
-    \caption{\textbf{Period-dependent HP output distributions.} Output
-    probabilities for two hidden periods, \(r=3\) and \(r=5\).  The
-    period-dependent peak structure shows that the measurement samples retain
-    information about \(r\), while the irregular peak locations do not provide an
-    obvious closed-form decoding rule.}
-    \label{fig:decoder_output_distributions}
-\end{figure}
+
 
 An ideal generic decoder would be the maximum-likelihood estimator (MLE).  Let
 \(B_m=\{b_i\}_{i=1}^{m}\) denote \(m\) independent measurement outcomes, with
-\(b_i\in\{0,1\}^{n}\), and let \(P(b\mid r)\) be the output probability of the
+\(b_i\in\{0,1\}^{n}\), and let \(\Pr(b\mid r)\) be the output probability of the
 HP circuit for a candidate period \(r\).  The MLE is
 \begin{equation}
     \widehat r_{\mathrm{ML}}
     =
     \underset{r\in\mathcal R}{\operatorname{arg\,max}}\;
-    \prod_{i=1}^{m}P(b_i\mid r)
+    \prod_{i=1}^{m}\Pr(b_i\mid r)
     =
     \underset{r\in\mathcal R}{\operatorname{arg\,max}}\;
-    \sum_{i=1}^{m}\log P(b_i\mid r),
+    \sum_{i=1}^{m}\log \Pr(b_i\mid r),
     \label{eq:decoder_mle}
 \end{equation}
 where \(\mathcal R\) is the candidate-period set.  Under the usual regularity
@@ -1256,12 +1249,12 @@ conditions for likelihood estimation, the Fisher information determines the
 local asymptotic precision of the estimator, so its inverse sets a local
 sample--precision scale~\cite{Paris2009,Kwon2026}.  For the discrete period
 problem, the global error exponent additionally depends on the separation
-between the full distributions \(P(\cdot\mid r)\) for different \(r\); therefore the DFI alone should not be interpreted as a proof of an achievable decoding error exponent.  The empirical MLE failure rates shown in
+between the full distributions \(\Pr(\cdot\mid r)\) for different \(r\); therefore the DFI alone should not be interpreted as a proof of an achievable decoding error exponent.  The empirical MLE failure rates shown in
 Fig.~\ref{fig:decoder_mle} decrease rapidly as the number of samples increases, and are approximately exponential over the displayed range.  This observation provides a useful numerical benchmark for the amount of information available in the HP samples, but it is not an asymptotic theorem for all periods or circuit families.
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=0.9\linewidth]{../../figs/mle.pdf}
+    \includegraphics[width=0.9\linewidth]{fig/mle.pdf}
     \caption{\textbf{Maximum-likelihood decoding benchmark.} Empirical failure
     rate of the MLE as a function of the number of measurement samples for
     \(n=8,9,10,\) and \(11\).  The rapid decrease in failure rate illustrates
@@ -1270,7 +1263,7 @@ Fig.~\ref{fig:decoder_mle} decrease rapidly as the number of samples increases, 
 \end{figure}
 
 The MLE is not the decoder used in the main numerical protocol.  Evaluating
-Eq.~\eqref{eq:decoder_mle} requires computing \(P(b_i\mid r)\) for every observed bit string and every candidate period.  A direct construction of the complete output distribution contains \(2^n\) probabilities and requires repeated circuit simulation, which is prohibitive in the regime of interest.  A specialized likelihood evaluation with lower cost is possible in principle, but its implementation and complexity are not established here.  We therefore replace the explicit likelihood calculation by a learned estimator that acts directly on the sampled bit strings.
+Eq.~\eqref{eq:decoder_mle} requires computing \(\Pr(b_i\mid r)\) for every observed bit string and every candidate period.  A direct construction of the complete output distribution contains \(2^n\) probabilities and requires repeated circuit simulation, which is prohibitive in the regime of interest.  A specialized likelihood evaluation with lower cost is possible in principle, but its implementation and complexity are not established here.  We therefore replace the explicit likelihood calculation by a learned estimator that acts directly on the sampled bit strings.
 
 The decoder used in the \(18\)-qubit experiments is a weighted,
 permutation-invariant Deep Sets model
@@ -1308,63 +1301,101 @@ This is exactly the ordinary mean \(m^{-1}\sum_i\phi(b_i)\) without explicitly
 repeating identical strings; zero-weight padding permits batching sets with
 different numbers of distinct outcomes.  After another layer normalization,
 two more residual blocks of the form in
-Eq.~\eqref{eq:decoder_residual_block} act on \(z(B_m)\).  A final linear layer
-produces one logit for each candidate period.  In the reported model
-\(n=18\), so \(d_e=18\), \(nd_e=324\), \(d=288\), and the hidden dimension in
-each residual block is \(2d=576\).  The output classes are the \(510\) periods
-\(\mathcal R=\{2,\ldots,511\}\), and the complete network has \(1{,}909{,}230\)
-trainable parameters.
+Eq.~\eqref{eq:decoder_residual_block} act on \(z(B_m)\), producing the pooled
+encoder representation \(h\).
 
-The implemented scoring head is a multiclass classifier rather than an
-autoregressive sequence model.  Applying log-softmax to its \(510\) logits and
-sorting them gives the exact top-\(k\) candidates; the experiments retain
-\(k=10\) for subsequent classical verification.  Thus, the beam label in the
-schematic architecture refers only to retaining a short ranked list: no
-stepwise beam expansion or separately chosen beam width is used.  At inference,
-the protocol supplies \(m=1024n^2\) circuit measurements (\(331{,}776\) for
-\(n=18\)); count compression and Eq.~\eqref{eq:decoder_deep_sets} make the
-network input depend on the number of distinct outcomes rather than on storing
-all \(m\) strings separately.
+The output head is not a \(510\)-way classifier.  It is a parameter-shared
+autoregressive decoder for the binary expansion of the period.  The decoder
+packs four consecutive bits into one nibble, so each decoding step has
+\(C=2^4=16\) possible tokens.  With a beginning-of-sequence token, a learned
+token embedding, an initial state
+\(h_0=\tanh(W_0h+c_0)\), and a GRU cell, the recurrent update is
+\begin{equation}
+    u_\ell=\operatorname{GRUCell}
+    \left(E_{\mathrm{tok}}(t_{\ell-1}),u_{\ell-1}\right),
+    \qquad
+    q_\ell=W_{\mathrm{tok}}u_\ell+c_{\mathrm{tok}}\in\mathbb R^{16},
+    \label{eq:decoder_nibble_update}
+\end{equation}
+where the same cell and token classifier are reused at every step.  The
+period is represented by \(T=\lceil w/4\rceil\) nibbles, with
+\(w=\operatorname{bit\_length}(r_{\max})\).  Thus, for the reported range
+\(\mathcal R=\{2,\ldots,511\}\), \(w=9\) and \(T=3\): the network emits
+three successive 16-way token distributions, rather than one output logit for
+each of the \(510\) candidate periods.  Leading padding bits are allowed in the
+first nibble, and the valid prefix mask enforces \(2\le r\le511\).
 
-For training, cached HP-1 output distributions were constructed for every
-\(r\in\{2,\ldots,511\}\) and every subgroup shift \(s\in\{0,\ldots,r-1\}\).
-One shift per period was reserved before training, leaving \(130{,}305\)
-period--shift rows available for training.  Each data item was generated by
-drawing \(8192\) outcomes from one cached distribution and compressing them to
-distinct bit strings with empirical-frequency weights.  At each epoch, \(96\)
-periods were selected and \(1024\) training items were drawn; the mini-batch
-size was \(8\).  Validation used a fixed subset of \(512\) draws from the
-held-out shifts.
+During training, the target period is converted to its nibble sequence and the
+network is optimized with teacher forcing.  If \(t_{1:T}(r)\) denotes the
+sequence for period \(r\), the token loss is
+\begin{equation}
+    \mathcal L_{\mathrm{tok}}
+    =-\frac{1}{T}\sum_{\ell=1}^{T}
+      \log\operatorname{softmax}(q_\ell)_{t_\ell(r)},
+    \label{eq:decoder_token_loss}
+\end{equation}
+with label smoothing in the numerical run.  At inference, beam search retains
+at most four prefixes.  A prefix \(t_{1:\ell}\) is scored by the accumulated
+conditional log-probability
+\begin{equation}
+    S(t_{1:\ell})
+    =\sum_{j=1}^{\ell}
+      \log\operatorname{softmax}(q_j)_{t_j},
+    \label{eq:decoder_beam_score}
+\end{equation}
+and invalid prefixes outside the period range are removed before each beam
+pruning step.  The returned top-\(k\) list therefore has \(k\le4\), and its
+entries are decoded period integers, not indices of a 510-dimensional output
+layer.
 
-The network was trained with AdamW using learning rate \(10^{-3}\), weight
-decay \(10^{-4}\), the default momentum parameters
-\((\beta_1,\beta_2)=(0.9,0.999)\), and cross-entropy loss with label smoothing
-\(0.02\).  All residual-block dropout probabilities were \(0.1\).  The random
-seed was \(7\), and CUDA training used bfloat16 autocasting.  The \(510\)-class
-run was initialized from a checkpoint trained on \(322\) candidate periods:
-all shape-compatible shared tensors and the classifier rows corresponding to
-overlapping periods were copied.  Checkpoints were selected by validation
-top-1 accuracy, with a minimum of \(300\) epochs and early-stopping patience
-\(250\).  Training stopped after epoch \(1919\); the selected checkpoint was
-epoch \(1669\), with validation loss \(0.4845\), top-1 accuracy \(0.9551\), and
-top-10 accuracy \(1.0000\).
+For \(n=18\), the encoder dimensions are \(d_e=18\), \(nd_e=324\),
+\(d=288\), and the hidden dimension in each residual block is \(2d=576\).
+The decoder uses a 17-entry token embedding (16 nibble tokens plus the BOS
+token), a 288-dimensional GRU state, and a 16-way token classifier.  The
+complete weighted model has \(2{,}353{,}984\) trainable parameters.  At
+inference, the protocol supplies \(m=1024n^2=331{,}776\) circuit measurements
+for \(n=18\).  Count compression reduces the set input to the distinct observed
+strings; the 18-qubit training and noise pipelines retain at most \(8192\)
+highest-frequency patterns.
+
+For training, exact-support HP-1 output distributions were sampled for periods
+\(r\in\{2,\ldots,511\}\).  One shift per period was held out for validation,
+and training shifts exclude that reserved shift.  Each training item contains
+\(331{,}776\) shots and at most \(8192\) nonzero bit-string patterns.  The
+18-qubit distributed run draws \(1024\) examples per epoch with local
+mini-batches of size \(8\), uses AdamW with decoder learning rate \(10^{-3}\),
+encoder learning rate \(10^{-4}\), weight decay \(10^{-4}\), dropout \(0.1\),
+and label smoothing \(0.02\).  The random seed is \(7\), and training uses
+bfloat16 autocasting on CUDA.  The beam width is \(4\); the selected checkpoint
+is epoch \(390\), with validation top-1 and top-4 success rates both equal to
+\(1.0000\).  The checkpoint stores the period range, four-bit token encoding,
+token count, beam width, and decoder type so that inference reconstructs the
+same autoregressive model.
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=0.6\linewidth]{../../figs/ml/ml_arch.pdf}
+    \includegraphics[width=0.6\linewidth]{fig/ml_arch.pdf}
     \caption{\textbf{Neural decoder architecture.} The HP circuit produces an
-    unordered set of measurement bit strings.  A shared feature map processes
-    every distinct bit string, the resulting features are aggregated by a
-    count-weighted mean, and a multiclass scoring head produces a ranked list of
-    candidate periods.}
+    unordered set of measurement bit strings.  A shared Deep Sets encoder
+    aggregates their features, and a parameter-shared four-bit autoregressive
+    decoder uses beam search to produce a ranked list of candidate periods.}
     \label{fig:decoder_architecture}
 \end{figure}
 
-The use of a neural decoder should be distinguished from an analytical decoding theorem.  The DFI characterizes the sensitivity of the HP output distribution to the hidden period and is therefore used here as an information-theoretic resolution scale~\cite{weimar2025fisher}.  Once the likelihood is replaced by a trained neural estimator, the DFI is not an asymptotically achieved bound for that estimator; the actual decoder performance must be established empirically through validation accuracy, top-\(k\) recovery, and the factorization tests.  In this sense, the neural network demonstrates that the information diagnosed by the DFI is practically accessible in the tested regime, while a general polynomial-cost
-decoding guarantee remains an open question.
+The use of a neural decoder should be distinguished from an analytical decoding theorem.  The DFI characterizes the sensitivity of the HP output distribution to the hidden period and is therefore used here as an information-theoretic resolution scale~\cite{weimar2025fisher}.  Once the likelihood is replaced by a trained neural estimator, the DFI is not an asymptotically achieved bound for that estimator; the actual decoder performance must be established empirically through validation accuracy, top-\(k\) recovery, and the factorization tests.  In this sense, the neural network demonstrates that the information diagnosed by the DFI is practically accessible in the tested regime.
 
-\section{Noise-robustness experiment details}
+
+
+
+\section{Noise-robustness experiment}
 \label{app:noise_robustness_details}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.78\textwidth]{fig/gate_noise_accuracy.pdf}
+    \caption{\textbf{Gate-level noise robustness.} Top-1 period-recovery success rate of the fixed 18-qubit \myqc-1 four-bit autoregressive decoder under stochastic Pauli errors inserted after every Hadamard and controlled-phase gate. The sweep evaluates \(510\) periods, averages four noisy-circuit trajectories per period, and uses \(331776=1024n^2\) samples at \(n=18\).}
+    \label{fig:gate_noise_accuracy}
+\end{figure*}
 We test noise robustness on the trained \(18\)-qubit \myqc-1 neural-decoder pipeline used for the period-recovery experiments. Both the learned circuit phases and the neural-network weights are kept fixed throughout the sweep. The periods are \(r\in\{2,\ldots,511\}\), giving \(510\) period-recovery instances, and the representative subgroup shift is fixed to \(s=0\). The decoder is the weighted Deep Sets model with a parameter-shared four-bit autoregressive head selected at epoch \(390\); its fixed noiseless validation top-1 and top-4 success rates are both \(1.0000\). For every period and noise strength, we draw \(1024n^2=331776\) measurement outcomes at \(n=18\) and retain up to the \(8192\) highest-frequency patterns, matching decoder training.
 
 The noise model is gate-level stochastic Pauli depolarization, not a post-circuit mixture with the uniform distribution. We rebuild the optimized \(18\)-qubit Qiskit circuit from the learned shared \myqc-1 phase parameters; the circuit contains \(18\) Hadamard gates and \(51\) controlled-phase gates. After each Hadamard gate, an error is sampled independently: with probability \(p\), one of \(X,Y,Z\) is applied uniformly. After each controlled-phase gate, a two-qubit error is sampled independently: with probability \(p\), one of the \(15\) non-identity two-qubit Pauli products is applied uniformly. The noisy measurement distributions are then passed through the trained decoder by forward pass only, with no retraining, calibration, or noise-aware fine tuning.

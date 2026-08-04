@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="828pt" height="435.6pt" viewBox="0 0 828 435.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="853pt" height="435.6pt" viewBox="0 0 853 435.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
@@ -677,7 +677,7 @@ L 765.050073 37.980409
     </g>
     <g id="text_16">
      <!-- Loss -->
-     <g transform="translate(18.956959 216.45875) rotate(-90) scale(0.235 -0.235)">
+     <g transform="translate(24.956959 216.45875) rotate(-90) scale(0.235 -0.235)">
       <defs>
        <path id="DejaVuSans-4c" d="M 628 4666 
 L 1259 4666 
@@ -830,7 +830,7 @@ L 765.050073 383.855072
 L 765.050073 3.00024 
 " style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
-   <g id="legend_1">
+   <g id="legend_1" transform="translate(-47 0)">
     <g id="line2d_30">
      <path d="M 491.423354 161.048281 
 L 512.423354 161.048281 
