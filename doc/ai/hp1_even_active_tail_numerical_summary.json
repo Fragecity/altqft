@@ -1,0 +1,29 @@
+{
+  "status": "finite-window numerical evidence only",
+  "support": "exact support arange(0, N, r)",
+  "period_window": "2 <= r < 2^(n/4)",
+  "n_range": [10, 26],
+  "small_denominator_condition": "P_r(x) <= 2/N",
+  "active_numerator_condition": "Delta_r(x)^2 >= 1e-4 * D_r/N",
+  "constant_k": 0.0001,
+  "even_period_minimum_active_fractions": [
+    {"n": 10, "r": 2, "active_fraction": 0.40234375},
+    {"n": 14, "r": 2, "active_fraction": 0.15081787109375},
+    {"n": 18, "r": 4, "active_fraction": 0.045619964599609375},
+    {"n": 22, "r": 4, "active_fraction": 0.010875463485717773},
+    {"n": 26, "r": 4, "active_fraction": 0.0024367868900299072}
+  ],
+  "complex128_rechecks": [
+    {"n": 22, "r": 4, "active_fraction": 0.010875463485717773, "energy_fraction": 0.0039028653524632597},
+    {"n": 24, "r": 4, "active_fraction": 0.005157291889190674, "energy_fraction": 0.002808798291366295},
+    {"n": 26, "r": 4, "active_fraction": 0.0024367868900299072, "energy_fraction": 0.0018452706224225482}
+  ],
+  "minimum_active_fraction_log_linear_fit": {
+    "model": "log(a_active_min) = slope * n + intercept",
+    "slope": -0.3268700270243424,
+    "intercept": 2.6680767727269976,
+    "r_squared": 0.9932179529968307
+  },
+  "ln2_over_2": 0.34657359027997264,
+  "conditional_net_exponent_if_D_ge_c_over_r_squared": 0.01970356325563024
+}

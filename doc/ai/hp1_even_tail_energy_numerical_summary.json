@@ -1,0 +1,33 @@
+{
+  "status": "finite-window numerical evidence only",
+  "support": "exact support arange(0, N, r)",
+  "period_window": "2 <= r < 2^(n/4)",
+  "n_range": [10, 26],
+  "adjacent_pair_count": 512,
+  "small_denominator_set": "A_2 = {x: P_r(x) <= 2/N}",
+  "definition": "k_eff = D_r(A_2) / ((|A_2|/N) D_r)",
+  "even_period_minima": [
+    {"n": 10, "k_eff_min": 0.03998785761998265},
+    {"n": 14, "k_eff_min": 0.010894614687055267},
+    {"n": 18, "k_eff_min": 0.003296306337063496},
+    {"n": 22, "k_eff_min": 0.001051418178753032},
+    {"n": 26, "k_eff_min": 0.000343231063103432}
+  ],
+  "even_minimum_log_linear_fit": {
+    "model": "log(k_eff_min) = slope * n + intercept",
+    "slope": -0.29375581575422866,
+    "intercept": -0.32656524018978106,
+    "r_squared": 0.9976151724950851
+  },
+  "smallest_pair_without_float_detected_zero_mismatch": {
+    "n": 23,
+    "r": 12,
+    "k_eff": 0.0017116772061278255,
+    "complex128_recheck": 0.0017116767508761376
+  },
+  "complex128_rechecks": [
+    {"n": 23, "r": 12, "count_fraction": 0.9618844985961914, "energy_fraction": 0.0016464353332752517, "k_eff": 0.0017116767508761376},
+    {"n": 26, "r": 2, "energy_fraction_at_C1": 0.00034323135328850207}
+  ],
+  "conditional_net_exponent_if_D_ge_c_over_r_squared": 0.052817774525744
+}
