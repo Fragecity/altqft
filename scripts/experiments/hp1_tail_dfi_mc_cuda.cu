@@ -48,6 +48,7 @@ struct Args {
     int n_step = 10;
     std::vector<uint64_t> periods = {12};
     uint64_t samples = 1ULL << 20;
+    uint64_t samples_per_n2 = 0;
     int batch_samples = 1 << 17;
     int max_odd_part = 4096;
     double min_fit_ess = 100.0;
@@ -151,6 +152,8 @@ Args parse_args(int argc, char** argv) {
             args.periods = parse_periods(require_value(key));
         } else if (key == "--samples") {
             args.samples = std::stoull(require_value(key));
+        } else if (key == "--samples-per-n2") {
+            args.samples_per_n2 = std::stoull(require_value(key));
         } else if (key == "--batch-samples") {
             args.batch_samples = std::stoi(require_value(key));
         } else if (key == "--max-odd-part") {
@@ -167,7 +170,8 @@ Args parse_args(int argc, char** argv) {
             std::cout
                 << "Usage: hp1_tail_dfi_mc_cuda [--n-min 20] [--n-max 300] "
                 << "[--n-step 10] [--periods 12,20] [--samples 1048576] "
-                << "[--batch-samples 131072] [--max-odd-part 4096] "
+                << "[--samples-per-n2 0] [--batch-samples 131072] "
+                << "[--max-odd-part 4096] "
                 << "[--min-fit-ess 100] [--seed 20260806] [--device 0] "
                 << "[--output result.csv]\n";
             std::exit(0);
@@ -459,7 +463,15 @@ __global__ void hard_tail_kernel(
     }
 }
 
+uint64_t samples_for_n(const Args& args, int n) {
+    if (args.samples_per_n2 == 0) {
+        return args.samples;
+    }
+    return args.samples_per_n2 * static_cast<uint64_t>(n) * static_cast<uint64_t>(n);
+}
+
 ResultRow run_case(const Args& args, int n, uint64_t period) {
+    const uint64_t sample_count = samples_for_n(args, n);
     PeriodAllocation first = build_period(n, period, args.max_odd_part);
     PeriodAllocation second = build_period(n, period + 1, args.max_odd_part);
 
@@ -468,8 +480,8 @@ ResultRow run_case(const Args& args, int n, uint64_t period) {
     check_cuda(cudaMemset(device_stats, 0, sizeof(DeviceStats)), "cudaMemset stats");
 
     const auto started = std::chrono::steady_clock::now();
-    for (uint64_t offset = 0; offset < args.samples;) {
-        const int batch = static_cast<int>(std::min<uint64_t>(args.batch_samples, args.samples - offset));
+    for (uint64_t offset = 0; offset < sample_count;) {
+        const int batch = static_cast<int>(std::min<uint64_t>(args.batch_samples, sample_count - offset));
         const int blocks = (batch + kWarpsPerBlock - 1) / kWarpsPerBlock;
         hard_tail_kernel<<<blocks, kBlockSize>>>(
             n,
@@ -490,7 +502,7 @@ ResultRow run_case(const Args& args, int n, uint64_t period) {
     check_cuda(cudaMemcpy(&stats, device_stats, sizeof(DeviceStats), cudaMemcpyDeviceToHost), "cudaMemcpy stats");
     check_cuda(cudaFree(device_stats), "cudaFree stats");
 
-    const double count = static_cast<double>(args.samples);
+    const double count = static_cast<double>(sample_count);
     const double mean = stats.sum_y / count;
     const double second_moment = stats.sum_y_squared / count;
     const double variance = std::max(0.0, second_moment - mean * mean);
@@ -513,7 +525,7 @@ ResultRow run_case(const Args& args, int n, uint64_t period) {
         period,
         odd_part(period),
         odd_part(period + 1),
-        args.samples,
+        sample_count,
         active_fraction,
         mean,
         standard_error,
@@ -631,8 +643,13 @@ int main(int argc, char** argv) {
         std::cout
             << "device=" << properties.name
             << " n=" << args.n_min << ':' << args.n_max << ':' << args.n_step
-            << " samples=" << args.samples
-            << " periods=";
+            << " samples=";
+        if (args.samples_per_n2 == 0) {
+            std::cout << args.samples;
+        } else {
+            std::cout << args.samples_per_n2 << "*n^2";
+        }
+        std::cout << " periods=";
         for (size_t index = 0; index < args.periods.size(); ++index) {
             std::cout << (index == 0 ? "" : ",") << args.periods[index];
         }

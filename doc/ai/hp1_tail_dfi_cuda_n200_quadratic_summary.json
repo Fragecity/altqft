@@ -1,0 +1,26 @@
+{
+  "status": "uniform Monte Carlo fails the reliability diagnostic beyond n=20",
+  "estimator": "L2(n,r) = E_uniform[(N P_{r+1}(x) - N P_r(x))^2 1{N P_r(x) < 2} / 2]",
+  "period": 12,
+  "threshold_C": 2,
+  "n_values": [20, 40, 60, 80, 100, 120, 140, 160, 180, 200],
+  "sample_schedule": "M(n) = 2622 n^2",
+  "reference": "M(20) = 1048800, approximately 2^20",
+  "gpu": "NVIDIA GeForce RTX 5060 Ti",
+  "total_samples": 403788000,
+  "total_kernel_seconds": 1826.099454652,
+  "reliability_rule": "ESS >= 100, maximum_weight_fraction <= 0.1, and relative standard error <= 0.25",
+  "rows": [
+    {"n": 20, "samples": 1048800, "L2": 49.71882810481812, "standard_error": 2.812718391371537, "ESS": 312.36322390338705, "maximum_weight_fraction": 0.011574072950558269, "active_fraction": 0.9554872234935165, "reliable": true, "seconds": 1.253532037},
+    {"n": 40, "samples": 4195200, "L2": 71003.25824752281, "standard_error": 59470.16330855948, "ESS": 1.4254702143154838, "maximum_weight_fraction": 0.8356757316795713, "active_fraction": 0.9913184115179252, "reliable": false, "seconds": 8.626406134},
+    {"n": 60, "samples": 9439200, "L2": 110955.60543539698, "standard_error": 85410.39726958654, "ESS": 1.6876288210050512, "maximum_weight_fraction": 0.7396228559214988, "active_fraction": 0.9982619289770319, "reliable": false, "seconds": 30.205994929},
+    {"n": 80, "samples": 16780800, "L2": 20103.249154241588, "standard_error": 13629.951034265925, "ESS": 2.1754237363682676, "maximum_weight_fraction": 0.629369370351606, "active_fraction": 0.9996502550533943, "reliable": false, "seconds": 54.010544722},
+    {"n": 100, "samples": 26220000, "L2": 284.6019207510037, "standard_error": 217.98465380199923, "ESS": 1.7046051056801188, "maximum_weight_fraction": 0.7572099559416329, "active_fraction": 0.9999290236460717, "reliable": false, "seconds": 77.78181435},
+    {"n": 120, "samples": 37756800, "L2": 2213.2018133065853, "standard_error": 2212.697754433499, "ESS": 1.0004556311013708, "maximum_weight_fraction": 0.99977225641664, "active_fraction": 0.9999853271463683, "reliable": false, "seconds": 173.694040486},
+    {"n": 140, "samples": 51391200, "L2": 16743.46866432021, "standard_error": 16743.438673910478, "ESS": 1.0000035628922115, "maximum_weight_fraction": 0.9999982185580143, "active_fraction": 0.9999971979638538, "reliable": false, "seconds": 265.281250459},
+    {"n": 160, "samples": 67123200, "L2": 0.0005222852749720072, "standard_error": 0.00031217246599305653, "ESS": 2.7991511812077445, "maximum_weight_fraction": 0.5314784731206584, "active_fraction": 0.9999992699990465, "reliable": false, "seconds": 450.454445496},
+    {"n": 180, "samples": 84952800, "L2": 1.1420468588985159e-05, "standard_error": 8.25824234812581e-06, "ESS": 1.9124610120778618, "maximum_weight_fraction": 0.6243448598775523, "active_fraction": 0.999999846973849, "reliable": false, "seconds": 364.809032701},
+    {"n": 200, "samples": 104880000, "L2": 1.0226184760911408e-08, "standard_error": 6.285851098559746e-09, "ESS": 2.6466656505335133, "maximum_weight_fraction": 0.5554051788573002, "active_fraction": 0.999999971395881, "reliable": false, "seconds": 399.982393338}
+  ],
+  "conclusion": "M proportional to n^2 is sufficient for forward-compute scaling but not for statistical scaling. The accepted-set fraction tends to one, while the Delta^2-weighted estimate is dominated by one or two rare resonance outputs. No n>20 row is valid for a scaling fit; importance sampling from (P_r + P_{r+1})/2 or another rare-event proposal is required."
+}

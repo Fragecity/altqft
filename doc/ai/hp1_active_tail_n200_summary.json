@@ -1,0 +1,235 @@
+{
+  "status": "conditional statistical law; not a uniform theorem",
+  "definition": "A_tau(n,r)={x: 2^n P_r(x)<2 and (2^n(P_{r+1}(x)-P_r(x)))^2 r^2 >= tau 2^n}",
+  "tau": 0.0003,
+  "deterministic_point_certificate": "I_r >= tau |A_tau(n,r)|/(2 r^2)",
+  "tested_class": "even non-dyadic periods; dyadic periods use exact support mismatch",
+  "exact_full_window": {
+    "n_range": [
+      11,
+      20
+    ],
+    "period_window": "2 <= r < 2^(n/4), even non-dyadic",
+    "envelope": [
+      {
+        "n": 11,
+        "period": 6,
+        "active_fraction": 0.48388671875,
+        "log_normalized_fraction": -4.30942339028552,
+        "log_dfi_count_bound": -5.48967966799414
+      },
+      {
+        "n": 12,
+        "period": 6,
+        "active_fraction": 0.388916015625,
+        "log_normalized_fraction": -4.527910795265405,
+        "log_dfi_count_bound": -5.01501989241408
+      },
+      {
+        "n": 13,
+        "period": 6,
+        "active_fraction": 0.313232421875,
+        "log_normalized_fraction": -4.744328740559817,
+        "log_dfi_count_bound": -4.538290657148547
+      },
+      {
+        "n": 14,
+        "period": 10,
+        "active_fraction": 0.4033203125,
+        "log_normalized_fraction": -5.513194398626512,
+        "log_dfi_count_bound": -4.614009134655296
+      },
+      {
+        "n": 15,
+        "period": 12,
+        "active_fraction": 0.363250732421875,
+        "log_normalized_fraction": -5.9824752598073,
+        "log_dfi_count_bound": -4.390142815276139
+      },
+      {
+        "n": 16,
+        "period": 14,
+        "active_fraction": 0.2912139892578125,
+        "log_normalized_fraction": -6.511811583010312,
+        "log_dfi_count_bound": -4.226331957919205
+      },
+      {
+        "n": 17,
+        "period": 18,
+        "active_fraction": 0.290313720703125,
+        "log_normalized_fraction": -7.017536660985052,
+        "log_dfi_count_bound": -4.038909855334
+      },
+      {
+        "n": 18,
+        "period": 22,
+        "active_fraction": 0.2595863342285156,
+        "log_normalized_fraction": -7.530750843901158,
+        "log_dfi_count_bound": -3.858976857690161
+      },
+      {
+        "n": 19,
+        "period": 26,
+        "active_fraction": 0.2346630096435547,
+        "log_normalized_fraction": -7.9657978715619056,
+        "log_dfi_count_bound": -3.600876704790963
+      },
+      {
+        "n": 20,
+        "period": 30,
+        "active_fraction": 0.17999649047851562,
+        "log_normalized_fraction": -8.517212688947893,
+        "log_dfi_count_bound": -3.459144341617005
+      }
+    ],
+    "log_normalized_envelope_fit_n14_20": {
+      "slope": -0.4999156912630071,
+      "intercept": 1.4930268504939601,
+      "r_squared": 0.9995536343532202
+    }
+  },
+  "rare_event_method": {
+    "name": "adaptive subset simulation",
+    "point_forward": "exact roots-of-unity filter in log domain",
+    "validation": {
+      "n20_r12_exact_fraction": 0.06952095031738281,
+      "n22_r12_exact_fraction": 0.032258033752441406,
+      "n30_r12_uniform_mc_fraction": 0.00213275
+    },
+    "caveat": "Subset simulation has MCMC mixing error. Independent replicates, acceptance, and distinct-state diagnostics are reported."
+  },
+  "r12_scaling": {
+    "points": [
+      {
+        "n": 20,
+        "replicates": 4,
+        "mean_log_active_fraction": -2.6569526367006935,
+        "sd_log_active_fraction": 0.04288389342222097
+      },
+      {
+        "n": 40,
+        "replicates": 4,
+        "mean_log_active_fraction": -9.643958880057891,
+        "sd_log_active_fraction": 0.08784410409124319
+      },
+      {
+        "n": 60,
+        "replicates": 4,
+        "mean_log_active_fraction": -16.663713719896325,
+        "sd_log_active_fraction": 0.2532260332428048
+      },
+      {
+        "n": 80,
+        "replicates": 4,
+        "mean_log_active_fraction": -23.978838417849225,
+        "sd_log_active_fraction": 0.20539060529347097
+      },
+      {
+        "n": 100,
+        "replicates": 4,
+        "mean_log_active_fraction": -31.645311117622107,
+        "sd_log_active_fraction": 0.6139563153156639
+      },
+      {
+        "n": 120,
+        "replicates": 4,
+        "mean_log_active_fraction": -39.56828155278141,
+        "sd_log_active_fraction": 0.35858576006666076
+      },
+      {
+        "n": 140,
+        "replicates": 4,
+        "mean_log_active_fraction": -47.182701929519766,
+        "sd_log_active_fraction": 0.2923130650283356
+      },
+      {
+        "n": 160,
+        "replicates": 4,
+        "mean_log_active_fraction": -54.889671231791,
+        "sd_log_active_fraction": 0.37478596500354006
+      },
+      {
+        "n": 180,
+        "replicates": 4,
+        "mean_log_active_fraction": -62.00706499090476,
+        "sd_log_active_fraction": 0.6507498908230417
+      },
+      {
+        "n": 200,
+        "replicates": 6,
+        "mean_log_active_fraction": -69.52921684698467,
+        "sd_log_active_fraction": 0.6522784225118236
+      }
+    ],
+    "fit_log_active_fraction": {
+      "slope": -0.3748655967267055,
+      "intercept": 5.458644507526825,
+      "r_squared": 0.9997529460470073
+    },
+    "fit_log_normalized_fraction": {
+      "slope": -0.3748655967267055,
+      "intercept": 0.4888312079508239,
+      "r_squared": 0.9997529460470073
+    }
+  },
+  "n200_representative_periods": [
+    {
+      "n": 200,
+      "period": 12,
+      "replicates": 6,
+      "particles": 4096,
+      "mutation_steps": 128,
+      "mean_log_active_fraction": -69.52921684698467,
+      "sd_log_active_fraction": 0.6522784225118236,
+      "mean_log_normalized_fraction": -74.49903014656067,
+      "minimum_acceptance": 0.0851593017578125,
+      "minimum_distinct_fraction": 0.999755859375
+    },
+    {
+      "n": 200,
+      "period": 14,
+      "replicates": 2,
+      "particles": 8192,
+      "mutation_steps": 256,
+      "mean_log_active_fraction": -69.30551146166908,
+      "sd_log_active_fraction": 1.183505274688544,
+      "mean_log_normalized_fraction": -74.5836261208996,
+      "minimum_acceptance": 0.08614444732666016,
+      "minimum_distinct_fraction": 1.0
+    },
+    {
+      "n": 200,
+      "period": 20,
+      "replicates": 2,
+      "particles": 8192,
+      "mutation_steps": 256,
+      "mean_log_active_fraction": -67.68525006569607,
+      "sd_log_active_fraction": 1.2650735260885015,
+      "mean_log_normalized_fraction": -73.67671461280405,
+      "minimum_acceptance": 0.09076642990112305,
+      "minimum_distinct_fraction": 1.0
+    },
+    {
+      "n": 200,
+      "period": 24,
+      "replicates": 2,
+      "particles": 8192,
+      "mutation_steps": 256,
+      "mean_log_active_fraction": -80.86299072309055,
+      "sd_log_active_fraction": 0.14472488922886848,
+      "mean_log_normalized_fraction": -87.21909838378645,
+      "minimum_acceptance": 0.03688478469848633,
+      "minimum_distinct_fraction": 0.99462890625
+    }
+  ],
+  "conservative_statistical_assumption": {
+    "formula": "|A_tau(n,r)|/(2^n r^2) >= exp(-beta n)",
+    "beta": 0.55,
+    "minimum_observed_log_margin": 1.7405766097144806,
+    "condition_for_positive_exponent": "beta < ln(2)",
+    "ln2": 0.6931471805599453,
+    "implied_dfi_exponent": 0.14314718055994524,
+    "implied_bound": "I_r >= 0.00015 exp((0.14314718056) n)"
+  },
+  "unresolved_scope": "Uniformity over every even non-dyadic r at n=200 is an explicit statistical assumption; point queries with exponentially large odd parts are not evaluated. Odd denominator periods remain separate."
+}

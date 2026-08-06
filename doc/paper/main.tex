@@ -1,7 +1,7 @@
     
 \documentclass[reprint, aps, prl, superscriptaddress]{revtex4-2}
 \usepackage{graphicx, float, xcolor}
-\graphicspath{{fig/}{../../figs/fi_fig/}{../../figs/recover/}}
+\graphicspath{{fig/}{../../figs/}{../../figs/fi_fig/}{../../figs/recover/}{../../figs/ml/}}
 \usepackage[ruled,linesnumbered]{algorithm2e}
 \usepackage{physics}
 \usepackage{hyperref}
@@ -356,7 +356,7 @@ Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit c
     \includegraphics[width=\columnwidth]{period_recovery_18q_val_metrics.pdf}
     \vspace{0.5em}
     \makebox[\columnwidth][l]{\textbf{(b)}}\\[-0.2em]
-    \includegraphics[width=\columnwidth]{shor_foundk_overview.pdf}
+    \includegraphics[width=\columnwidth]{shor_ph1_18q_p18-511_foundk_paper.pdf}
     \caption{\label{fig:recovery_pipeline}
     \textbf{\rev{Numerical simulation shows successful Shor factoring via \myqc-1.}}
     \rev{(a) Validation loss, top-1 accuracy, and top-4 accuracy for neural-network period recovery on an 18-qubit instance.
@@ -368,7 +368,7 @@ Fig.~\ref{fig:fi_scaling} also compares the scaling of different \myqc~circuit c
 
 \rev{The outcomes are fed into a shared feature map \(\phi\), which maps each bitstring \(b_i\) to a feature vector. }
 % within 2 linear layers and $16n$ feature dimension.
-The feature vectors are then summed to form an aggregated, permutation-invariant representation $\sum_i\phi(b_i)$. \rev{This representation conditions a parameter-shared autoregressive decoder for the binary expansion of the generator. At each decoding step, the decoder emits 16 scores for the next four-bit block and retains the four highest-scoring prefixes in a beam search \cite{sutskever2014sequence, wiseman2016sequence}. Thus, the decoder has no output layer indexed by all candidate generators.} We use a polynomial number of samples to train the neural net.} This architecture avoids exponential sample-space computations and outputs a ranked list of candidate generators for classical verification.
+The feature vectors are then summed to form an aggregated, permutation-invariant representation $\sum_i\phi(b_i)$. \rev{This representation conditions a parameter-shared autoregressive decoder for the binary expansion of the generator. At each decoding step, the decoder emits 16 scores for the next four-bit block and retains the four highest-scoring prefixes in a beam search \cite{sutskever2014sequence, wiseman2016sequence}. Thus, the decoder has no output layer indexed by all candidate generators.} We use a polynomial number of samples to train the neural net. This architecture avoids exponential sample-space computations and outputs a ranked list of candidate generators for classical verification.
 \rev{Further architectural and training details are provided in Appendix~\ref{sec:AppendixDecoder}.}
 
 \section{Replacing \texorpdfstring{$\mathcal{O}(n^2)$}{O(n2)} QFT with \texorpdfstring{$\mathcal{O}(n)$}{O(n)}\myqc{}-1 in Shor's Algorithm}We evaluate the optimized \myqc{}-1 circuit in classical numerical simulations of Shor's algorithm for factoring with neural net classical post-processing. \rev{The \myqc{}-1 circuit and neural-network decoder are developed as a general framework for hidden-generator recovery in the HSP, with Shor's algorithm serving as a representative application.} Shor's algorithm seeks the generator $r$ satisfying $a^r \equiv 1 \pmod{N}$. We select the base $a$ such that $1 \le r \le 2^{n/2}$, ensuring resolvability by the $n$-qubit register. \rev{We consider factoring 18-qubit semiprime instances with \(N=225001,\ldots,254999\).}

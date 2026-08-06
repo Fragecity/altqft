@@ -819,7 +819,7 @@ of summation, and substituting the \(x\)-sum kernel explicitly gives
 	\end{align}
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=0.8\columnwidth]{fig/hp1_sumPP.pdf}
+    \includegraphics[width=0.8\columnwidth]{hp1_mixed_B_rescaled_n200_a0_150_100pairs_k001_conditioned.pdf}
     \caption{\label{fig:hp1_mixed_B_statistical_law}
     Conditioned Monte Carlo estimate of \(B_{s,t}^{(n)}\) for fixed-phase
     \myqc-1 at \(n=200\).  For each \(a=0,\ldots,150\), \(100\) dyadic
@@ -967,196 +967,191 @@ for constants \(k\) and \(b\).
 \end{theoremrestatement}
 
 \begin{proof}[Proof of Theorem~\ref{thm:hp1_first_order_fisher_transfer_maintext}]
-We prove the claim by converting the discrete Fisher information into a
-collision-overlap estimate for two neighboring period distributions.  The
-quantity in the theorem compares the sampling laws at periods \(r\) and
-\(r+1\).  Thus the first step is to isolate the part of the DFI that measures
-how far these two laws are from each other, while keeping track of the
-normalizing denominator coming from the law at \(r\):
-\begin{equation}
+Set \(N:=2^n\).  We begin directly from the DFI in Eq.~\eqref{eq:DFI}:
+\begin{equation*}
     \fii(r,n)
     =
     \sum_{x\in\{0,1\}^n}
-    \frac{\left(\mathrm{Pr}(x\mid r+1)-\mathrm{Pr}(x\mid r)\right)^2}
-    {\mathrm{Pr}(x\mid r)}.
-    \label{eq:hp1_dfi_algebraic_expansion}
-\end{equation}
-The denominator in Eq.~\eqref{eq:hp1_dfi_algebraic_expansion} is inconvenient
-for direct use of Lemma~\ref{lem:hp1_period_law_overlap}, which controls
-quadratic overlaps of probability laws.  We therefore introduce exactly the two
-quadratic objects needed for the reduction: the overlap between two period laws
-and the squared \(L^2\) distance between adjacent laws,
-\begin{align}
-    S_{s,t}
-    &:=
-    \sum_{x\in\{0,1\}^n}
-    \mathrm{Pr}(x\mid s)\mathrm{Pr}(x\mid t),
-    \label{eq:hp1_probability_overlap_definition}\\
-    D_r
-    &:=
-    \sum_{x\in\{0,1\}^n}
-    \left(\mathrm{Pr}(x\mid r+1)-\mathrm{Pr}(x\mid r)\right)^2 .
-    \label{eq:hp1_adjacent_squared_distance_definition}
-\end{align}
-This definition makes the numerator algebraic.  Expanding the square in
-\(D_r\) produces one self-overlap for period \(r+1\), one self-overlap for
-period \(r\), and one mixed overlap.  Hence
+    \frac{\left[\Pr(x\mid r+1)-\Pr(x\mid r)\right]^2}
+    {\Pr(x\mid r)}.
+\end{equation*}
+Write \(\Delta_r(x):=\Pr(x\mid r+1)-\Pr(x\mid r)\).  Since every DFI
+summand is nonnegative, we may retain only those outputs for which the
+denominator is exponentially small, \(\Pr(x\mid r)<2/N=2^{1-n}\), while the
+finite difference is sufficiently large.  For any constant \(\tau>0\),
+independent of \(n\) and \(r\), define
 \begin{equation}
-    D_r
-    =
-    S_{r+1,r+1}-2S_{r+1,r}+S_{r,r}.
-    \label{eq:hp1_adjacent_squared_distance_overlap_form}
-\end{equation}
-We next remove the pointwise denominator in the DFI.  The self-overlap
-\(S_{r,r}\) is the collision probability of the period-\(r\) output law, so it
-controls every point mass of that law.  Since each summand in \(S_{r,r}\) is
-nonnegative, for every \(x\) we have
-\begin{equation}
-    \mathrm{Pr}(x\mid r)^2
-    \le
-    \sum_y \mathrm{Pr}(y\mid r)^2
-    =
-    S_{r,r},
-    \qquad
-    \mathrm{Pr}(x\mid r)\le\sqrt{S_{r,r}}.
-    \label{eq:hp1_point_probability_overlap_bound}
-\end{equation}
-Consequently each nonzero denominator in
-Eq.~\eqref{eq:hp1_dfi_algebraic_expansion} is at most
-\(\sqrt{S_{r,r}}\).  This converts the DFI into a lower bound depending only on
-the adjacent \(L^2\) distance, and then on the three overlaps above:
-\begin{align}
-    \fii(r,n)
-    &=
-    \sum_x
-    \frac{\left(\mathrm{Pr}(x\mid r+1)-\mathrm{Pr}(x\mid r)\right)^2}
-    {\mathrm{Pr}(x\mid r)} \nonumber\\
-    &\ge
-    \frac{1}{\sqrt{S_{r,r}}}
-    \sum_x
-    \left(\mathrm{Pr}(x\mid r+1)-\mathrm{Pr}(x\mid r)\right)^2 \nonumber\\
-    &=
-    \frac{D_r}{\sqrt{S_{r,r}}}
-    =
-    \frac{S_{r+1,r+1}-2S_{r+1,r}+S_{r,r}}{\sqrt{S_{r,r}}}.
-    \label{eq:hp1_dfi_lower_bound_by_overlaps}
-\end{align}
-At this point the problem has been reduced to estimating the three overlap
-terms in Eq.~\eqref{eq:hp1_dfi_lower_bound_by_overlaps}.  The diagonal terms
-measure the concentration of each individual period law, while the mixed term
-measures how much the two adjacent period laws overlap.  These are precisely
-the quantities provided by Lemma~\ref{lem:hp1_period_law_overlap}.  Applying
-that lemma to the pair \(r,r+1\) gives
-\begin{align}
-    S_{r,r}
-    &\approx
-    \frac{1}{2^n}
-    +
-    \kappa_{\nu_2(r)}
-    \frac{2^{\nu_2(r)}}{r^2}, \nonumber\\
-    S_{r+1,r+1}
-    &\approx
-    \frac{1}{2^n}
-    +
-    \kappa_{\nu_2(r+1)}
-    \frac{2^{\nu_2(r+1)}}{(r+1)^2}, \nonumber\\
-    S_{r+1,r}
-    &\approx
-    \frac{1}{2^n}
-    +
-    \frac{\kappa_0}{r(r+1)},
-    \label{eq:hp1_adjacent_overlap_substitution}
-\end{align}
-where \(\nu_2(\gcd(r,r+1))=0\).  The common \(2^{-n}\) term is the uniform
-background contribution.  It appears in all three overlaps, so it cancels in
-the numerator \(S_{r+1,r+1}-2S_{r+1,r}+S_{r,r}\).  Substituting
-Eq.~\eqref{eq:hp1_adjacent_overlap_substitution} into
-Eq.~\eqref{eq:hp1_dfi_lower_bound_by_overlaps} therefore gives the following
-explicit lower bound:
-\begin{equation}
-    \fii(r,n)
-    \gtrsim
-    \frac{
-        \kappa_{\nu_2(r+1)}
-        \dfrac{2^{\nu_2(r+1)}}{(r+1)^2}
-        -
-        \dfrac{2\kappa_0}{r(r+1)}
-        +
-        \kappa_{\nu_2(r)}
-        \dfrac{2^{\nu_2(r)}}{r^2}
-    }{
-        \sqrt{
-            \dfrac{1}{2^n}
-            +
-            \kappa_{\nu_2(r)}
-            \dfrac{2^{\nu_2(r)}}{r^2}
-        }
-    }.
-    \label{eq:hp1_dfi_overlap_substituted_bound}
-\end{equation}
-We now identify the leading behavior of the right-hand side.  For the generic
-adjacent case, assume \(\{\nu_2(r),\nu_2(r+1)\}=\{0,1\}\).  This means one of
-the two adjacent periods carries one factor of \(2\), while the other is odd.
-In either parity ordering, the leading \(r^{-2}\) contributions in the
-numerator combine in the same way.  Thus the numerator of
-Eq.~\eqref{eq:hp1_dfi_overlap_substituted_bound} satisfies, in either parity
-case,
-\begin{equation}
-    \kappa_{\nu_2(r+1)}
-    \frac{2^{\nu_2(r+1)}}{(r+1)^2}
-    -
-    \frac{2\kappa_0}{r(r+1)}
-    +
-    \kappa_{\nu_2(r)}
-    \frac{2^{\nu_2(r)}}{r^2}
-    =
-    \frac{2\kappa_1-\kappa_0+\mathcal O(r^{-1})}{r^2}.
-    \label{eq:hp1_adjacent_nu01_numerator_scale}
-\end{equation}
-The denominator is a collision scale for the period-\(r\) law.  In the window
-used for the theorem, \(r^2\ll 2^n\), so the structured collision term
-\(\kappa_{\nu_2(r)}2^{\nu_2(r)}/r^2\) dominates the uniform background
-\(2^{-n}\).  Hence the denominator has size \(1/r\):
-\begin{equation}
-    \sqrt{
-        \frac{1}{2^n}
-        +
-        \kappa_{\nu_2(r)}
-        \frac{2^{\nu_2(r)}}{r^2}
-    }
-    =
-    \frac{\sqrt{c_r+o(1)}}{r},
-    \qquad
-    c_r:=\kappa_{\nu_2(r)}2^{\nu_2(r)}\in\{\kappa_0,2\kappa_1\},
-    \label{eq:hp1_adjacent_nu01_denominator_scale}
-\end{equation}
-where \(r^2\ll2^n\) was used.  Combining the \(r^{-2}\) numerator scale with
-the \(r^{-1}\) denominator scale leaves a \(1/r\) lower bound.  Therefore, for
-\(2\kappa_1>\kappa_0\),
-\begin{equation}
-    \fii(r,n)
-    \gtrsim
-    \frac{2\kappa_1-\kappa_0+\mathcal O(r^{-1})}
-    {\sqrt{c_r+o(1)}}\,\frac{1}{r}
-    =
-    \Omega\!\left(\frac{1}{r}\right).
-    \label{eq:hp1_adjacent_nu01_dfi_scale}
-\end{equation}
-This is the main estimate: within the generic adjacent class, the DFI cannot
-decay faster than a reciprocal period scale.  The theorem then follows by
-taking the minimum over the restricted window.  Since \(r<2^{n/4}\), the
-reciprocal-period lower bound has an exponential dependence on \(n\) on the
-natural-log scale.  Absorbing the fixed prefactors and window-endpoint effects
-into the constants gives the stated ln-linear exponential form
-\begin{equation}
-    \fii_{\min}(n)
+    A_\tau(n,r)
     :=
-    \min_{2\le r<2^{n/4}}\fii(r,n)
+    \left\{
+        x\in\{0,1\}^n:
+        \Pr(x\mid r)<\frac{2}{N},
+        \ \Delta_r(x)^2\ge\frac{\tau}{Nr^2}
+    \right\}.
+    \label{eq:hp1_active_tail_set}
+\end{equation}
+Equivalently, the two scaled conditions used by the rare-event simulation are
+\(N\Pr(x\mid r)<2\) and
+\(\bigl[N\Delta_r(x)\bigr]^2r^2\ge\tau N\).
+Restricting the DFI sum to this active set and applying its two defining
+inequalities gives
+\begin{equation}
+    \fii(r,n)
+    \ge \sum_{x\in A_\tau(n,r)}
+    \frac{\Delta_r(x)^2}{\Pr(x\mid r)}
+    \ge \frac{\tau}{2r^2}\,\lvert A_\tau(n,r)\rvert.
+    \label{eq:hp1_active_tail_dfi_certificate}
+\end{equation}
+For completeness, Eq.~\eqref{eq:hp1_active_tail_dfi_certificate} also covers
+zero denominators.  Both \(\Pr(x\mid r)\) and \(\Pr(x\mid r+1)\) are
+probabilities and are therefore nonnegative.  If \(\Pr(x\mid r)>0\), we use
+the fraction as usual.  If \(\Pr(x\mid r)=0\), the term is \(0\) when
+\(\Pr(x\mid r+1)=0\) and \(+\infty\) when \(\Pr(x\mid r+1)>0\):
+\begin{equation}
+    \frac{\Delta_r(x)^2}{\Pr(x\mid r)}
+    :=
+    \begin{cases}
+        \dfrac{\Delta_r(x)^2}{\Pr(x\mid r)},
+        & \Pr(x\mid r)>0,\\[1mm]
+        0,
+        & \Pr(x\mid r)=\Pr(x\mid r+1)=0,\\[1mm]
+        +\infty,
+        & \Pr(x\mid r)=0<\Pr(x\mid r+1).
+    \end{cases}
+    \label{eq:hp1_exact_pearson_zero_convention}
+\end{equation}
+These are all the possible cases, so every term in the active-set sum is well
+defined.  If \(\Pr(x\mid r)=\Pr(x\mid r+1)=0\), then
+\(\Delta_r(x)=0\), so the large-numerator condition
+\(\Delta_r(x)^2\ge\tau/(Nr^2)>0\) fails and the output is not in
+\(A_\tau(n,r)\).  If \(\Pr(x\mid r)=0<\Pr(x\mid r+1)\) while the output is
+active, its contribution is \(+\infty\), in which case the lower bound in
+Eq.~\eqref{eq:hp1_active_tail_dfi_certificate} holds trivially.  Every
+remaining active output has \(\Pr(x\mid r)>0\), where the ordinary pointwise estimate
+\begin{equation}
+    \frac{\Delta_r(x)^2}{\Pr(x\mid r)}
+    \ge
+    \frac{\tau/(Nr^2)}{2/N}
+    =
+    \frac{\tau}{2r^2}
+    \label{eq:hp1_active_tail_finite_point_bound}
+\end{equation}
+is finite and applies directly.  Thus a zero denominator can only remove an
+output from the active set or make the exact DFI infinite; it can never weaken
+the counting certificate.  No \(\epsilon\)-cutoff or denominator
+regularization is used in this argument.
+
+It remains to estimate the size of the rare event.  Introduce its normalized
+count
+\begin{equation}
+    G_\tau(n,r)
+    :=
+    \frac{\lvert A_\tau(n,r)\rvert}{Nr^2}.
+    \label{eq:hp1_active_tail_normalized_count}
+\end{equation}
+For the numerical rare-event estimate below, we now choose
+\(\tau=3\times10^{-4}\).  The adaptive simulation evaluates this quantity by
+subset simulation, using a log-domain roots-of-unity formula for the point
+probabilities.  The
+estimator was first calibrated against complete enumeration and ordinary
+Monte Carlo in regimes where the event is directly resolvable.  For example,
+the reference active fractions at \((n,r)=(20,12),(22,12),(30,12)\) are
+\(0.06952095\), \(0.03225803\), and \(0.00213275\), respectively, while the
+subset estimates lie in the corresponding ranges \(0.069\)--\(0.072\),
+\(0.0312\)--\(0.0331\), and \(0.00212\)--\(0.00226\).
+
+The resulting rare-event conclusion is the conservative statistical
+lower-envelope law
+\begin{equation}
+    \min_{2\le r<2^{n/4}}G_\tau(n,r)
     \gtrsim
+    c_A e^{-\beta n},
+    \qquad
+    c_A>0,
+    \qquad
+    \beta=0.55<\ln 2.
+    \label{eq:hp1_active_tail_rare_event_law}
+\end{equation}
+Figure~\ref{fig:hp1_active_tail_linear_fits} visualizes three complementary
+log-linear checks supporting this conservative lower-envelope choice.
+Complete enumeration of the even non-dyadic part of the restricted window
+gives \(\min_r\log G_\tau(n,r)=-0.499916n+1.49303\) over
+\(n=14,\ldots,20\), with \(R^2=0.999554\).  For fixed \(r=12\), subset
+simulation at ten-qubit intervals through \(n=200\) gives
+\(\log G_\tau(n,12)=-0.375465n+0.789480\), with \(R^2=0.996496\).
+To probe substantially larger periods, we additionally sample eleven points
+at \(n=20,24,\ldots,60\), choosing even non-dyadic periods near the moving
+window edge.  The periods increase from \(r=30\) to \(r=32000\), and each lies
+between \(0.9375\) and \(0.9766\) of the upper limit \(2^{n/4}\).
+These near-edge points give \(\log G_\tau=-0.526862n+2.04513\), with
+\(R^2=0.999942\), and remain above \(-0.55n\) by a minimum log margin of
+\(2.546\).  The near-edge sweep stops at \(n=60\) because the exact point
+query scales as \(O(n[u_r+u_{r+1}])\), where \(u_s\) is the odd part of
+\(s\); along \(r\simeq2^{n/4}\), this cost doubles approximately every four
+qubits.  Representative
+bounded-odd-part period checks at \(n=200\), together with the exact-window
+data, also remain above the conservative envelope; the smallest observed log
+margin over all reported checks is \(1.741\).
+Equation~\eqref{eq:hp1_active_tail_rare_event_law} extrapolates this observed
+lower envelope uniformly over the period window in the theorem.  It is the
+explicit empirical closure of the argument, not an independent analytic
+bound.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{hp1_active_tail_linear_fits.pdf}
+    \caption{\label{fig:hp1_active_tail_linear_fits}
+    \textbf{Log-linear scaling of the active-tail count.}
+    (a) Complete-enumeration values of \(\ln G_\tau(n,r)\) for every even
+    non-dyadic period in the restricted window (light points), together with
+    the window minima (filled circles), their ordinary least-squares fit over
+    \(n=14,\ldots,20\), and the conservative envelope \(-0.55n\) (dashed).
+    (b) Subset-simulation estimates of \(\ln G_\tau(n,r)\) for fixed
+    \(r=12\) at \(n=20,30,\ldots,200\) (circles), and for eleven
+    near-window-edge periods increasing from \(r=30\) to \(r=32000\) at
+    \(n=20,24,\ldots,60\) (triangles).  Lines are
+    ordinary least-squares fits to the corresponding points.  The fits
+    summarize finite-window numerical evidence and are not uniform analytic
+    bounds.}
+\end{figure}
+
+Combining Eqs.~\eqref{eq:hp1_active_tail_dfi_certificate} and
+\eqref{eq:hp1_active_tail_normalized_count} yields
+\begin{equation}
+    \fii(r,n)
+    \ge
+    \frac{\tau N}{2}G_\tau(n,r).
+    \label{eq:hp1_active_tail_dfi_normalized}
+\end{equation}
+Taking the minimum over the restricted period window and applying
+Eq.~\eqref{eq:hp1_active_tail_rare_event_law}, we obtain
+\begin{align}
+    \fii_{\min}(n)
+    &=
+    \min_{2\le r<2^{n/4}}\fii(r,n) \nonumber\\
+    &\gtrsim
+    \frac{\tau c_A}{2}
+    \exp\!\left[(\ln 2-\beta)n\right]
+    =
     \exp(kn+b),
     \label{eq:hp1_restricted_window_ln_linear_bound}
+\end{align}
+where
+\begin{equation}
+    k:=\ln 2-\beta>0,
+    \qquad
+    b:=\ln\!\left(\frac{\tau c_A}{2}\right).
+    \label{eq:hp1_active_tail_k_b}
 \end{equation}
-for constants \(k\) and \(b\).
+For the conservative choices \(c_A=1\) and \(\beta=0.55\), this is the
+explicit simulation-supported bound
+\begin{equation}
+    \fii_{\min}(n)
+    \gtrsim
+    1.5\times10^{-4}\exp(0.143147\,n),
+    \label{eq:hp1_active_tail_explicit_bound}
+\end{equation}
+which has the form stated in the theorem.
 \end{proof}
 
 
@@ -1210,7 +1205,7 @@ This comparison sharpens the interpretation of Fig.~\ref{fig:fi_scaling}. The \m
 \label{sec:AppendixDecoder}
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=0.9\linewidth]{fig/vpq_dist.pdf}
+    \includegraphics[width=0.9\linewidth]{vpq_dist.pdf}
     \caption{\textbf{Period-dependent HP output distributions.} Output
     probabilities for two hidden periods, \(r=3\) and \(r=5\).  The
     period-dependent peak structure shows that the measurement samples retain
@@ -1254,7 +1249,7 @@ Fig.~\ref{fig:decoder_mle} decrease rapidly as the number of samples increases, 
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=0.9\linewidth]{fig/mle.pdf}
+    \includegraphics[width=0.9\linewidth]{mle.pdf}
     \caption{\textbf{Maximum-likelihood decoding benchmark.} Empirical failure
     rate of the MLE as a function of the number of measurement samples for
     \(n=8,9,10,\) and \(11\).  The rapid decrease in failure rate illustrates
@@ -1374,7 +1369,7 @@ same autoregressive model.
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=0.6\linewidth]{fig/ml_arch.pdf}
+    \includegraphics[width=0.6\linewidth]{ml_arch.pdf}
     \caption{\textbf{Neural decoder architecture.} The HP circuit produces an
     unordered set of measurement bit strings.  A shared Deep Sets encoder
     aggregates their features, and a parameter-shared four-bit autoregressive
@@ -1392,7 +1387,7 @@ The use of a neural decoder should be distinguished from an analytical decoding 
 
 \begin{figure*}[h]
     \centering
-    \includegraphics[width=0.78\textwidth]{fig/gate_noise_accuracy.pdf}
+    \includegraphics[width=0.78\textwidth]{gate_noise_accuracy.pdf}
     \caption{\textbf{Gate-level noise robustness.} Top-1 period-recovery success rate of the fixed 18-qubit \myqc-1 four-bit autoregressive decoder under stochastic Pauli errors inserted after every Hadamard and controlled-phase gate. The sweep evaluates \(510\) periods, averages four noisy-circuit trajectories per period, and uses \(331776=1024n^2\) samples at \(n=18\).}
     \label{fig:gate_noise_accuracy}
 \end{figure*}
